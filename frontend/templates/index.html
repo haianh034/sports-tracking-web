@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Sports Tracking Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/css/styles.css?v=2.5">
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <div class="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1">
+        <header class="mb-6 pb-6 border-b border-gray-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300 flex items-center gap-3">
+                    <span>🏅</span> Multi-Sports Tracker
+                </h1>
+                <p class="text-xs sm:text-sm text-gray-400 mt-1">Hệ thống theo dõi vận động viên & đội tuyển quốc gia/đội trẻ tự động</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button onclick="syncAllPlayersData()" id="syncBtn" 
+                    class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-sm font-semibold px-3.5 py-2 rounded-lg shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition duration-150" title="Cập nhật lại câu lạc bộ, lịch thi đấu và quét tin tức">
+                    <span id="syncSpinner" class="hidden animate-spin">🔄</span>
+                    <span id="syncIcon">🔄</span>
+                    <span>Cập nhật dữ liệu</span>
+                </button>
+
+                <button onclick="openAddModal()" 
+                    class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-blue-600/30 flex items-center gap-2 transition duration-150">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Thêm Theo Dõi</span>
+                </button>
+
+                <select id="sportFilter" onchange="loadDashboard(false)" class="bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <option value="">Tất cả môn</option>
+                </select>
+
+                <select id="countryFilter" onchange="loadDashboard(false)" class="bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <option value="">Tất cả quốc tịch</option>
+                </select>
+            </div>
+        </header>
+
+        <div id="toastAlert" class="hidden mb-4 p-3.5 rounded-lg text-sm flex items-center justify-between transition-all">
+            <span id="toastMsg"></span>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-white">&times;</button>
+        </div>
+
+        <!-- BỘ LỌC ĐỐI TƯỢNG (TẤT CẢ / VẬN ĐỘNG VIÊN / ĐỘI TUYỂN & ĐỘI TRẺ) -->
+        <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-900/80 p-2 rounded-2xl border border-gray-800 shadow-md">
+            <div class="flex items-center gap-2 flex-wrap">
+                <button id="entityFilterAllBtn" onclick="setEntityTypeFilter('all')"
+                    class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all bg-blue-600 text-white shadow-md shadow-blue-600/30">
+                    <span>⚡</span> <span>Tất cả</span>
+                    <span id="allEntitiesTotalBadge" class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-blue-950 text-blue-200 border border-blue-800 font-mono">0</span>
+                </button>
+                <button id="entityFilterPlayersBtn" onclick="setEntityTypeFilter('player')"
+                    class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-gray-800/80">
+                    <span>🏃</span> <span>Vận động viên</span>
+                    <span id="playersTotalBadge" class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-mono">0</span>
+                </button>
+                <button id="entityFilterNationalBtn" onclick="setEntityTypeFilter('national_team')"
+                    class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-gray-800/80">
+                    <span>🏛️</span> <span>Đội tuyển & Đội trẻ</span>
+                    <span id="nationalTotalBadge" class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-mono">0</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- BỘ LỌC LỊCH THI ĐẤU TOÀN MÙA TRÊN CÙNG (DÙNG CHUNG CHO CẢ VĐV VÀ ĐỘI TUYỂN) -->
+        <div id="topDateFilterBar" class="mb-6 bg-gray-900/90 border border-gray-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3.5">
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                        <span>📅</span> <span>Lọc theo ngày thi đấu (Toàn bộ mùa giải)</span>
+                        <span id="activeDateBadgeLabel" class="hidden text-xs px-2.5 py-0.5 rounded-full bg-blue-900/70 text-blue-300 border border-blue-700 font-semibold"></span>
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Chọn bất kỳ ngày nào trong mùa để xem các vận động viên và đội tuyển thi đấu (thông số & tin tức thuộc đúng trận đó).</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                    <!-- Chọn Năm -->
+                    <div class="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
+                        <span class="text-gray-400 font-medium">Năm:</span>
+                        <select id="calendarYearSelect" onchange="changeCalendarYear(this.value)" class="bg-gray-800 text-white font-bold font-mono focus:outline-none cursor-pointer">
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
+                        </select>
+                    </div>
+
+                    <button onclick="jumpToCalendarToday()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-sm flex items-center gap-1.5">
+                        <span>🎯</span> Hôm nay
+                    </button>
+                    <div class="relative flex items-center">
+                        <input type="text" id="topDatePickerDisplay" placeholder="dd/mm/yyyy" maxlength="10"
+                            onchange="onCustomDateInput(this.value)"
+                            onkeydown="if(event.key==='Enter') onCustomDateInput(this.value)"
+                            class="bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg pl-2.5 pr-8 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono w-32 text-center"
+                            title="Nhập ngày dạng ngày/tháng/năm (dd/mm/yyyy)">
+                        <input type="date" id="topDatePicker" onchange="onCustomDateSelected(this.value)" 
+                            class="absolute right-1 w-6 h-6 opacity-0 cursor-pointer">
+                        <span class="pointer-events-none absolute right-2 text-gray-400 text-xs">📅</span>
+                    </div>
+                    <button onclick="clearDateFilter()" id="clearDateFilterBtn" class="hidden px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+                        ✕ Đóng lọc
+                    </button>
+                </div>
+            </div>
+
+            <!-- THANH CUỘN NGANG TẤT CẢ CÁC NGÀY TRONG NĂM ĐÃ CHỌN (01/01 -> 31/12) -->
+            <div id="topDateStripContainer" class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                <!-- Rendered dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- TABS ĐIỀU HƯỚNG CHÍNH -->
+        <div class="border-b border-gray-800 mb-6">
+            <nav class="flex space-x-6 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
+                <button id="tabActiveBtn" onclick="switchTab('active')"
+                    class="tab-btn py-3 px-1 border-b-2 font-bold text-sm flex items-center gap-2 border-blue-500 text-blue-400 transition-colors duration-150">
+                    <span class="text-base">🔥</span>
+                    <span>Today's Activities</span>
+                    <span id="activeCountBadge" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-semibold">0</span>
+                </button>
+
+                <button id="tabUpcomingBtn" onclick="switchTab('upcoming')"
+                    class="tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150">
+                    <span class="text-base">⏳</span>
+                    <span>Upcoming Matches</span>
+                    <span class="text-[11px] text-gray-400 font-normal hidden sm:inline">(Có trận trong 30 ngày tới)</span>
+                    <span id="upcomingCountBadge" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700 font-semibold">0</span>
+                </button>
+
+                <button id="tabNoMatchBtn" onclick="switchTab('no_match')"
+                    class="tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150">
+                    <span class="text-base">💤</span>
+                    <span>No Match</span>
+                    <span class="text-[11px] text-gray-400 font-normal hidden sm:inline">(Không có trận trong 30 ngày tới)</span>
+                    <span id="noMatchCountBadge" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700 font-semibold">0</span>
+                </button>
+
+                <button id="tabScheduleBtn" onclick="switchTab('schedule')"
+                    class="tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150">
+                    <span class="text-base">📅</span>
+                    <span>Schedule</span>
+                    <span id="scheduleCountBadge" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700 font-semibold">0</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- PANEL HIỂN THỊ KẾT QUẢ KHI LỌC THEO NGÀY CỤ THỂ -->
+        <main id="dateFilteredResultsPanel" class="tab-panel hidden transition-opacity duration-200">
+            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-sm sm:text-base font-bold text-blue-400" id="selectedDateTitle">Ngày được chọn</span>
+                    <span id="selectedDateCountBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-blue-900/60 text-blue-300 border border-blue-700 font-bold">0 trận</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 italic hidden sm:inline">• Trận đã đấu hiện theo Today's Activities; trận sắp tới hiện theo Upcoming</span>
+                </div>
+            </div>
+
+            <div id="dateFilteredCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            </div>
+        </main>
+
+        <main id="activeTabPanel" class="tab-panel transition-opacity duration-200">
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-xs sm:text-sm text-gray-400">Vận động viên & Đội tuyển thi đấu hôm nay hoặc có tin tức tiêu điểm.</p>
+                <span class="text-xs text-gray-500 italic hidden sm:inline">Ưu tiên xếp theo số lượng báo chí & phong độ</span>
+            </div>
+            <div id="activeContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            </div>
+        </main>
+
+        <main id="upcomingTabPanel" class="tab-panel hidden transition-opacity duration-200">
+            <div class="mb-4">
+                <p class="text-xs sm:text-sm text-gray-400">Vận động viên & Đội tuyển có lịch thi đấu chính thức trong vòng 30 ngày sắp tới.</p>
+            </div>
+            <div id="inactiveContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            </div>
+        </main>
+
+        <main id="noMatchTabPanel" class="tab-panel hidden transition-opacity duration-200">
+            <div class="mb-4">
+                <p class="text-xs sm:text-sm text-gray-400">Vận động viên & Đội tuyển chưa có lịch trong 1 tháng tới (nghỉ mùa, kỳ chuyển nhượng hoặc chờ xếp lịch).</p>
+            </div>
+            <div id="noMatchContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            </div>
+        </main>
+
+        <main id="scheduleTabPanel" class="tab-panel hidden transition-opacity duration-200">
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-xs sm:text-sm text-gray-400">Tất cả đối tượng theo dõi với lịch 3 trận sắp tới và chi tiết 30 ngày.</p>
+                <span class="text-xs text-gray-500 italic hidden sm:inline">Nhấp vào thẻ để xem toàn bộ lịch đấu 30 ngày & tin báo</span>
+            </div>
+            <div id="scheduleContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL CHI TIẾT (VĐV & ĐỘI TUYỂN) -->
+    <div id="detailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-all duration-200" onclick="handleBackdropClick(event)">
+        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative text-gray-200 max-h-[90vh] flex flex-col">
+            <div class="flex items-start justify-between pb-3 border-b border-gray-800">
+                <div>
+                    <h3 id="modalPlayerName" class="text-xl font-bold text-white flex items-center gap-2"></h3>
+                    <p id="modalPlayerSub" class="text-xs text-blue-400 font-medium mt-0.5"></p>
+                    <p id="modalPlayerAliases" class="text-[11px] text-gray-400 mt-1 italic"></p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="modalContent" class="py-4 space-y-4 overflow-y-auto pr-1 flex-1 text-sm">
+                <!-- THÔNG TIN CHẤN THƯƠNG & THỂ LỰC (DÀNH CHO TẤT CẢ CÁC MÔN) -->
+                <div id="modalInjurySection" class="hidden rounded-xl p-4 border transition-all duration-200">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <h4 id="modalInjuryHeader" class="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                            <span id="modalInjuryIcon">🚑</span> <span id="modalInjuryTitle">Tình trạng chấn thương & Thể lực</span>
+                        </h4>
+                        <span id="modalInjuryBadge" class="text-[11px] px-2.5 py-0.5 rounded-full font-bold shadow-sm"></span>
+                    </div>
+                    <div id="modalInjuryDetails" class="space-y-1.5 text-xs"></div>
+                </div>
+
+                <div class="bg-gray-950/70 border border-gray-800 rounded-xl p-4">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                        <span>⚽</span> Thông tin trận đấu & Phong độ
+                    </h4>
+                    <p id="modalMatchName" class="text-base font-semibold text-white mb-2"></p>
+                    <div id="modalRatingContainer" class="mb-2"></div>
+                    <div id="modalTagsContainer" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <div id="modalScheduleSection" class="bg-gray-950/70 border border-gray-800 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                            <span>📅</span> Lịch thi đấu 30 ngày tới
+                        </h4>
+                        <span id="modalScheduleCount" class="text-[11px] text-gray-400 font-medium"></span>
+                    </div>
+                    <div id="modalScheduleList" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="flex items-center gap-2">
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                                <span>🌐</span> Báo chí trong 48h qua (ngày thi đấu & ngày hôm trước)
+                            </h4>
+                            <span class="text-[10px] text-gray-500 italic hidden sm:inline">(chọn được nhiều mục cùng lúc)</span>
+                            <span id="modalNewsCount" class="text-[11px] text-gray-400 font-medium"></span>
+                        </div>
+                    </div>
+                    <div id="modalNewsFilterTabs" class="flex flex-wrap gap-1.5 mb-3"></div>
+                    <div id="modalNewsContainer" class="space-y-2.5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs">
+                <button onclick="copyAllNewsLinks()" id="btnCopyNewsLinksBottom" 
+                    class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95 shadow-sm">
+                    <span id="copyIcon">📋</span> <span id="copyBtnLabel">Copy link báo cho NotebookLM</span>
+                </button>
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg transition">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM THEO DÕI: VẬN ĐỘNG VIÊN & ĐỘI TUYỂN / ĐỘI TRẺ -->
+    <div id="addPlayerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-all duration-200" onclick="handleAddBackdropClick(event)">
+        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative text-gray-200 max-h-[92vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">⚡</span>
+                    <div class="flex items-center bg-gray-950 p-1 rounded-xl border border-gray-800">
+                        <button type="button" id="modalTabPlayerBtn" onclick="switchAddModalTab('player')"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-blue-600 text-white shadow-sm">
+                            🏃 Vận Động Viên
+                        </button>
+                        <button type="button" id="modalTabNationalBtn" onclick="switchAddModalTab('national')"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-gray-400 hover:text-gray-200">
+                            🏛️ Đội Tuyển / Tuyển Trẻ
+                        </button>
+                    </div>
+                </div>
+                <button onclick="closeAddPlayerModal()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- TAB 1: THÊM VẬN ĐỘNG VIÊN -->
+            <div id="addPlayerTabSection" class="flex-1 overflow-y-auto pr-1">
+                <p class="text-xs text-gray-400 mb-3">
+                    Nhập tên bất kỳ vận động viên nào. Hệ thống tìm kiếm theo API thể thao, tự động nhận diện CLB, môn thi đấu và gợi ý nếu có nhiều VĐV trùng tên.
+                </p>
+
+                <form id="addPlayerForm" onsubmit="submitAddPlayer(event)" class="space-y-4">
+                    <div id="inputFormSection">
+                        <label for="inputPlayerName" class="block text-xs font-semibold text-gray-300 mb-1">Tên cầu thủ (1 hoặc nhiều):</label>
+                        <textarea id="inputPlayerName" rows="3" placeholder="Ví dụ: Takefusa Kubo, Shohei Ohtani, Son Heung-min..."
+                            class="w-full bg-gray-950 border border-gray-700 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none transition"></textarea>
+                    </div>
+
+                    <!-- DISAMBIGUATION BOX -->
+                    <div id="disambiguationBox" class="hidden p-4 bg-gray-950/90 border border-blue-500/60 rounded-xl space-y-3">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                            <span class="text-xs font-bold text-blue-400 flex items-center gap-1.5 uppercase tracking-wide">
+                                <span>🔍</span> Chọn VĐV phù hợp: "<span id="disambigQueryName" class="text-white"></span>"
+                            </span>
+                            <span id="disambigProgressBadge" class="text-[11px] font-mono text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-800">1/1</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400">
+                            Tìm thấy nhiều vận động viên thể thao phù hợp. Vui lòng bấm chọn chính xác người bạn muốn theo dõi:
+                        </p>
+                        <div id="disambigList" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+                        <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-xs">
+                            <button type="button" onclick="skipCandidateItem()" class="text-gray-500 hover:text-gray-300 transition">Bỏ qua người này</button>
+                            <button type="button" onclick="promptCustomTeam()" class="text-blue-400 hover:underline">Chỉ định tên đội khác &rarr;</button>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-800 flex justify-end gap-2">
+                        <button type="button" onclick="closeAddPlayerModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-lg transition">Hủy</button>
+                        <button type="submit" id="submitBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg shadow-md shadow-blue-600/30 flex items-center gap-2 transition">
+                            <span id="submitSpinner" class="hidden animate-spin">🌀</span>
+                            <span id="submitBtnText">Tìm Kiếm & Thêm VĐV</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 2: THÊM ĐỘI TUYỂN / TUYỂN TRẺ -->
+            <div id="addNationalTabSection" class="hidden flex-1 overflow-y-auto pr-1 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Tìm kiếm đội tuyển chính thức:</label>
+                    <div class="relative">
+                        <input type="text" id="nationalSearchInput" oninput="onSearchNationalCatalog(this.value)"
+                            placeholder="Nhập tên: ĐTQG Nam Nhật Bản, ĐT U23 Hàn Quốc, Bóng rổ, Nữ..."
+                            class="w-full bg-gray-950 border border-gray-700 focus:border-blue-500 rounded-lg pl-9 pr-3 py-2 text-xs sm:text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none">
+                        <span class="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🎌</span> Danh mục ĐTQG & Tuyển trẻ Nhật Bản 🇯🇵 & Hàn Quốc 🇰🇷
+                        </span>
+                        <span id="catalogCountBadge" class="text-[11px] text-gray-400 font-mono">0 đội</span>
+                    </div>
+                    <div id="nationalCatalogList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-gray-800 flex justify-end">
+                    <button type="button" onclick="closeAddPlayerModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-lg transition">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=13.0"></script>
+</body>
+</html>
