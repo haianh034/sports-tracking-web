@@ -6,112 +6,15 @@ from backend.config import LEAGUE_SLUG_MAP
 
 TEAM_LEAGUE_CACHE = {}
 
-KNOWN_CLUB_LEAGUES = {
-    # Germany Bundesliga & Bundesliga 2
-    "schalke 04": "Bundesliga",
-    "schalke": "Bundesliga",
-    "karlsruher sc": "Bundesliga 2",
-    "karlsruher": "Bundesliga 2",
-    "hertha bsc": "Bundesliga 2",
-    "hertha": "Bundesliga 2",
-    "hamburger sv": "Bundesliga 2",
-    "1. fc köln": "Bundesliga 2",
-    "fc köln": "Bundesliga 2",
-    "fortuna düsseldorf": "Bundesliga 2",
-    "hannover 96": "Bundesliga 2",
-    "1. fc nürnberg": "Bundesliga 2",
-    "nürnberg": "Bundesliga 2",
-    "1. fc magdeburg": "Bundesliga 2",
-    "magdeburg": "Bundesliga 2",
-    "sv elversberg": "Bundesliga 2",
-    "elversberg": "Bundesliga 2",
-    "sc paderborn": "Bundesliga 2",
-    "paderborn": "Bundesliga 2",
-    "1. fc kaiserslautern": "Bundesliga 2",
-    "kaiserslautern": "Bundesliga 2",
-    "greuther fürth": "Bundesliga 2",
-    "sv darmstadt 98": "Bundesliga 2",
-    "darmstadt": "Bundesliga 2",
-    "eintracht braunschweig": "Bundesliga 2",
-    "preußen münster": "Bundesliga 2",
-    "ssv jahn regensburg": "Bundesliga 2",
-    "jahn regensburg": "Bundesliga 2",
-    "ssv ulm 1846": "Bundesliga 2",
-    "ssv ulm": "Bundesliga 2",
-    
-    # England Championship
-    "leeds united": "Championship",
-    "leeds": "Championship",
-    "coventry city": "Championship",
-    "coventry": "Championship",
-    "hull city": "Championship",
-    "hull": "Championship",
-    "burnley": "Championship",
-    "sheffield united": "Championship",
-    "luton town": "Championship",
-    "west bromwich albion": "Championship",
-    "west brom": "Championship",
-    "sunderland": "Championship",
-    "middlesbrough": "Championship",
-    "norwich city": "Championship",
-    "watford": "Championship",
-    "blackburn rovers": "Championship",
-    "derby county": "Championship",
-    "stoke city": "Championship",
-    "portsmouth": "Championship",
-    
-    # France Ligue 2
-    "fc metz": "Ligue 2",
-    "metz": "Ligue 2",
-    "fc lorient": "Ligue 2",
-    "lorient": "Ligue 2",
-    "clermont foot": "Ligue 2",
-    "guingamp": "Ligue 2",
-    "paris fc": "Ligue 2",
-    
-    # Spain La Liga 2
-    "real zaragoza": "La Liga 2",
-    "zaragoza": "La Liga 2",
-    "sporting gijón": "La Liga 2",
-    "sporting gijon": "La Liga 2",
-    "real oviedo": "La Liga 2",
-    "racing santander": "La Liga 2",
-    "levante ud": "La Liga 2",
-    "levante": "La Liga 2",
-    "elche cf": "La Liga 2",
-    "eibar": "La Liga 2",
-    "cádiz cf": "La Liga 2",
-    "almería": "La Liga 2",
-    "granada cf": "La Liga 2",
-    "deportivo la coruña": "La Liga 2",
-    
-    # Italy Serie B
-    "palermo": "Serie B",
-    "sampdoria": "Serie B",
-    "us sassuolo": "Serie B",
-    "sassuolo": "Serie B",
-    "salernitana": "Serie B",
-    "frosinone": "Serie B",
-    "spezia": "Serie B",
-    "bari": "Serie B",
-    "cremonese": "Serie B",
-    "pisa": "Serie B"
-}
-
 def resolve_team_league(team_name: str, sport_name: str = "") -> str:
     clean = (team_name or "").strip()
     if not clean or clean.lower() in ["tự do", "unknown", ""]:
         return ""
     key = clean.lower()
-    if key in KNOWN_CLUB_LEAGUES:
-        return KNOWN_CLUB_LEAGUES[key]
-    for kn_k, kn_val in KNOWN_CLUB_LEAGUES.items():
-        if kn_k in key or key in kn_k:
-            return kn_val
-
     if key in TEAM_LEAGUE_CACHE:
         return TEAM_LEAGUE_CACHE[key]
     
+    # 1. Truy vấn trực tiếp ESPN API động theo thời gian thực (tự động cập nhật thăng hạng/xuống hạng)
     try:
         url = f"https://site.web.api.espn.com/apis/search/v2?query={urllib.parse.quote(clean)}&limit=3"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -119,14 +22,18 @@ def resolve_team_league(team_name: str, sport_name: str = "") -> str:
             data = json.loads(res.read().decode())
             for item in data.get("results", []):
                 for content in item.get("contents", []):
+                    if content.get("type") != "team":
+                        continue
                     slug = content.get("defaultLeagueSlug", "") or ""
                     sub = (content.get("subtitle", "") or "").lower()
+                    
+                    # Khớp theo slug chuẩn của giải đấu từ ESPN (ví dụ: ger.1 -> Bundesliga, ger.2 -> Bundesliga 2)
                     if slug in LEAGUE_SLUG_MAP:
                         res_tag = LEAGUE_SLUG_MAP[slug]
                         TEAM_LEAGUE_CACHE[key] = res_tag
                         return res_tag
                     
-                    # Check 2nd tiers before 1st tiers
+                    # Kiểm tra phụ theo mô tả subtitle (xét giải hạng dưới trước hạng trên)
                     if any(k in sub for k in ["2. bundesliga", "2.bundesliga", "bundesliga 2", "zweite"]):
                         TEAM_LEAGUE_CACHE[key] = "Bundesliga 2"
                         return "Bundesliga 2"
@@ -198,45 +105,32 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
 
     # Germany: Check Bundesliga 2 BEFORE Bundesliga
     if any(k in c_lower for k in ["2. bundesliga", "2.bundesliga", "bundesliga 2", "zweite bundesliga", "german 2. bundesliga", "german bundesliga 2", "ger.2"]):
-        if any(t in t_lower for t in ["schalke"]):
-            return "Bundesliga"
         return "Bundesliga 2"
     if "bundesliga" in c_lower or "german bundesliga" in c_lower or "ger.1" in c_lower:
-        # Extra guard: Check if team is known to be in Bundesliga 2 (excluding Schalke 04)
-        if any(t in t_lower for t in ["karlsruher", "hertha", "hamburger sv", "hsv", "magdeburg", "nürnberg", "paderborn", "kaiserslautern", "düsseldorf", "elversberg", "fürth"]):
-            return "Bundesliga 2"
         return "Bundesliga"
 
     # Spain: Check La Liga 2 BEFORE La Liga
     if any(k in c_lower for k in ["la liga 2", "laliga 2", "segunda division", "segunda división", "hypermotion", "esp.2"]):
         return "La Liga 2"
     if "la liga" in c_lower or "laliga" in c_lower or "esp.1" in c_lower:
-        if any(t in t_lower for t in ["zaragoza", "sporting gijon", "oviedo", "racing santander", "levante", "elche", "albacete", "tenerife", "eibar", "cadiz", "almeria", "granada", "deportivo la coruña"]):
-            return "La Liga 2"
         return "La Liga"
 
     # Italy: Check Serie B BEFORE Serie A
     if any(k in c_lower for k in ["serie b", "italian serie b", "ita.2"]):
         return "Serie B"
     if "serie a" in c_lower or "italian serie a" in c_lower or "ita.1" in c_lower:
-        if any(t in t_lower for t in ["palermo", "sampdoria", "sassuolo", "salernitana", "frosinone", "spezia", "bari", "cesena", "cremonese", "pisa", "brescia"]):
-            return "Serie B"
         return "Serie A"
 
     # France: Check Ligue 2 BEFORE Ligue 1
     if any(k in c_lower for k in ["ligue 2", "french ligue 2", "fra.2"]):
         return "Ligue 2"
     if "ligue 1" in c_lower or "french ligue 1" in c_lower or "fra.1" in c_lower:
-        if any(t in t_lower for t in ["metz", "lorient", "clermont", "bordeaux", "caen", "guingamp", "paris fc", "troyes"]):
-            return "Ligue 2"
         return "Ligue 1"
 
     # England: Check Championship & Premier League
-    if "championship" in c_lower or "efl championship" in c_lower or "eng.2" in c_lower:
+    if any(k in c_lower for k in ["championship", "efl championship", "eng.2"]):
         return "Championship"
     if "premier league" in c_lower or "epl" in c_lower or "english premier league" in c_lower or "eng.1" in c_lower:
-        if any(t in t_lower for t in ["leeds", "burnley", "sheffield united", "luton", "west brom", "sunderland", "middlesbrough", "norwich", "coventry", "hull", "watford", "stoke", "blackburn"]):
-            return "Championship"
         return "Premier League"
 
     # Other Domestic Leagues
