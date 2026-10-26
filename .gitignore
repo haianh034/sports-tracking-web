@@ -28,3 +28,12 @@ Desktop.ini
 # Temporary / logs
 *.log
 
+node_modules
+package.json
+package-lock.json
+prisma.config.ts
+.agents/
+.claude/
+.cursor/
+.devin/
+

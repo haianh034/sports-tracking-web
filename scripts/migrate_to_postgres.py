@@ -1,7 +1,7 @@
 import os
 import sys
 import argparse
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, insert
 from sqlalchemy.orm import sessionmaker
 
 # Add project root to sys.path
@@ -15,18 +15,22 @@ from backend.core.db.models import (
 def migrate(target_url: str, source_sqlite_path: str = "sports_tracker.db"):
     if target_url.startswith("postgres://"):
         target_url = target_url.replace("postgres://", "postgresql://", 1)
+    
+    # Strip Prisma-specific pgbouncer parameter which breaks psycopg
+    if "?pgbouncer=true" in target_url:
+        target_url = target_url.replace("?pgbouncer=true", "")
+    elif "&pgbouncer=true" in target_url:
+        target_url = target_url.replace("&pgbouncer=true", "")
 
-    print(f"Connecting to source SQLite: {source_sqlite_path}...")
+    print(f"Connecting to source SQLite: {source_sqlite_path}...", flush=True)
     src_engine = create_engine(f"sqlite:///{source_sqlite_path}", connect_args={"check_same_thread": False})
     SrcSession = sessionmaker(bind=src_engine)
     src_db = SrcSession()
 
-    print(f"Connecting to target PostgreSQL: {target_url.split('@')[-1]}...")
+    print(f"Connecting to target PostgreSQL: {target_url.split('@')[-1]}...", flush=True)
     target_engine = create_engine(target_url, pool_pre_ping=True)
-    TargetSession = sessionmaker(bind=target_engine)
-    target_db = TargetSession()
 
-    print("Creating all tables in target database...")
+    print("Creating all tables in target database...", flush=True)
     Base.metadata.create_all(bind=target_engine)
 
     models_order = [
@@ -40,37 +44,45 @@ def migrate(target_url: str, source_sqlite_path: str = "sports_tracker.db"):
         (NationalTeamNews, "national_team_news")
     ]
 
-    for model, table_name in models_order:
-        items = src_db.query(model).all()
-        print(f"Migrating {len(items)} records for '{table_name}'...")
-        
-        # Clear existing in target if needed or skip
-        for item in items:
-            # Create a detached dict of attributes
-            item_data = {c.name: getattr(item, c.name) for c in model.__table__.columns}
-            target_obj = model(**item_data)
-            target_db.merge(target_obj)
-        
-        target_db.commit()
+    with target_engine.connect() as conn:
+        for model, table_name in models_order:
+            items = src_db.query(model).all()
+            print(f"Migrating {len(items)} records for '{table_name}'...", flush=True)
+            
+            # Truncate / delete existing in table to avoid duplicate key violations
+            conn.execute(text(f"TRUNCATE TABLE {table_name} CASCADE;"))
+            conn.commit()
 
-        # Update sequence in Postgres so future inserts don't collide
-        try:
-            with target_engine.connect() as conn:
+            if items:
+                # Prepare batch records
+                records = []
+                for item in items:
+                    records.append({c.name: getattr(item, c.name) for c in model.__table__.columns})
+                
+                # Insert in chunks of 500 for lightning-fast network transfer
+                chunk_size = 500
+                for i in range(0, len(records), chunk_size):
+                    chunk = records[i:i + chunk_size]
+                    conn.execute(insert(model), chunk)
+                    conn.commit()
+
+            # Update sequence in Postgres so future auto-increment inserts don't collide
+            try:
                 conn.execute(text(f"SELECT setval(pg_get_serial_sequence('{table_name}', 'id'), COALESCE((SELECT MAX(id) FROM {table_name}), 1));"))
                 conn.commit()
-        except Exception:
-            pass
+            except Exception:
+                pass
 
-    print("--- MIGRATION COMPLETED SUCCESSFULLY! ---")
+    print("--- MIGRATION COMPLETED SUCCESSFULLY! ---", flush=True)
     
-    # Verify counts
-    print("Verification:")
-    for model, table_name in models_order:
-        c = target_db.query(model).count()
-        print(f"  {table_name}: {c} rows")
+    # Verification
+    print("Verification:", flush=True)
+    with target_engine.connect() as conn:
+        for model, table_name in models_order:
+            res = conn.execute(text(f"SELECT COUNT(*) FROM {table_name};")).scalar()
+            print(f"  {table_name}: {res} rows", flush=True)
 
     src_db.close()
-    target_db.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Migrate SQLite to Supabase / PostgreSQL")

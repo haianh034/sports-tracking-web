@@ -3,6 +3,10 @@ import os
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sports_tracker.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+if "?pgbouncer=true" in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("?pgbouncer=true", "")
+elif "&pgbouncer=true" in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("&pgbouncer=true", "")
 
 EN_TO_VI_MAP = {
     "Japan": {"name": "Nhật Bản", "tz": "JST", "flag": "🇯🇵"},

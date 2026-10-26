@@ -3,4 +3,5 @@ uvicorn
 sqlalchemy
 feedparser
 jinja2
+psycopg[binary]
 psycopg2-binary
