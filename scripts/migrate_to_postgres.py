@@ -28,7 +28,7 @@ def migrate(target_url: str, source_sqlite_path: str = "sports_tracker.db"):
     src_db = SrcSession()
 
     print(f"Connecting to target PostgreSQL: {target_url.split('@')[-1]}...", flush=True)
-    target_engine = create_engine(target_url, pool_pre_ping=True)
+    target_engine = create_engine(target_url, pool_pre_ping=True, connect_args={"prepare_threshold": None})
 
     print("Creating all tables in target database...", flush=True)
     Base.metadata.create_all(bind=target_engine)

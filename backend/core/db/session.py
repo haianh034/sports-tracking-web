@@ -20,14 +20,23 @@ if is_sqlite:
         cursor.execute("PRAGMA temp_store=MEMORY;")
         cursor.close()
 else:
+    pg_connect_args = {}
+    try:
+        import psycopg
+        # Disable server-side prepared statements for Supabase PgBouncer (Transaction mode)
+        pg_connect_args["prepare_threshold"] = None
+    except ImportError:
+        pass
+
     engine = create_engine(
         DATABASE_URL,
+        connect_args=pg_connect_args,
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=20
     )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
 
 def get_db():
     db = SessionLocal()
