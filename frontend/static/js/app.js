@@ -1433,6 +1433,59 @@ function openModal(player, resetFilter = true, customMatch = null) {
     }
     tagsContainer.innerHTML = tagsHtml;
 
+    // SECTION: THỐNG KÊ CHI TIẾT & ĐIỂM SỐ CÁ NHÂN (OPTICAL METRICS / FOTMOB / NBA STATS)
+    const detailedContainer = document.getElementById('modalDetailedStatsContainer');
+    const sourceBadge = document.getElementById('modalDetailedStatsSource');
+    const specialRatingsRow = document.getElementById('modalSpecialRatingsRow');
+    const metricsGrid = document.getElementById('modalMetricsGrid');
+
+    const dtStats = customMatch ? customMatch.detailed_stats : (player.detailed_stats || (player.details && player.details.detailed_stats));
+
+    if (detailedContainer && dtStats && dtStats.metrics && dtStats.metrics.length > 0) {
+        detailedContainer.classList.remove('hidden');
+        if (sourceBadge) {
+            sourceBadge.innerText = dtStats.source || 'Chuyên trang thể thao';
+        }
+
+        // Render ratings row (e.g. FotMob Rating)
+        if (specialRatingsRow) {
+            let rHtml = '';
+            if (dtStats.fotmob_rating) {
+                const fmR = Number(dtStats.fotmob_rating);
+                let fmBg = 'bg-emerald-950/80 border-emerald-700/60 text-emerald-300';
+                if (fmR < 6.5) fmBg = 'bg-rose-950/80 border-rose-700/60 text-rose-300';
+                else if (fmR < 7.2) fmBg = 'bg-amber-950/80 border-amber-700/60 text-amber-300';
+
+                rHtml += `
+                    <div class="px-3 py-1.5 rounded-lg border ${fmBg} flex items-center gap-2 text-xs font-semibold">
+                        <span>⭐ FotMob Rating:</span>
+                        <span class="font-bold text-sm font-mono">${fmR.toFixed(1)} / 10</span>
+                    </div>`;
+            }
+            specialRatingsRow.innerHTML = rHtml;
+            if (!rHtml) specialRatingsRow.classList.add('hidden');
+            else specialRatingsRow.classList.remove('hidden');
+        }
+
+        // Render metrics grid
+        if (metricsGrid) {
+            metricsGrid.innerHTML = dtStats.metrics.map(met => {
+                const isHighlight = met.highlight;
+                const borderClass = isHighlight ? 'border-indigo-600/60 bg-indigo-950/30' : 'border-gray-800/80 bg-gray-900/60';
+                const labelColor = isHighlight ? 'text-indigo-300 font-semibold' : 'text-gray-400';
+                const valColor = isHighlight ? 'text-amber-300 font-bold' : 'text-gray-200 font-medium';
+
+                return `
+                    <div class="p-2.5 rounded-lg border ${borderClass} flex items-center justify-between gap-2">
+                        <span class="${labelColor} truncate">${escapeHtml(met.label)}:</span>
+                        <span class="${valColor} font-mono shrink-0 text-right">${escapeHtml(met.value)}</span>
+                    </div>`;
+            }).join('');
+        }
+    } else if (detailedContainer) {
+        detailedContainer.classList.add('hidden');
+    }
+
     // SECTION: THÔNG TIN CHẤN THƯƠNG & THỂ LỰC (DÀNH CHO TẤT CẢ CÁC MÔN)
     const injurySec = document.getElementById('modalInjurySection');
     const injuryIcon = document.getElementById('modalInjuryIcon');

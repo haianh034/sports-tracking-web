@@ -999,7 +999,10 @@ def _save_match_stats_cache():
 def fetch_player_match_stats(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None) -> dict:
     cache_key = f"{player_name}_{event_id}_{match_state}" if event_id else None
     if cache_key and cache_key in MATCH_STATS_CACHE:
-        return MATCH_STATS_CACHE[cache_key]
+        cached_entry = MATCH_STATS_CACHE[cache_key]
+        # Only use cache if it already has detailed_stats or player didn't play
+        if cached_entry and ("detailed_stats" in cached_entry or not cached_entry.get("has_played")):
+            return cached_entry
 
     res = _fetch_player_match_stats_impl(player_name, sport_name, team_name, event_id, match_state, news_titles)
     if cache_key:
@@ -1030,6 +1033,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                 data = fetch_espn_summary(sum_url, event_id)
                 
                 matched_p = None
+                matched_team_name = ""
                 is_starter = False
                 is_bench = False
                 for r in data.get('rosters', []):
@@ -1037,6 +1041,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         ath_name = p.get('athlete', {}).get('displayName', '').lower()
                         if any(part in ath_name for part in p_parts):
                             matched_p = p
+                            matched_team_name = r.get('team', {}).get('displayName', '')
                             if p.get('starter', False):
                                 is_starter = True
                             else:
@@ -1047,6 +1052,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             ath_name = p.get('athlete', {}).get('displayName', '').lower()
                             if any(part in ath_name for part in p_parts):
                                 matched_p = p
+                                matched_team_name = r.get('team', {}).get('displayName', '')
                                 is_bench = True
                                 break
                     if matched_p: break
@@ -1162,8 +1168,32 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                     if yellow > 0: tags.append("1 thẻ vàng")
                     if red > 0: tags.append("Thẻ đỏ")
 
-                    rating = 6.5 + (1.2 * g) + (0.7 * a) + (0.1 * shots) - (0.5 * yellow) - (1.5 * red) + (0.2 * (saves // 2))
-                    rating = round(min(9.8, max(6.0, rating)), 1)
+                    # Check FotMob for official rating and detailed Opta statistics (Key passes, Accurate passes %, Dribbles, Duels, Touches)
+                    fotmob_stats = None
+                    try:
+                        from backend.core.services.fotmob_service import fetch_fotmob_detailed_stats
+                        opp_t_name = ""
+                        ref_team = (matched_team_name or team_name or "").lower()
+                        for c in data.get('header', {}).get('competitions', [{}])[0].get('competitors', []):
+                            cand_name = c.get('team', {}).get('displayName', '')
+                            if cand_name:
+                                cand_low = cand_name.lower()
+                                if cand_low not in ref_team and ref_team not in cand_low:
+                                    opp_t_name = cand_name
+                                    break
+                        fotmob_stats = fetch_fotmob_detailed_stats(player_name, team_name=team_name, opponent_name=opp_t_name)
+                    except Exception:
+                        fotmob_stats = None
+
+                    if fotmob_stats and fotmob_stats.get("rating"):
+                        rating = fotmob_stats["rating"]
+                        if fotmob_stats.get("fun_facts"):
+                            for ff in fotmob_stats["fun_facts"]:
+                                if ff not in tags:
+                                    tags.append(ff)
+                    else:
+                        rating = 6.5 + (1.2 * g) + (0.7 * a) + (0.1 * shots) - (0.5 * yellow) - (1.5 * red) + (0.2 * (saves // 2))
+                        rating = round(min(9.8, max(6.0, rating)), 1)
 
                     if rating >= 8.5:
                         tags.append("Cầu thủ xuất sắc nhất (MVP)")
@@ -1186,6 +1216,8 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         st_text = f"{saves} cứu thua"
                         if goals_conceded > 0:
                             st_text += f", {goals_conceded} bàn thua"
+                    elif fotmob_stats and fotmob_stats.get("summary"):
+                        st_text = fotmob_stats["summary"]
                     else:
                         st_parts = []
                         if g > 0: st_parts.append(f"{g} bàn")
@@ -1193,7 +1225,9 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         if shots > 0: st_parts.append(f"{shots} cú sút")
                         st_text = ", ".join(st_parts) if st_parts else ""
 
-                    return {"stats_text": st_text, "rating": rating, "tags": tags, "has_played": True}
+                    stats_storage = json.dumps({"summary": st_text, "details": fotmob_stats}, ensure_ascii=False) if fotmob_stats else st_text
+
+                    return {"stats_text": stats_storage, "rating": rating, "tags": tags, "has_played": True, "detailed_stats": fotmob_stats}
                 else:
                     reason = detect_player_absence_reason(player_name, news_titles=news_titles)
                     if reason == 'injury':
@@ -1297,7 +1331,34 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             if "Cầu thủ xuất sắc nhất (MVP)" not in tags:
                                 tags.append("Cầu thủ xuất sắc nhất (MVP)")
                         stats_text = f"{pts} PTS, {reb} REB, {ast} AST ({min_val} phút)"
-                        return {"stats_text": stats_text, "rating": rating, "tags": tags, "has_played": True}
+                        nba_metrics = [
+                            {"label": "Điểm số (PTS)", "value": f"{pts} điểm", "highlight": pts >= 20},
+                            {"label": "Bắt bóng bật bảng (REB)", "value": f"{reb} REB", "highlight": reb >= 8},
+                            {"label": "Kiến tạo (AST)", "value": f"{ast} AST", "highlight": ast >= 6},
+                        ]
+                        if "FG" in st_map:
+                            nba_metrics.append({"label": "Ném rổ thành công (FG)", "value": str(st_map["FG"])})
+                        if "3PT" in st_map:
+                            nba_metrics.append({"label": "Ném 3 điểm (3PT)", "value": str(st_map["3PT"])})
+                        if "FT" in st_map:
+                            nba_metrics.append({"label": "Ném phạt (FT)", "value": str(st_map["FT"])})
+                        if stl > 0:
+                            nba_metrics.append({"label": "Cướp bóng (STL)", "value": f"{stl} lần", "highlight": stl >= 2})
+                        if blk > 0:
+                            nba_metrics.append({"label": "Chắn bóng (BLK)", "value": f"{blk} lần", "highlight": blk >= 2})
+                        if "TO" in st_map:
+                            nba_metrics.append({"label": "Mất bóng (Turnovers)", "value": f"{st_map['TO']} lần"})
+                        if clean_min:
+                            nba_metrics.append({"label": "Thời gian thi đấu", "value": f"{clean_min} phút"})
+
+                        nba_details = {
+                            "source": "NBA Official / ESPN",
+                            "rating": rating,
+                            "metrics": nba_metrics,
+                            "fun_facts": []
+                        }
+                        stats_storage = json.dumps({"summary": stats_text, "details": nba_details}, ensure_ascii=False)
+                        return {"stats_text": stats_storage, "rating": rating, "tags": tags, "has_played": True, "detailed_stats": nba_details}
                     else:
                         reason = detect_player_absence_reason(player_name, news_titles=news_titles, summary_injuries=data.get("injuries", []), ath_reason=reason_txt)
                         if reason == 'injury':

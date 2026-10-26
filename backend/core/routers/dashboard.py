@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 import datetime
+import json
 import concurrent.futures
 import urllib.parse
 import re
@@ -43,6 +44,18 @@ templates = Jinja2Templates(directory="frontend/templates")
 
 _DASHBOARD_CACHE = {}
 _DASHBOARD_CACHE_TTL = 30.0  # 30 seconds
+
+def unpack_stats(stats_val):
+    if not stats_val:
+        return None, None
+    if isinstance(stats_val, str) and stats_val.strip().startswith("{"):
+        try:
+            parsed = json.loads(stats_val)
+            if isinstance(parsed, dict) and "summary" in parsed:
+                return parsed.get("summary"), parsed.get("details")
+        except Exception:
+            pass
+    return stats_val, None
 
 def invalidate_dashboard_cache():
     _DASHBOARD_CACHE.clear()
@@ -351,10 +364,11 @@ def get_dashboard_data(
                 match_today.competition = comp_name
 
         is_player_no_match = (not in_today_activity and not is_within_month)
+        raw_stats_summary, _ = unpack_stats(raw_stats)
         _, tags = format_player_stats_and_tags(
             p.name, sport_name, team_name,
             match_today.match_name if match_today else "",
-            match_state, raw_stats, raw_tags,
+            match_state, raw_stats_summary, raw_tags,
             competition_name=comp_name,
             news_titles=p_news_titles,
             is_no_match=is_player_no_match
@@ -564,6 +578,9 @@ def get_dashboard_data(
                         except Exception:
                             m_news.append(r_item)
             
+            m_s, m_d = unpack_stats(m.get("player_stats"))
+            m["player_stats"] = m_s
+            m["detailed_stats"] = m_d
             m["news"] = m_news
             m["news_count"] = len(m_news)
             all_matches.append(m)
@@ -594,7 +611,9 @@ def get_dashboard_data(
             curr_match_state = match_state
             curr_match_result = match_result
             curr_rating = rating
-            curr_stats = raw_stats
+            c_summary, c_details = unpack_stats(raw_stats)
+            curr_stats = c_summary
+            curr_detailed_stats = c_details
             curr_tags = tags
             next_match_text = curr_match_name
             next_match_date_str = match_today.match_date.strftime("%d/%m/%Y") if (match_today and match_today.match_date) else "Hôm nay"
@@ -607,6 +626,7 @@ def get_dashboard_data(
             curr_match_result = None
             curr_rating = None
             curr_stats = None
+            curr_detailed_stats = None
             
             clean_comp = get_tournament_tag(team_name, sport_name, curr_match_name, first_up.get("competition", ""))
             curr_tags = [clean_comp] if clean_comp else []
@@ -620,6 +640,7 @@ def get_dashboard_data(
             curr_match_result = None
             curr_rating = None
             curr_stats = None
+            curr_detailed_stats = None
             curr_tags = ["Nghỉ mùa"]
             next_match_text = "Không có trận trong 1 tháng sắp tới (Nghỉ mùa)"
             next_match_date_str = "N/A"
@@ -678,6 +699,7 @@ def get_dashboard_data(
             "match_state": curr_match_state,
             "match_result": curr_match_result,
             "player_stats": curr_stats,
+            "detailed_stats": curr_detailed_stats,
             "rating": curr_rating,
             "tags": curr_tags,
             "injury": injury_data,
@@ -691,6 +713,7 @@ def get_dashboard_data(
                 "match_state": curr_match_state,
                 "match_result": curr_match_result,
                 "player_stats": curr_stats,
+                "detailed_stats": curr_detailed_stats,
                 "injury": injury_data,
                 "upcoming_matches_30d": upcoming_matches_30d,
                 "all_upcoming_matches": all_upcoming_matches,
