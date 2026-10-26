@@ -52,10 +52,20 @@
 
                 <select id="sportFilter" onchange="loadDashboard(false)" class="bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
                     <option value="">Tất cả môn</option>
+                    {% if sports %}
+                    {% for s in sports %}
+                    <option value="{{ s }}">{{ s }}</option>
+                    {% endfor %}
+                    {% endif %}
                 </select>
 
                 <select id="countryFilter" onchange="loadDashboard(false)" class="bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
                     <option value="">Tất cả quốc tịch</option>
+                    {% if countries %}
+                    {% for c in countries %}
+                    <option value="{{ c }}">{{ c }}</option>
+                    {% endfor %}
+                    {% endif %}
                 </select>
             </div>
         </header>

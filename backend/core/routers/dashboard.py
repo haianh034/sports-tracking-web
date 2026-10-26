@@ -48,8 +48,24 @@ def invalidate_dashboard_cache():
     _DASHBOARD_CACHE.clear()
 
 @router.get("/", response_class=HTMLResponse)
-def read_root(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html")
+def read_root(request: Request, db: Session = Depends(get_db)):
+    all_db_players = db.query(Player).options(joinedload(Player.sport), joinedload(Player.nationality)).all()
+    all_db_national_teams = db.query(NationalTeam).options(joinedload(NationalTeam.sport), joinedload(NationalTeam.nationality)).all()
+    
+    active_sports = {p.sport_name for p in all_db_players if p.sport_name and p.sport_name != "Không rõ"}
+    active_sports.update({t.sport_name for t in all_db_national_teams if t.sport_name and t.sport_name != "Không rõ"})
+    
+    active_countries = {p.country_name for p in all_db_players if p.country_name and p.country_name != "Không rõ"}
+    active_countries.update({t.country_name for t in all_db_national_teams if t.country_name and t.country_name != "Không rõ"})
+
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "sports": sorted(active_sports),
+            "countries": sorted(active_countries)
+        }
+    )
 
 from typing import Optional
 
@@ -111,12 +127,20 @@ def get_dashboard_data(
     players = all_db_players if clean_entity_type != "national_team" else []
     national_teams = all_db_national_teams if clean_entity_type != "player" else []
     
-    # 1. Determine active sports and countries dynamically based on DB players & national teams
-    active_sports_set = {p.sport_name for p in all_db_players if p.sport_name and p.sport_name != "Không rõ"}
-    active_sports_set.update({t.sport_name for t in all_db_national_teams if t.sport_name and t.sport_name != "Không rõ"})
-
-    active_countries_set = {p.country_name for p in all_db_players if p.country_name and p.country_name != "Không rõ"}
-    active_countries_set.update({t.country_name for t in all_db_national_teams if t.country_name and t.country_name != "Không rõ"})
+    # 1. Determine active sports and countries dynamically based on active entity scope
+    active_sports_set = set()
+    active_countries_set = set()
+    if clean_entity_type == "player":
+        active_sports_set = {p.sport_name for p in all_db_players if p.sport_name and p.sport_name != "Không rõ"}
+        active_countries_set = {p.country_name for p in all_db_players if p.country_name and p.country_name != "Không rõ"}
+    elif clean_entity_type == "national_team":
+        active_sports_set = {t.sport_name for t in all_db_national_teams if t.sport_name and t.sport_name != "Không rõ"}
+        active_countries_set = {t.country_name for t in all_db_national_teams if t.country_name and t.country_name != "Không rõ"}
+    else:
+        active_sports_set = {p.sport_name for p in all_db_players if p.sport_name and p.sport_name != "Không rõ"}
+        active_sports_set.update({t.sport_name for t in all_db_national_teams if t.sport_name and t.sport_name != "Không rõ"})
+        active_countries_set = {p.country_name for p in all_db_players if p.country_name and p.country_name != "Không rõ"}
+        active_countries_set.update({t.country_name for t in all_db_national_teams if t.country_name and t.country_name != "Không rõ"})
 
     sports_list = [{"name": s} for s in sorted(active_sports_set)]
     countries_list = [{"name": c} for c in sorted(active_countries_set)]

@@ -426,7 +426,7 @@ function setEntityTypeFilter(type) {
     if (playersBtn) playersBtn.className = (type === 'player') ? activeClass : inactiveClass;
     if (nationalBtn) nationalBtn.className = (type === 'national_team') ? activeClass : inactiveClass;
 
-    loadDashboard(false);
+    loadDashboard(true);
 }
 
 async function loadDashboard(refreshDropdowns = true) {
@@ -459,12 +459,18 @@ async function loadDashboard(refreshDropdowns = true) {
                 const hasSport = data.sports_list.some(s => s.name === curSport);
                 sportSelect.innerHTML = '<option value="">Tất cả môn</option>' + 
                     data.sports_list.map(s => `<option value="${escapeHtml(s.name)}" ${(hasSport && s.name === curSport) ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+                if (!hasSport) {
+                    sportSelect.value = "";
+                }
             }
             if (data.countries_list) {
                 const curCountry = countrySelect.value;
                 const hasCountry = data.countries_list.some(c => c.name === curCountry);
                 countrySelect.innerHTML = '<option value="">Tất cả quốc tịch</option>' + 
                     data.countries_list.map(c => `<option value="${escapeHtml(c.name)}" ${(hasCountry && c.name === curCountry) ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+                if (!hasCountry) {
+                    countrySelect.value = "";
+                }
             }
         }
 

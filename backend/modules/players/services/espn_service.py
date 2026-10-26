@@ -1282,8 +1282,20 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         if any(kw in article_text for kw in ["record", "career high", "career-high"]):
                             tags.append("Phá kỷ lục")
 
-                        rating = 6.0 + (0.15 * pts) + (0.15 * reb) + (0.2 * ast) + (0.2 * stl) + (0.2 * blk)
-                        rating = round(min(9.8, max(6.0, rating)), 1)
+                        # Realistic NBA performance rating calibration (Hollinger Game Score proportional):
+                        # Base 5.5 for active participation. Role-player performance (12-16 pts, 4-6 reb) lands naturally at 7.0 - 7.8
+                        # All-Star performance (25+ pts, 8+ reb) reaches 8.8 - 9.3; 35+ pts historic MVP games reach 9.5 - 9.9
+                        rating = 5.5 + (0.08 * pts) + (0.07 * reb) + (0.12 * ast) + (0.25 * stl) + (0.25 * blk)
+                        try:
+                            c_min = int(str(min_val).split(":")[0].strip())
+                            if c_min < 10 and pts < 4:
+                                rating = min(6.2, rating)
+                        except Exception:
+                            pass
+                        rating = round(min(9.9, max(5.5, rating)), 1)
+                        if rating >= 9.0 or pts >= 35 or (stat_counts_10 >= 2 and pts >= 25):
+                            if "Cầu thủ xuất sắc nhất (MVP)" not in tags:
+                                tags.append("Cầu thủ xuất sắc nhất (MVP)")
                         stats_text = f"{pts} PTS, {reb} REB, {ast} AST ({min_val} phút)"
                         return {"stats_text": stats_text, "rating": rating, "tags": tags, "has_played": True}
                     else:
