@@ -48,9 +48,12 @@ def get_espn_team_info(team_name: str, sport_name: str = None) -> dict:
         return None
 
     search_queries = get_team_aliases_from_wiki(team_name)
+    best_candidate = None
+    best_score = -999999
+
     for query in search_queries:
         safe_query = urllib.parse.quote(query)
-        search_url = f"https://site.web.api.espn.com/apis/search/v2?query={safe_query}&limit=10"
+        search_url = f"https://site.web.api.espn.com/apis/search/v2?query={safe_query}&limit=15"
         req = urllib.request.Request(search_url, headers={'User-Agent': 'Mozilla/5.0'})
         try:
             with urllib.request.urlopen(req, timeout=5) as response:
@@ -83,17 +86,64 @@ def get_espn_team_info(team_name: str, sport_name: str = None) -> dict:
                         if m:
                             num_id = m.group(1)
 
-                        team_info = {
-                            "id": str(num_id),
-                            "uid": uid,
-                            "name": content.get('displayName'),
-                            "sport": sport,
-                            "league": league
-                        }
-                        ESPN_TEAM_INFO_CACHE[cache_key] = team_info
-                        return team_info
+                        display_name = content.get('displayName', '')
+                        subtitle = content.get('subtitle', '')
+
+                        # Score candidate to prioritize senior men's clubs over women's/youth squads
+                        score = 0
+                        d_lower = display_name.lower().strip()
+                        q_lower = query.lower().strip()
+                        t_lower = team_name.lower().strip()
+                        sub_lower = (subtitle or '').lower()
+                        l_lower = (league or '').lower()
+
+                        if d_lower == t_lower or d_lower == q_lower:
+                            score += 150
+                        elif t_lower in d_lower or q_lower in d_lower:
+                            score += 80
+                        else:
+                            score += 30
+
+                        # Heavy penalty for women's teams
+                        is_women = (
+                            '.w.' in l_lower or 
+                            'wfc' in d_lower or 
+                            'women' in d_lower or 
+                            'women' in sub_lower or 
+                            'women' in link.lower() or 
+                            'fem' in l_lower
+                        )
+                        if is_women:
+                            score -= 500
+
+                        # Penalty for youth / reserve squads
+                        is_youth = any(yk in d_lower or yk in sub_lower for yk in ['u23', 'u21', 'u19', 'u-23', 'u-21', 'u-19', 'reserves', ' b team', ' ii'])
+                        if is_youth:
+                            score -= 300
+
+                        # Preference for top tier leagues
+                        if l_lower.endswith('.1'):
+                            score += 50
+                        elif l_lower.endswith('.2'):
+                            score += 25
+                        elif league:
+                            score += 10
+
+                        if score > best_score:
+                            best_score = score
+                            best_candidate = {
+                                "id": str(num_id),
+                                "uid": uid,
+                                "name": display_name,
+                                "sport": sport,
+                                "league": league
+                            }
         except Exception:
             continue
+
+    if best_candidate and best_score > 0:
+        ESPN_TEAM_INFO_CACHE[cache_key] = best_candidate
+        return best_candidate
 
     ESPN_TEAM_INFO_CACHE[cache_key] = None
     return None

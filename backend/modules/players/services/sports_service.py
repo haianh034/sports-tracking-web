@@ -10,68 +10,23 @@ def resolve_team_league(team_name: str, sport_name: str = "") -> str:
     clean = (team_name or "").strip()
     if not clean or clean.lower() in ["tự do", "unknown", ""]:
         return ""
-    key = clean.lower()
+    key = (clean.lower(), (sport_name or "").strip().lower())
     if key in TEAM_LEAGUE_CACHE:
         return TEAM_LEAGUE_CACHE[key]
     
-    # 1. Truy vấn trực tiếp ESPN API động theo thời gian thực (tự động cập nhật thăng hạng/xuống hạng)
     try:
-        url = f"https://site.web.api.espn.com/apis/search/v2?query={urllib.parse.quote(clean)}&limit=3"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=3) as res:
-            data = json.loads(res.read().decode())
-            for item in data.get("results", []):
-                for content in item.get("contents", []):
-                    if content.get("type") != "team":
-                        continue
-                    slug = content.get("defaultLeagueSlug", "") or ""
-                    sub = (content.get("subtitle", "") or "").lower()
-                    
-                    # Khớp theo slug chuẩn của giải đấu từ ESPN (ví dụ: ger.1 -> Bundesliga, ger.2 -> Bundesliga 2)
-                    if slug in LEAGUE_SLUG_MAP:
-                        res_tag = LEAGUE_SLUG_MAP[slug]
-                        TEAM_LEAGUE_CACHE[key] = res_tag
-                        return res_tag
-                    
-                    # Kiểm tra phụ theo mô tả subtitle (xét giải hạng dưới trước hạng trên)
-                    if any(k in sub for k in ["2. bundesliga", "2.bundesliga", "bundesliga 2", "zweite"]):
-                        TEAM_LEAGUE_CACHE[key] = "Bundesliga 2"
-                        return "Bundesliga 2"
-                    if "bundesliga" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Bundesliga"
-                        return "Bundesliga"
-                    
-                    if any(k in sub for k in ["la liga 2", "laliga 2", "segunda", "hypermotion"]):
-                        TEAM_LEAGUE_CACHE[key] = "La Liga 2"
-                        return "La Liga 2"
-                    if "la liga" in sub or "laliga" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "La Liga"
-                        return "La Liga"
-                    
-                    if "serie b" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Serie B"
-                        return "Serie B"
-                    if "serie a" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Serie A"
-                        return "Serie A"
-                    
-                    if "ligue 2" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Ligue 2"
-                        return "Ligue 2"
-                    if "ligue 1" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Ligue 1"
-                        return "Ligue 1"
-                    
-                    if "championship" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Championship"
-                        return "Championship"
-                    if "premier league" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Premier League"
-                        return "Premier League"
-                    
-                    if "eredivisie" in sub:
-                        TEAM_LEAGUE_CACHE[key] = "Eredivisie"
-                        return "Eredivisie"
+        from backend.modules.players.services.espn_service import get_espn_team_info
+        info = get_espn_team_info(clean, sport_name)
+        if info and info.get("league"):
+            slug = info["league"].lower()
+            if slug in LEAGUE_SLUG_MAP:
+                res_tag = LEAGUE_SLUG_MAP[slug]
+                TEAM_LEAGUE_CACHE[key] = res_tag
+                return res_tag
+            # Check if slug has a friendly name or is sco.1, bel.1 etc.
+            if "sco." in slug:
+                TEAM_LEAGUE_CACHE[key] = "Scottish Premiership"
+                return "Scottish Premiership"
     except Exception:
         pass
     
@@ -137,6 +92,11 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
     if "super lig" in c_lower or "süper lig" in c_lower or "superlig" in c_lower or "tur.1" in c_lower: return "Süper Lig"
     if "primeira liga" in c_lower or "portuguese primeira liga" in c_lower or "por.1" in c_lower: return "Primeira Liga"
     if "eredivisie" in c_lower or "ned.1" in c_lower: return "Eredivisie"
+    if "scottish premiership" in c_lower or "premiership" in c_lower or "sco.1" in c_lower: return "Scottish Premiership"
+    if "belgian pro league" in c_lower or "pro league" in c_lower or "bel.1" in c_lower: return "Belgian Pro League"
+    if "saudi pro league" in c_lower or "sau.1" in c_lower: return "Saudi Pro League"
+    if "j1 league" in c_lower or "jpn.1" in c_lower: return "J1 League"
+    if "k league" in c_lower or "kor.1" in c_lower: return "K League 1"
     if "mls" in c_lower or "major league soccer" in c_lower or "usa.1" in c_lower: return "MLS"
     if "mlb" in c_lower or "major league baseball" in c_lower: return "MLB"
     if "nba" in c_lower: return "NBA"
@@ -212,6 +172,8 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         "Ligue 1", "Ligue 2", 
         "MLS", "NBA", "MLB", 
         "Süper Lig", "Eredivisie", "Primeira Liga", 
+        "Scottish Premiership", "Belgian Pro League", "Saudi Pro League",
+        "J1 League", "K League 1",
         "FA Cup", "Carabao Cup", "Copa del Rey", "DFB-Pokal", "Coppa Italia", "Coupe de France",
         "Efeler Ligi", "Turkish Efeler Ligi", "Italian SuperLega", "SuperLega", "SV.League", 
         "BWF World Tour", "WTT Champions", "WTT Finals", "WTT Series"
