@@ -19,6 +19,20 @@ from backend.modules.national_teams.routers import national_teams
 async def lifespan(app: FastAPI):
     init_db()
     await worker.start()
+    
+    # Warm up dashboard cache in background on startup so first user visit loads instantly
+    import threading
+    def _warmup():
+        try:
+            from backend.core.db.session import SessionLocal
+            from backend.core.routers.dashboard import get_dashboard_data
+            db = SessionLocal()
+            get_dashboard_data(db=db)
+            db.close()
+        except Exception:
+            pass
+    threading.Thread(target=_warmup, daemon=True).start()
+    
     yield
     await worker.stop()
 

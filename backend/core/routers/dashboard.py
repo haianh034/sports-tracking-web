@@ -43,7 +43,7 @@ router = APIRouter(tags=["dashboard"])
 templates = Jinja2Templates(directory="frontend/templates")
 
 _DASHBOARD_CACHE = {}
-_DASHBOARD_CACHE_TTL = 30.0  # 30 seconds
+_DASHBOARD_CACHE_TTL = 600.0  # 10 minutes (600s) for lightning fast reloads
 
 def unpack_stats(stats_val):
     if not stats_val:

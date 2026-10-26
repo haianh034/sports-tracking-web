@@ -13858,22 +13858,120 @@
     }
   },
   "Daichi Kamada_401879254_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 sút, 79% chuyền (26/33)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"summary\": \"1 sút, 79% chuyền (26/33)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"79% (26/33)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/5 (40%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"41 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"6 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795489, \"opponent\": \"Newcastle United\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.4,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.4,
+      "rating": 6.4,
+      "summary": "1 sút, 79% chuyền (26/33)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "79% (26/33)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/5 (40%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "41 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "6 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795489,
+      "opponent": "Newcastle United",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_401878764_post": {
-    "stats_text": "1 cú sút",
-    "rating": 6.6,
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 1 sút, 78% chuyền (28/36)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"summary\": \"1 tạo cơ hội, 1 sút, 78% chuyền (28/36)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"78% (28/36)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/7 (57%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"52 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"89 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795494, \"opponent\": \"Sunderland\", \"minutes_played\": 89, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.8,
     "tags": [
       "Đá chính",
       "89 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.8,
+      "rating": 6.8,
+      "summary": "1 tạo cơ hội, 1 sút, 78% chuyền (28/36)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "78% (28/36)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/7 (57%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "52 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "89 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795494,
+      "opponent": "Sunderland",
+      "minutes_played": 89,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Takehiro Tomiyasu_401879254_post": {
     "stats_text": "",
@@ -13900,22 +13998,110 @@
     "has_played": false
   },
   "Kota Takai_401878964_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"90% chuyền (56/62)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 5.7, \"rating\": 5.7, \"summary\": \"90% chuyền (56/62)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (56/62)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/5 (20%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"72 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5811783, \"opponent\": \"Club Brugge\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 5.7,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 5.7,
+      "rating": 5.7,
+      "summary": "90% chuyền (56/62)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "90% (56/62)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/5 (20%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "72 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5811783,
+      "opponent": "Club Brugge",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Hwang In-beom_401885417_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 92% chuyền (23/25)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"summary\": \"1 tạo cơ hội, 92% chuyền (23/25)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"92% (23/25)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/1 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"29 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"45 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5887657, \"opponent\": \"Gil Vicente\", \"minutes_played\": 45, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.9,
     "tags": [
       "Vào sân",
       "45 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.9,
+      "rating": 6.9,
+      "summary": "1 tạo cơ hội, 92% chuyền (23/25)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "92% (23/25)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/1 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "29 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "45 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5887657,
+      "opponent": "Gil Vicente",
+      "minutes_played": 45,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Kim Min-jae_401884759_post": {
     "stats_text": "",
@@ -13926,13 +14112,42 @@
     "has_played": false
   },
   "Hiroki Ito_401884759_post": {
-    "stats_text": "",
+    "stats_text": "{\"summary\": \"100% chuyền (2/2)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": null, \"rating\": null, \"summary\": \"100% chuyền (2/2)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"4 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5881200, \"opponent\": \"Freiburg\", \"minutes_played\": 4, \"goals\": 0, \"assists\": 0}}",
     "rating": 6.5,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": null,
+      "rating": null,
+      "summary": "100% chuyền (2/2)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "100% (2/2)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "4 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5881200,
+      "opponent": "Freiburg",
+      "minutes_played": 4,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Takefusa Kubo_401882829_post": {
     "stats_text": "",
@@ -13953,41 +14168,217 @@
     "has_played": true
   },
   "Tsuyoshi Watanabe_401875568_post": {
-    "stats_text": "",
-    "rating": 6.0,
+    "stats_text": "{\"summary\": \"87% chuyền (34/39)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"summary\": \"87% chuyền (34/39)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (34/39)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/4 (75%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"53 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"89 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5781783, \"opponent\": \"PSV Eindhoven\", \"minutes_played\": 89, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.9,
     "tags": [
       "Đá chính",
       "89 phút",
       "1 thẻ vàng"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.9,
+      "rating": 6.9,
+      "summary": "87% chuyền (34/39)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "87% (34/39)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/4 (75%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "53 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "89 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5781783,
+      "opponent": "PSV Eindhoven",
+      "minutes_played": 89,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Rihito Yamamoto_401884759_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"84% chuyền (16/19)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.2, \"rating\": 6.2, \"summary\": \"84% chuyền (16/19)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"84% (16/19)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/5 (20%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"23 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"32 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5881200, \"opponent\": \"Bayern München\", \"minutes_played\": 32, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.2,
     "tags": [
       "Vào sân",
       "32 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.2,
+      "rating": 6.2,
+      "summary": "84% chuyền (16/19)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "84% (16/19)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/5 (20%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "23 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "32 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5881200,
+      "opponent": "Bayern München",
+      "minutes_played": 32,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Hidemasa Morita_401878766_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"75% chuyền (6/8)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 5.8, \"rating\": 5.8, \"summary\": \"75% chuyền (6/8)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"75% (6/8)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/3 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"14 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"18 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795490, \"opponent\": \"Brentford\", \"minutes_played\": 18, \"goals\": 0, \"assists\": 0}}",
+    "rating": 5.8,
     "tags": [
       "Vào sân",
       "18 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 5.8,
+      "rating": 5.8,
+      "summary": "75% chuyền (6/8)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "75% (6/8)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "0/3 (0%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "14 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "18 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795490,
+      "opponent": "Brentford",
+      "minutes_played": 18,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Yuito Suzuki_401884759_post": {
-    "stats_text": "0 cứu thua, 3 bàn thua",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"0 cứu thua, 3 bàn thua\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"summary\": \"2 tạo cơ hội, 1 sút, 79% chuyền (15/19)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"79% (15/19)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/7 (71%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"30 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5881200, \"opponent\": \"Bayern München\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.9,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.9,
+      "rating": 6.9,
+      "summary": "2 tạo cơ hội, 1 sút, 79% chuyền (15/19)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "79% (15/19)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (2/2)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "5/7 (71%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "30 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5881200,
+      "opponent": "Bayern München",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Keisuke Goto_401884759_post": {
     "stats_text": "",
@@ -14006,14 +14397,53 @@
     "has_played": false
   },
   "Kodai Sano_401875568_post": {
-    "stats_text": "",
-    "rating": 6.0,
+    "stats_text": "{\"summary\": \"82% chuyền (23/28)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.3, \"rating\": 6.3, \"summary\": \"82% chuyền (23/28)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"82% (23/28)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/6 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"32 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"76 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5781783, \"opponent\": \"Feyenoord\", \"minutes_played\": 76, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.3,
     "tags": [
       "Đá chính",
       "76 phút",
       "1 thẻ vàng"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.3,
+      "rating": 6.3,
+      "summary": "82% chuyền (23/28)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "82% (23/28)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/6 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "32 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "76 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5781783,
+      "opponent": "Feyenoord",
+      "minutes_played": 76,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ayase Ueda_401876425_post": {
     "stats_text": "",
@@ -14048,44 +14478,235 @@
     "has_played": false
   },
   "Yohei Takaoka_761897_post": {
-    "stats_text": "6 cứu thua, 1 bàn thua",
-    "rating": 7.1,
+    "stats_text": "{\"summary\": \"6 cứu thua, 1 bàn thua\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.2, \"rating\": 8.2, \"summary\": \"71% chuyền (34/48)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"71% (34/48)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"62 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"10 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5071448, \"opponent\": \"Colorado Rapids\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 8.2,
     "tags": [
       "Đá chính",
       "90 phút",
       "6 pha cứu thua xuất sắc"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.2,
+      "rating": 8.2,
+      "summary": "71% chuyền (34/48)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "71% (34/48)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "62 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "10 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5071448,
+      "opponent": "Colorado Rapids",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Taichi Fukui_401885420_post": {
-    "stats_text": "1 bàn, 2 cú sút",
-    "rating": 7.9,
+    "stats_text": "{\"summary\": \"1 bàn, 2 tạo cơ hội, 86% chuyền (25/29)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.4, \"rating\": 8.4, \"summary\": \"1 bàn, 2 tạo cơ hội, 86% chuyền (25/29)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (2 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"86% (25/29)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"67% (2/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"6/8 (75%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"44 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"79 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5887654, \"opponent\": \"Alverca\", \"minutes_played\": 79, \"goals\": 1, \"assists\": 0}}",
+    "rating": 8.4,
     "tags": [
       "Đá chính",
       "79 phút",
       "1 bàn",
       "Bàn quyết định"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.4,
+      "rating": 8.4,
+      "summary": "1 bàn, 2 tạo cơ hội, 86% chuyền (25/29)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (2 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "86% (25/29)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "67% (2/3)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "6/8 (75%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "44 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "79 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5887654,
+      "opponent": "Alverca",
+      "minutes_played": 79,
+      "goals": 1,
+      "assists": 0
+    }
   },
   "Koki Machida_401884760_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 sút, 81% chuyền (34/42)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.8, \"rating\": 7.8, \"summary\": \"1 sút, 81% chuyền (34/42)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"81% (34/42)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/4 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"55 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"6 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5881201, \"opponent\": \"Bayer Leverkusen\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.8,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.8,
+      "rating": 7.8,
+      "summary": "1 sút, 81% chuyền (34/42)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "81% (34/42)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/4 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "55 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "6 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5881201,
+      "opponent": "Bayer Leverkusen",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ayumu Seko_401876426_post": {
-    "stats_text": "",
-    "rating": 6.0,
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 2 sút, 83% chuyền (35/42)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.1, \"rating\": 6.1, \"summary\": \"2 tạo cơ hội, 2 sút, 83% chuyền (35/42)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"83% (35/42)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/5 (80%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"59 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5802968, \"opponent\": \"Marseille\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.1,
     "tags": [
       "Đá chính",
       "90 phút",
       "1 thẻ vàng"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.1,
+      "rating": 6.1,
+      "summary": "2 tạo cơ hội, 2 sút, 83% chuyền (35/42)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "83% (35/42)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/5 (80%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "59 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5802968,
+      "opponent": "Marseille",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Shunsuke Mito_401875567_post": {
     "stats_text": "",

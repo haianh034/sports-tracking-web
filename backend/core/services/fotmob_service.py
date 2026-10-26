@@ -324,3 +324,4 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
 
     FOTMOB_MATCH_CACHE[match_cache_key] = result
     return result
+
