@@ -130,6 +130,12 @@ def add_custom_national_team(payload: AddNationalTeamRequest, db: Session = Depe
     fetch_national_team_news_feed(team, db, force_refresh=True)
     fetch_national_team_schedule(team)
 
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
+
     return {"success": True, "team_id": team.id, "name": team.name}
 
 @router.delete("/{team_id}")
@@ -141,4 +147,11 @@ def delete_national_team(team_id: int, db: Session = Depends(get_db)):
     db.query(NationalTeamNews).filter(NationalTeamNews.team_id == team.id).delete()
     db.delete(team)
     db.commit()
+
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
+
     return {"success": True, "message": f"Đã xóa đội tuyển {team.name}"}

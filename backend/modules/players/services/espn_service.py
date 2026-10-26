@@ -1556,22 +1556,12 @@ def fetch_match_recap_news(event_id: str, sport_name: str, team_name: str, playe
     espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
     articles = []
 
+    # Fast path: check pre-fetched ESPN summary cache in memory without outbound network latency
     if event_id and not str(event_id).startswith("non_espn_") and espn_sport:
-        try:
-            if espn_sport == "soccer":
-                url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event={event_id}"
-            elif espn_sport == "basketball":
-                url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={event_id}"
-            elif espn_sport == "baseball":
-                url = f"https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event={event_id}"
-            else:
-                url = None
-
-            if url:
-                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req, timeout=3.5) as resp:
-                    data = json.loads(resp.read().decode())
-                
+        ev_str = str(event_id)
+        if ev_str in ESPN_SUMMARY_CACHE:
+            try:
+                data = ESPN_SUMMARY_CACHE[ev_str]
                 art = data.get("article")
                 if art and art.get("headline"):
                     links_web = art.get("links", {}).get("web", {})
@@ -1594,8 +1584,8 @@ def fetch_match_recap_news(event_id: str, sport_name: str, team_name: str, playe
                                 "news_type": "Thi đấu",
                                 "region": "US"
                             })
-        except Exception:
-            pass
+            except Exception:
+                pass
 
     if not articles:
         res_text = f" ({match_result})" if match_result else ""

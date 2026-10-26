@@ -8,8 +8,33 @@ from sqlalchemy.orm import Session
 
 from backend.core.db.models import Sport, Nationality, NationalTeam, NationalTeamNews
 
+import os
+
 # Cache for national team schedules to ensure lightning-fast UI responses
+NT_SCHED_CACHE_FILE = os.path.join(os.path.dirname(__file__), "national_teams_sched_cache.json")
 NATIONAL_TEAM_SCHED_CACHE = {}
+
+if os.path.exists(NT_SCHED_CACHE_FILE):
+    try:
+        with open(NT_SCHED_CACHE_FILE, "r", encoding="utf-8") as f:
+            _raw_nt = json.load(f)
+            for k, val in _raw_nt.items():
+                try:
+                    NATIONAL_TEAM_SCHED_CACHE[int(k) if str(k).isdigit() else k] = (val["ts"], val["matches"])
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+def _save_nt_sched_cache():
+    try:
+        serializable = {}
+        for k, v in NATIONAL_TEAM_SCHED_CACHE.items():
+            serializable[str(k)] = {"ts": v[0], "matches": v[1]}
+        with open(NT_SCHED_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(serializable, f, ensure_ascii=False)
+    except Exception:
+        pass
 
 # OFFICIAL CATALOG OF JAPAN & SOUTH KOREA NATIONAL & YOUTH TEAMS
 # Used for searching and adding official teams dynamically
@@ -588,7 +613,7 @@ def fetch_national_team_schedule(team) -> list:
     now_ts = datetime.datetime.now().timestamp()
     if cache_key in NATIONAL_TEAM_SCHED_CACHE:
         cached_ts, cached_matches = NATIONAL_TEAM_SCHED_CACHE[cache_key]
-        if now_ts - cached_ts < 900:  # 15 minutes cache
+        if now_ts - cached_ts < 1800:  # 15 minutes cache
             return cached_matches
 
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
@@ -668,6 +693,7 @@ def fetch_national_team_schedule(team) -> list:
     # Strictly truthful: if no match on official API, matches remains [] (empty list)
     matches.sort(key=lambda x: x["match_date_utc"])
     NATIONAL_TEAM_SCHED_CACHE[cache_key] = (now_ts, matches)
+    _save_nt_sched_cache()
     return matches
 
 def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh: bool = False) -> list:

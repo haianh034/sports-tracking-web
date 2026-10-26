@@ -171,6 +171,12 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
     except Exception:
         pass
 
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
+
     return {
         "success": True,
         "message": f"Đã thêm thành công '{name}' ({sport_name} - {team_name} - {country_name})!",
@@ -232,9 +238,15 @@ def delete_player(player_id: int, db: Session = Depends(get_db)):
     # Dọn dẹp tự động các CLB, Quốc tịch, Môn thể thao không còn cầu thủ nào tham gia
     cleanup_orphans(db)
 
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
+
     return {"success": True, "message": f"Đã xóa thành công cầu thủ '{player_name}' khỏi hệ thống."}
 
-from backend.services.batch_sync_service import execute_batched_sync
+from backend.core.services.batch_sync_service import execute_batched_sync
 
 @router.post("/sync")
 def sync_all_players(db: Session = Depends(get_db)):

@@ -4,7 +4,7 @@ from backend.core.config import DATABASE_URL
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False, "timeout": 15}
+    connect_args={"check_same_thread": False, "timeout": 60}
 )
 
 @event.listens_for(engine, "connect")
@@ -13,6 +13,8 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.execute("PRAGMA foreign_keys=ON;")
     cursor.execute("PRAGMA journal_mode=WAL;")
     cursor.execute("PRAGMA synchronous=NORMAL;")
+    cursor.execute("PRAGMA busy_timeout=60000;")
+    cursor.execute("PRAGMA temp_store=MEMORY;")
     cursor.close()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

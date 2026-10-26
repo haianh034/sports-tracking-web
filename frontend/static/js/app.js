@@ -443,7 +443,11 @@ async function loadDashboard(refreshDropdowns = true) {
 
     try {
         const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
         const data = await res.json();
+        window._dashboardRetryAttempted = false;
 
         if (data.today_date_vn) {
             window.serverTodayVNDate = data.today_date_vn;
@@ -810,16 +814,6 @@ async function loadDashboard(refreshDropdowns = true) {
                                     </button>
                                 </div>
                             </div>
-                                        <span>${escapeHtml(p.sport)}</span> • <span>${escapeHtml(p.country)}</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1.5 shrink-0 whitespace-nowrap pt-0.5">
-                                    ${ratingBadge}
-                                    <button onclick="deletePlayer(event, ${p.id}, '${escapeHtml(p.name)}')" title="Xóa cầu thủ" class="text-gray-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-950/40 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
                             <div class="text-xs bg-gray-950/60 p-3.5 rounded-xl border border-gray-800/80 my-2.5 flex-1 flex flex-col justify-start space-y-1.5">
                                 <div class="text-[11px] font-semibold text-gray-400 mb-1 flex items-center justify-between">
                                     <span class="flex items-center gap-1.5"><span class="text-blue-400">📅</span> 3 Trận Sắp Tới (Giờ VN)</span>
@@ -844,6 +838,13 @@ async function loadDashboard(refreshDropdowns = true) {
         }
     } catch (err) {
         console.error("Lỗi khi tải dữ liệu dashboard:", err);
+        if (!window._dashboardRetryAttempted) {
+            window._dashboardRetryAttempted = true;
+            console.log("Đang tự động kết nối lại sau 2.5 giây...");
+            setTimeout(() => {
+                loadDashboard(refreshDropdowns);
+            }, 2500);
+        }
     }
 }
 
@@ -2062,29 +2063,30 @@ async function initApp() {
     const shouldSync = !lastSync || (now - parseInt(lastSync, 10)) > 5 * 60 * 1000;
 
     if (shouldSync) {
-        console.log('[Auto-Sync] Tự động cập nhật kết quả và tin tức realtime khi mở trang...');
-        const syncSpinner = document.getElementById('syncSpinner');
-        const syncIcon = document.getElementById('syncIcon');
-        if (syncSpinner && syncIcon) {
-            syncSpinner.classList.remove('hidden');
-            syncIcon.classList.add('hidden');
-        }
-
-        try {
-            const res = await fetch('/api/players/sync', { method: 'POST' });
-            if (res.ok) {
-                localStorage.setItem('last_auto_sync_ts', Date.now().toString());
-                // Silently re-render dashboard with fresh scores, ratings, and news
-                await loadDashboard(false);
-            }
-        } catch (e) {
-            console.warn('[Auto-Sync Error]', e);
-        } finally {
+        setTimeout(async () => {
+            console.log('[Auto-Sync] Tự động cập nhật kết quả và tin tức realtime...');
+            const syncSpinner = document.getElementById('syncSpinner');
+            const syncIcon = document.getElementById('syncIcon');
             if (syncSpinner && syncIcon) {
-                syncSpinner.classList.add('hidden');
-                syncIcon.classList.remove('hidden');
+                syncSpinner.classList.remove('hidden');
+                syncIcon.classList.add('hidden');
             }
-        }
+
+            try {
+                const res = await fetch('/api/players/sync', { method: 'POST' });
+                if (res.ok) {
+                    localStorage.setItem('last_auto_sync_ts', Date.now().toString());
+                    await loadDashboard(false);
+                }
+            } catch (e) {
+                console.warn('[Auto-Sync Error]', e);
+            } finally {
+                if (syncSpinner && syncIcon) {
+                    syncSpinner.classList.add('hidden');
+                    syncIcon.classList.remove('hidden');
+                }
+            }
+        }, 3000);
     }
 }
 

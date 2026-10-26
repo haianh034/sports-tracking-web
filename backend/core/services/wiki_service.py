@@ -28,7 +28,7 @@ def fetch_free_player_info(player_name: str) -> dict:
             summary = summary_raw.lower()
             
             aliases = [player_name]
-            from backend.services.news_service import PLAYER_NATIVE_NAMES
+            from backend.modules.players.services.news_service import PLAYER_NATIVE_NAMES
             p_low = player_name.lower().strip()
             for k, v in PLAYER_NATIVE_NAMES.items():
                 if k in p_low or p_low in k:

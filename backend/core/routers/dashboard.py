@@ -41,6 +41,12 @@ from backend.modules.national_teams.services.national_teams_service import fetch
 router = APIRouter(tags=["dashboard"])
 templates = Jinja2Templates(directory="frontend/templates")
 
+_DASHBOARD_CACHE = {}
+_DASHBOARD_CACHE_TTL = 30.0  # 30 seconds
+
+def invalidate_dashboard_cache():
+    _DASHBOARD_CACHE.clear()
+
 @router.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
@@ -80,11 +86,30 @@ def get_dashboard_data(
             return False
         return True
 
+    clean_sport = sport if isinstance(sport, str) else None
+    clean_country = country if isinstance(country, str) else None
+    clean_sport_id = sport_id if isinstance(sport_id, int) else None
+    clean_country_id = country_id if isinstance(country_id, int) else None
+    clean_entity_type = entity_type if isinstance(entity_type, str) else None
+
+    cache_key = (
+        (clean_sport or "").strip().lower(),
+        (clean_country or "").strip().lower(),
+        clean_sport_id,
+        clean_country_id,
+        (clean_entity_type or "").strip().lower()
+    )
+    now_ts = datetime.datetime.now().timestamp()
+    if cache_key in _DASHBOARD_CACHE:
+        c_ts, c_data = _DASHBOARD_CACHE[cache_key]
+        if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
+            return c_data
+
     total_filtered_players = sum(1 for p in all_db_players if matches_dropdown_filters(p))
     total_filtered_national_teams = sum(1 for t in all_db_national_teams if matches_dropdown_filters(t))
 
-    players = all_db_players if entity_type != "national_team" else []
-    national_teams = all_db_national_teams if entity_type != "player" else []
+    players = all_db_players if clean_entity_type != "national_team" else []
+    national_teams = all_db_national_teams if clean_entity_type != "player" else []
     
     # 1. Determine active sports and countries dynamically based on DB players & national teams
     active_sports_set = {p.sport_name for p in all_db_players if p.sport_name and p.sport_name != "Không rõ"}
@@ -180,9 +205,20 @@ def get_dashboard_data(
     today_win_end_utc = datetime.datetime.combine(today_ict, datetime.time.max) - datetime.timedelta(hours=7)
     live_scores = get_live_scores_map()
 
+    # Batch load latest match performance and player news to eliminate per-player DB roundtrips
+    today_perf_by_player = {}
+    for perf in all_db_perfs:
+        if perf.player_id not in today_perf_by_player:
+            today_perf_by_player[perf.player_id] = perf
+
+    all_db_player_news = db.query(PlayerNews).order_by(PlayerNews.published_at.desc()).all()
+    news_by_player = {}
+    for n in all_db_player_news:
+        news_by_player.setdefault(n.player_id, []).append(n)
+
     for p, team_name, sport_name, country_name in player_data_tuples:
-        match_today = db.query(MatchPerformance).filter(MatchPerformance.player_id == p.id).first()
-        all_player_news = db.query(PlayerNews).filter(PlayerNews.player_id == p.id).order_by(PlayerNews.published_at.desc()).all()
+        match_today = today_perf_by_player.get(p.id)
+        all_player_news = list(news_by_player.get(p.id, []))
         news_today = [n for n in all_player_news if today_win_start_utc <= n.published_at <= today_win_end_utc]
         
         tz_offset = "UTC"
@@ -278,12 +314,17 @@ def get_dashboard_data(
                         match_today.player_stats = raw_stats
                         match_today.has_played = True
 
-        if not comp_name and sport_name == "Bóng đá" and team_name:
-            sched = fetch_real_schedule(team_name, sport_name, p.name)
-            if sched and sched.get("competition"):
-                comp_name = sched.get("competition")
-                if match_today:
-                    match_today.competition = comp_name
+        if not comp_name and sport_name == "Bóng đá":
+            for m in sched_map.get(p.id, []):
+                if m.get("competition"):
+                    comp_name = m.get("competition")
+                    break
+            if not comp_name and team_name:
+                clean_comp = get_tournament_tag(team_name, sport_name, "", "")
+                if clean_comp:
+                    comp_name = clean_comp
+            if comp_name and match_today:
+                match_today.competition = comp_name
 
         is_player_no_match = (not in_today_activity and not is_within_month)
         _, tags = format_player_stats_and_tags(
@@ -414,13 +455,12 @@ def get_dashboard_data(
                                 date_str=m_date_vn
                             )
                             db.add(new_perf)
-                            db.commit()
                             if ev_id:
                                 perf_by_player_event[(p.id, str(ev_id))] = new_perf
                             if m_date_vn:
                                 perf_by_player_date[(p.id, str(m_date_vn))] = new_perf
                         except Exception:
-                            db.rollback()
+                            pass
                     else:
                         m["rating"] = None
                         m["player_stats"] = None
@@ -915,7 +955,7 @@ def get_dashboard_data(
             calendar_counts[k_str] = 0
         curr_d += datetime.timedelta(days=1)
 
-    return {
+    result_data = {
         "today_date_vn": today_str_vn,
         "server_time_utc": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "active_players": active_players,
@@ -930,4 +970,6 @@ def get_dashboard_data(
         "total_national_teams": total_filtered_national_teams,
         "total_all": total_filtered_players + total_filtered_national_teams
     }
+    _DASHBOARD_CACHE[cache_key] = (now_ts, result_data)
+    return result_data
 
