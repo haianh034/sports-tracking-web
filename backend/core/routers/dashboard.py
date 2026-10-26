@@ -245,7 +245,13 @@ def get_dashboard_data(
     # Batch load latest match performance and player news to eliminate per-player DB roundtrips
     today_perf_by_player = {}
     for perf in all_db_perfs:
-        if perf.player_id not in today_perf_by_player:
+        p_d_str = perf.date_str
+        if not p_d_str and perf.match_date:
+            try:
+                p_d_str = (perf.match_date + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
+            except Exception:
+                pass
+        if p_d_str == today_str_vn:
             today_perf_by_player[perf.player_id] = perf
 
     all_db_player_news = db.query(PlayerNews).order_by(PlayerNews.published_at.desc()).all()
@@ -254,7 +260,7 @@ def get_dashboard_data(
         news_by_player.setdefault(n.player_id, []).append(n)
 
     for p, team_name, sport_name, country_name in player_data_tuples:
-        match_today = today_perf_by_player.get(p.id)
+        all_matches_raw = sched_map.get(p.id, [])
         all_player_news = list(news_by_player.get(p.id, []))
         news_today = [n for n in all_player_news if today_win_start_utc <= n.published_at <= today_win_end_utc]
         
@@ -266,25 +272,75 @@ def get_dashboard_data(
                 country_flag = info.get("flag", "🌐")
                 break
 
-        match_date_utc = (match_today.match_date.strftime("%Y-%m-%dT%H:%M:%SZ") if (match_today and match_today.match_date) else None)
-        
+        # XÁC ĐỊNH CHÍNH XÁC TRẬN ĐẤU HÔM NAY TỪ LỊCH ĐẤU THỰC TẾ (SCHED_MAP)
+        sched_today_match = None
+        for m in all_matches_raw:
+            m_dvn = m.get("date_only_vn")
+            if not m_dvn and m.get("match_date_utc"):
+                try:
+                    m_dvn = (datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S") + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
+                except Exception:
+                    pass
+            m_diff = m.get("diff_days")
+            if m_dvn == today_str_vn or m_diff == 0 or m.get("match_state") == "in":
+                sched_today_match = m
+                break
+
+        # Tìm bản ghi hiệu suất tương ứng trong DB (nếu có)
+        match_today = today_perf_by_player.get(p.id)
+        if sched_today_match and sched_today_match.get("event_id"):
+            ev_perf = perf_by_player_event.get((p.id, str(sched_today_match.get("event_id"))))
+            if ev_perf:
+                match_today = ev_perf
+
         in_today_activity = False
         is_within_month = False
         next_match_text = "Chưa có dữ liệu lịch đấu"
-        
         diff_days = 999
-        if match_today and match_today.match_date:
+        match_date_utc = None
+        match_state = "pre"
+        match_result = None
+        raw_stats = None
+        rating = None
+        raw_tags = []
+        comp_name = ""
+
+        if sched_today_match:
+            in_today_activity = True
+            is_within_month = True
+            diff_days = 0
+            next_match_text = sched_today_match.get("match_name") or "Thi đấu hôm nay"
+            match_date_utc = sched_today_match.get("match_date_utc")
+            match_state = sched_today_match.get("match_state", "pre")
+            match_result = sched_today_match.get("match_result")
+            comp_name = sched_today_match.get("competition") or ""
+            
+            if match_today:
+                if match_today.performance_rating is not None:
+                    rating = match_today.performance_rating
+                if match_today.player_stats:
+                    raw_stats = match_today.player_stats
+                if match_today.impression_tags:
+                    raw_tags = [t.strip() for t in match_today.impression_tags.split(",") if t.strip()]
+                if match_today.match_result:
+                    match_result = match_today.match_result
+                if match_today.match_state:
+                    match_state = match_today.match_state
+        elif match_today and match_today.match_date:
             match_ict = match_today.match_date + datetime.timedelta(hours=7)
             match_date_ict = match_ict.date()
             diff_days = (match_date_ict - today_ict).days
-            
-            # STRICT TODAY: Only matches taking place on TODAY (diff_days == 0) or live matches (match_state == 'in')
-            # Matches on tomorrow (diff_days == 1 or 23/10) belong to Upcoming Matches.
-            # Matches on yesterday (diff_days == -1 or 21/10) belong to Past Matches / No Match.
+            match_date_utc = match_today.match_date.strftime("%Y-%m-%dT%H:%M:%SZ")
             if diff_days == 0:
                 in_today_activity = True
                 is_within_month = True
                 next_match_text = match_today.match_name
+                match_state = getattr(match_today, 'match_state', 'pre') or 'pre'
+                match_result = getattr(match_today, 'match_result', None)
+                raw_stats = getattr(match_today, 'player_stats', None)
+                rating = match_today.performance_rating
+                raw_tags = (match_today.impression_tags or "").split(",") if match_today.impression_tags else []
+                comp_name = getattr(match_today, 'competition', None) or ""
             elif diff_days > 0 and diff_days <= 30:
                 in_today_activity = False
                 is_within_month = True
@@ -297,14 +353,6 @@ def get_dashboard_data(
             in_today_activity = False
             is_within_month = False
             next_match_text = "Không có trận trong 1 tháng sắp tới"
-        
-        match_state = getattr(match_today, 'match_state', 'pre') or 'pre'
-        match_result = getattr(match_today, 'match_result', None)
-        raw_stats = getattr(match_today, 'player_stats', None)
-        rating = match_today.performance_rating if match_today else None
-        
-        raw_tags = (match_today.impression_tags or "").split(",") if match_today and match_today.impression_tags else []
-        comp_name = getattr(match_today, 'competition', None) or ""
 
         p_news_titles = [n.title for n in news_today]
         if not p_news_titles:
@@ -352,7 +400,7 @@ def get_dashboard_data(
                         match_today.has_played = True
 
         if not comp_name and sport_name == "Bóng đá":
-            for m in sched_map.get(p.id, []):
+            for m in all_matches_raw:
                 if m.get("competition"):
                     comp_name = m.get("competition")
                     break
@@ -365,16 +413,15 @@ def get_dashboard_data(
 
         is_player_no_match = (not in_today_activity and not is_within_month)
         raw_stats_summary, _ = unpack_stats(raw_stats)
+        curr_match_headline = sched_today_match.get("match_name") if sched_today_match else (match_today.match_name if match_today else "")
         _, tags = format_player_stats_and_tags(
             p.name, sport_name, team_name,
-            match_today.match_name if match_today else "",
+            curr_match_headline,
             match_state, raw_stats_summary, raw_tags,
             competition_name=comp_name,
             news_titles=p_news_titles,
             is_no_match=is_player_no_match
         )
-
-        all_matches_raw = sched_map.get(p.id, [])
         all_matches = []
         upcoming_matches_30d = []
         today_str_vn = today_ict.strftime("%Y-%m-%d")
@@ -396,16 +443,15 @@ def get_dashboard_data(
 
             # 1. Match-specific Rating & Stats & Tags
             is_matching_today_perf = False
-            if match_today and in_today_activity:
+            if in_today_activity:
                 m_ev_id = str(m.get("event_id") or "")
-                perf_ev_id = str(getattr(match_today, "event_id", "") or "")
-                perf_date_vn = (match_today.match_date + datetime.timedelta(hours=7)).strftime("%Y-%m-%d") if match_today.match_date else ""
-                if (m_ev_id and perf_ev_id and m_ev_id == perf_ev_id) or (m_date_vn and m_date_vn == perf_date_vn and m_date_vn == today_str_vn):
+                sched_ev_id = str(sched_today_match.get("event_id") or "") if sched_today_match else ""
+                if (m_ev_id and sched_ev_id and m_ev_id == sched_ev_id) or (m_date_vn and m_date_vn == today_str_vn):
                     is_matching_today_perf = True
 
-            if is_matching_today_perf and match_today:
-                h_played = (match_today.has_played if match_today else False)
-                db_tags = [t.strip() for t in (match_today.impression_tags or "").split(",") if t.strip()]
+            if is_matching_today_perf:
+                h_played = (match_today.has_played if match_today else True)
+                db_tags = [t.strip() for t in (match_today.impression_tags or "").split(",") if t.strip()] if match_today else []
                 is_no_play = not h_played or any(no_play_kw in t for t in (db_tags or tags) for no_play_kw in ["Không đăng ký", "Không thi đấu", "Dự bị (Không vào sân)", "Chấn thương"])
                 
                 m["rating"] = None if is_no_play else rating
