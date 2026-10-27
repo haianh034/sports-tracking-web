@@ -346,13 +346,19 @@ function renderTagBadge(tag) {
     // 3. Highlight / Milestone / Game Winner / Clutch / MVP / Double-Double / Triple-Double / Phá kỷ lục / Volleyball / Badminton Highlights (Vàng kim rực rỡ kèm giải thích)
     if (tLow.includes('game winner') || tLow.includes('clutch') || tLow.includes('kỷ lục') || tLow.includes('mvp') || 
         tLow.includes('double-double') || tLow.includes('triple-double') || tLow.includes('hattrick') || tLow.includes('cú đúp') || 
-        tLow.includes('siêu phẩm') || tLow.includes('bàn quyết định') || tLow.includes('grand slam') || tLow.includes('mưa 3') || 
+        tLow.includes('siêu phẩm') || tLow.includes('bàn quyết định') || tLow.includes('bàn mở tỉ số') || tLow.includes('bàn mở tỷ số') || tLow.includes('bàn ấn định') || tLow.includes('grand slam') || tLow.includes('mưa 3') || 
         tLow.includes('monster block') || tLow.includes('ace') || tLow.includes('top ghi điểm') || tLow.includes('hiệu suất tấn công') ||
         tLow.includes('lội ngược dòng') || tLow.includes('match-point') || tLow.includes('tấn công áp đảo') ||
         tLow.includes('30+') || tLow.includes('40+') || tLow.includes('nghẹt thở')) {
         let icon = '🔥';
         let tooltip = customTooltip || 'Thành tích nổi bật trong trận đấu';
-        if (tLow.includes('game winner') || tLow.includes('bàn quyết định')) {
+        if (tLow.includes('bàn mở tỉ số') || tLow.includes('bàn mở tỷ số')) {
+            icon = '⚽';
+            tooltip = 'Ghi bàn thắng mở tỉ số trận đấu (Khai thông thế bế tắc)';
+        } else if (tLow.includes('bàn ấn định')) {
+            icon = '🔒';
+            tooltip = 'Ghi bàn thắng ấn định kết quả chung cuộc của trận đấu';
+        } else if (tLow.includes('game winner') || tLow.includes('bàn quyết định')) {
             icon = '🎯';
             tooltip = 'Pha bóng / bàn thắng định đoạt trận đấu (Game Winner / Clutch)';
         } else if (tLow.includes('kỷ lục')) {

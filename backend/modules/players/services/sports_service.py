@@ -361,6 +361,7 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         if t_low in ["thủ môn", "hậu vệ"]: continue
         if "cứu thua" in t_low and "xuất sắc" not in t_low: continue
         if "vào sân từ ghế dự bị" in t_low: t = "Vào sân"
+        if t_low == "bàn quyết định": t = "Bàn mở tỉ số"
         if t_low in ["chưa thi đấu", "sắp thi đấu", "chờ lịch/hết mùa", "chờ lịch", "hết mùa", "đã thi đấu"]: continue
         if "tin tức" in t_low: continue
         if len(t) > 40: t = t[:40].strip()

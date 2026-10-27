@@ -1248,7 +1248,48 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                     if rating >= 8.5:
                         tags.append("Cầu thủ xuất sắc nhất (MVP)")
                     if g >= 1:
-                        tags.append("Bàn quyết định")
+                        # Phân loại chính xác vai trò bàn thắng: Bàn mở tỉ số, Bàn ấn định tỉ số...
+                        key_events = data.get('keyEvents', []) or []
+                        scoring_events = []
+                        for k in key_events:
+                            t_text = k.get('type', {}).get('text', '').lower()
+                            k_text = k.get('text', '').lower()
+                            if k.get('scoringPlay') or 'goal' in t_text or 'goal' in k_text or t_text == 'goal':
+                                scoring_events.append(k)
+
+                        goal_tag = None
+                        if scoring_events:
+                            first_event = scoring_events[0]
+                            first_parts = [p.get('athlete', {}).get('displayName', '').lower() for p in first_event.get('participants', [])]
+                            first_text = first_event.get('text', '').lower()
+                            is_first_goal = any(any(part in ath_name for part in p_parts) for ath_name in first_parts) or any(part in first_text for part in p_parts)
+
+                            if is_first_goal:
+                                goal_tag = "Bàn mở tỉ số"
+                            elif len(scoring_events) > 1:
+                                last_event = scoring_events[-1]
+                                last_parts = [p.get('athlete', {}).get('displayName', '').lower() for p in last_event.get('participants', [])]
+                                last_text = last_event.get('text', '').lower()
+                                is_last_goal = any(any(part in ath_name for part in p_parts) for ath_name in last_parts) or any(part in last_text for part in p_parts)
+                                if is_last_goal:
+                                    goal_tag = "Bàn ấn định tỉ số"
+
+                        if not goal_tag and news_titles:
+                            for nt in news_titles[:15]:
+                                nt_low = nt.lower()
+                                if any(part in nt_low for part in p_parts):
+                                    if any(kw in nt_low for kw in ["mở tỉ số", "mở tỷ số", "khai thông", "first goal", "opener", "opening goal", "선제골", "선제점", "결승포", "결승골"]):
+                                        goal_tag = "Bàn mở tỉ số"
+                                        break
+                                    elif any(kw in nt_low for kw in ["ấn định", "chốt hạ", "seals win", "sealed win", "final goal"]):
+                                        goal_tag = "Bàn ấn định tỉ số"
+                                        break
+
+                        if not goal_tag:
+                            goal_tag = "Bàn mở tỉ số" if g == 1 else "Ghi bàn"
+
+                        if goal_tag and goal_tag not in tags:
+                            tags.append(goal_tag)
                     
                     if not news_titles:
                         news_titles = get_player_recent_news_titles(player_name)
