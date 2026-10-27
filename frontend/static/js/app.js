@@ -359,13 +359,14 @@ function renderTagBadge(tag) {
         tLow.includes('30+') || tLow.includes('40+') || tLow.includes('nghẹt thở')) {
         let icon = '🔥';
         let tooltip = customTooltip || 'Thành tích nổi bật trong trận đấu';
-        if (tLow.includes('bàn mở tỉ số') || tLow.includes('bàn mở tỷ số')) {
+        if (tLow.includes('bàn mở tỉ số') || tLow.includes('bàn mở tỷ số') || tLow.includes('bàn quyết định')) {
             icon = '⚽';
+            label = 'Bàn mở tỉ số';
             tooltip = 'Ghi bàn thắng mở tỉ số trận đấu (Khai thông thế bế tắc)';
         } else if (tLow.includes('bàn ấn định')) {
             icon = '🔒';
             tooltip = 'Ghi bàn thắng ấn định kết quả chung cuộc của trận đấu';
-        } else if (tLow.includes('game winner') || tLow.includes('bàn quyết định')) {
+        } else if (tLow.includes('game winner')) {
             icon = '🎯';
             tooltip = 'Pha bóng / bàn thắng định đoạt trận đấu (Game Winner / Clutch)';
         } else if (tLow.includes('kỷ lục')) {

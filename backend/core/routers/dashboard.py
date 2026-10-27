@@ -465,11 +465,15 @@ def get_dashboard_data(
                 # Include competition tag + impression tags directly from match_today
                 m_tags = [clean_comp] if clean_comp else []
                 for t in (db_tags or tags):
-                    if t and t not in m_tags:
+                    if t:
                         t_low = t.lower()
+                        if t_low == "bàn quyết định":
+                            t = "Bàn mở tỉ số"
+                            t_low = t.lower()
                         if "cứu thua" in t_low and "xuất sắc" not in t_low:
                             continue
-                        m_tags.append(t)
+                        if t not in m_tags:
+                            m_tags.append(t)
                 m["tags"] = m_tags
                 m["has_played"] = False if is_no_play else h_played
             elif is_m_past:
@@ -488,11 +492,15 @@ def get_dashboard_data(
                     m_tags = [clean_comp] if clean_comp else []
                     db_tags = [t.strip() for t in (db_perf.impression_tags or "").split(",") if t.strip()]
                     for t in db_tags:
-                        if t and t not in m_tags:
+                        if t:
                             t_low = t.lower()
+                            if t_low == "bàn quyết định":
+                                t = "Bàn mở tỉ số"
+                                t_low = t.lower()
                             if "cứu thua" in t_low and "xuất sắc" not in t_low:
                                 continue
-                            m_tags.append(t)
+                            if t not in m_tags:
+                                m_tags.append(t)
                     m["tags"] = m_tags
                 else:
                     real_stats = None
@@ -515,11 +523,15 @@ def get_dashboard_data(
                         m["player_stats"] = p_stats
                         m_tags = [clean_comp] if clean_comp else []
                         for t in raw_tags_list:
-                            if t and t not in m_tags:
+                            if t:
                                 t_low = t.lower()
+                                if t_low == "bàn quyết định":
+                                    t = "Bàn mở tỉ số"
+                                    t_low = t.lower()
                                 if "cứu thua" in t_low and "xuất sắc" not in t_low:
                                     continue
-                                m_tags.append(t)
+                                if t not in m_tags:
+                                    m_tags.append(t)
                         m["tags"] = m_tags
 
                         # Lock into Database permanently
