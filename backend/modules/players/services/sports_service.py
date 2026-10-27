@@ -14,6 +14,56 @@ def resolve_team_league(team_name: str, sport_name: str = "") -> str:
     if key in TEAM_LEAGUE_CACHE:
         return TEAM_LEAGUE_CACHE[key]
     
+    t_low = clean.lower()
+    s_low = (sport_name or "").lower()
+
+    # 1. Tra cứu giải đấu nổi tiếng theo môn (đặc biệt các môn ngoài bóng đá)
+    # Asian & Global Baseball:
+    if "chày" in s_low or "baseball" in s_low:
+        kbo_clubs = ["kia tigers", "kia", "lg twins", "twins", "nc dinos", "dinos", "ssg landers", "landers", "samsung lions", "kt wiz", "doosan bears", "lotte giants", "hanwha eagles", "kiwoom heroes"]
+        npb_clubs = [
+            "hanshin", "yomiuri", "orix", "hiroshima carp", "carp", "chunichi dragons", "dragons", 
+            "yakult swallows", "swallows", "baystars", "softbank hawks", "hawks", "seibu lions", 
+            "chiba lotte", "marines", "nippon-ham", "fighters", "rakuten", "golden eagles", "buffaloes"
+        ]
+        if any(c in t_low for c in kbo_clubs):
+            TEAM_LEAGUE_CACHE[key] = "KBO"
+            return "KBO"
+        if any(c in t_low for c in npb_clubs):
+            TEAM_LEAGUE_CACHE[key] = "NPB"
+            return "NPB"
+
+    # Basketball:
+    if "rổ" in s_low or "basketball" in s_low:
+        euro_clubs = [
+            "panathinaikos", "olympiacos", "fenerbahce", "fenerbahçe", "anadolu efes", 
+            "maccabi", "partizan", "crvena zvezda", "virtus", "olimpia milano", 
+            "baskonia", "zalgiris", "žalgiris", "asvel", "alba berlin", "monaco"
+        ]
+        bleague_clubs = ["chiba jets", "brex", "golden kings", "alvark", "brave thunders", "b-corsairs", "sun rockers", "diamond dolphins"]
+        if any(c in t_low for c in euro_clubs):
+            TEAM_LEAGUE_CACHE[key] = "EuroLeague"
+            return "EuroLeague"
+        if any(c in t_low for c in bleague_clubs):
+            TEAM_LEAGUE_CACHE[key] = "B.League"
+            return "B.League"
+
+    # Volleyball:
+    if "chuyền" in s_low or "volleyball" in s_low:
+        if "ziraat" in t_low or "halkbank" in t_low or "arkas" in t_low:
+            TEAM_LEAGUE_CACHE[key] = "Efeler Ligi"
+            return "Efeler Ligi"
+        if any(c in t_low for c in ["perugia", "milano", "trentino", "civitanova", "lube", "modena", "piacenza", "monza", "verona"]):
+            TEAM_LEAGUE_CACHE[key] = "SuperLega"
+            return "SuperLega"
+        if any(c in t_low for c in ["suntory", "sunbirds", "bluteon", "panasonic", "jtekt", "wolfdogs", "toray", "thunders", "blazers", "great bears"]):
+            TEAM_LEAGUE_CACHE[key] = "SV.League"
+            return "SV.League"
+        if any(c in t_low for c in ["hyundai capital", "korean air", "woori card", "vixtorm", "bluefangs", "kb insurance", "ok financial"]):
+            TEAM_LEAGUE_CACHE[key] = "V-League (Hàn Quốc)"
+            return "V-League (Hàn Quốc)"
+
+    # 2. Truy vấn trực tiếp ESPN
     try:
         from backend.modules.players.services.espn_service import get_espn_team_info
         info = get_espn_team_info(clean, sport_name)
@@ -23,10 +73,15 @@ def resolve_team_league(team_name: str, sport_name: str = "") -> str:
                 res_tag = LEAGUE_SLUG_MAP[slug]
                 TEAM_LEAGUE_CACHE[key] = res_tag
                 return res_tag
-            # Check if slug has a friendly name or is sco.1, bel.1 etc.
             if "sco." in slug:
                 TEAM_LEAGUE_CACHE[key] = "Scottish Premiership"
                 return "Scottish Premiership"
+            if "bel." in slug:
+                TEAM_LEAGUE_CACHE[key] = "Belgian Pro League"
+                return "Belgian Pro League"
+            if "sau." in slug:
+                TEAM_LEAGUE_CACHE[key] = "Saudi Pro League"
+                return "Saudi Pro League"
     except Exception:
         pass
     
@@ -88,19 +143,85 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
     if "premier league" in c_lower or "epl" in c_lower or "english premier league" in c_lower or "eng.1" in c_lower:
         return "Premier League"
 
-    # Other Domestic Leagues
+    # Other Domestic Leagues (Football)
     if "super lig" in c_lower or "süper lig" in c_lower or "superlig" in c_lower or "tur.1" in c_lower: return "Süper Lig"
     if "primeira liga" in c_lower or "portuguese primeira liga" in c_lower or "por.1" in c_lower: return "Primeira Liga"
     if "eredivisie" in c_lower or "ned.1" in c_lower: return "Eredivisie"
     if "scottish premiership" in c_lower or "premiership" in c_lower or "sco.1" in c_lower: return "Scottish Premiership"
-    if "belgian pro league" in c_lower or "pro league" in c_lower or "bel.1" in c_lower: return "Belgian Pro League"
-    if "saudi pro league" in c_lower or "sau.1" in c_lower: return "Saudi Pro League"
+    if "saudi pro league" in c_lower or "sau.1" in c_lower or "spl" in c_lower: return "Saudi Pro League"
+    if "belgian pro league" in c_lower or "jupiler" in c_lower or "bel.1" in c_lower or ("pro league" in c_lower and "saudi" not in c_lower): return "Belgian Pro League"
     if "j1 league" in c_lower or "jpn.1" in c_lower: return "J1 League"
     if "k league" in c_lower or "kor.1" in c_lower: return "K League 1"
     if "mls" in c_lower or "major league soccer" in c_lower or "usa.1" in c_lower: return "MLS"
+
+    # Multi-sport Tournament Resolution
+    # 1. Baseball (Bóng chày)
+    if any(k in c_lower for k in ["npb", "nippon professional baseball", "japan baseball"]): return "NPB"
+    if "kbo" in c_lower: return "KBO"
+    if "cpbl" in c_lower: return "CPBL"
+    if "wbc" in c_lower or "world baseball classic" in c_lower: return "WBC"
+    if "triple-a" in c_lower or "milb" in c_lower: return "MiLB (Triple-A)"
     if "mlb" in c_lower or "major league baseball" in c_lower: return "MLB"
+
+    # 2. Basketball (Bóng rổ)
+    if "euroleague" in c_lower or "euro league" in c_lower: return "EuroLeague"
+    if "wnba" in c_lower: return "WNBA"
+    if any(k in c_lower for k in ["b.league", "bleague", "b1 league"]): return "B.League"
+    if "cba" in c_lower or "chinese basketball" in c_lower: return "CBA"
+    if "kbl" in c_lower or "korean basketball" in c_lower: return "KBL"
+    if "ncaa" in c_lower or "college basketball" in c_lower: return "NCAA"
+    if "liga acb" in c_lower or "liga endesa" in c_lower: return "Liga ACB"
     if "nba" in c_lower: return "NBA"
+
+    # 3. Tennis (Quần vợt)
+    if "wimbledon" in c_lower: return "Wimbledon"
+    if "us open" in c_lower or "u.s. open" in c_lower: return "US Open"
+    if "roland garros" in c_lower or "french open" in c_lower: return "Roland Garros"
+    if "australian open" in c_lower: return "Australian Open"
+    if "atp masters" in c_lower or "masters 1000" in c_lower: return "ATP Masters 1000"
+    if "wta 1000" in c_lower: return "WTA 1000"
+    if "atp finals" in c_lower: return "ATP Finals"
+    if "wta finals" in c_lower: return "WTA Finals"
+    if "atp 500" in c_lower: return "ATP 500"
+    if "wta 500" in c_lower: return "WTA 500"
+    if "atp" in c_lower: return "ATP Tour"
+    if "wta" in c_lower: return "WTA Tour"
+    if "davis cup" in c_lower: return "Davis Cup"
+
+    # 4. Volleyball (Bóng chuyền)
+    if "superlega" in c_lower or "super lega" in c_lower or "italian superlega" in c_lower: return "SuperLega"
+    if "efeler" in c_lower: return "Efeler Ligi"
+    if "sultanlar" in c_lower: return "Sultanlar Ligi"
+    if any(k in c_lower for k in ["sv.league", "sv league", "sv-league", "v.league japan"]): return "SV.League"
+    if "cev" in c_lower or "volleyball champions" in c_lower: return "CEV Champions League"
+    if "vnl" in c_lower or "nations league" in c_lower: return "Volleyball Nations League"
+    if "v-league" in c_lower and ("korea" in c_lower or "hàn" in c_lower): return "V-League (Hàn Quốc)"
+
+    # 5. Badminton (Cầu lông)
+    if "all england" in c_lower: return "All England Open"
+    if "world championships" in c_lower or "bwf world championships" in c_lower: return "BWF World Championships"
+    if "super 1000" in c_lower: return "BWF Super 1000"
+    if "super 750" in c_lower: return "BWF Super 750"
+    if "super 500" in c_lower: return "BWF Super 500"
+    if "super 300" in c_lower: return "BWF Super 300"
+    if "bwf" in c_lower or "world tour" in c_lower: return "BWF World Tour"
+
+    # 6. Table Tennis (Bóng bàn)
+    if "grand smash" in c_lower: return "WTT Grand Smash"
+    if "wtt champions" in c_lower: return "WTT Champions"
+    if "star contender" in c_lower: return "WTT Star Contender"
+    if "wtt finals" in c_lower: return "WTT Finals"
+    if "wtt" in c_lower: return "WTT Series"
+    if "ittf" in c_lower: return "ITTF World Tour"
     
+    # If a specific, meaningful competition name is given, return it formatted
+    if competition_name and len(competition_name.strip()) >= 3 and not competition_name.strip().lower() in ["giải đấu", "unknown", "thể thao"]:
+        clean_ret = competition_name.strip()
+        # Clean numeric year prefixes or suffixes like '2026/27 '
+        clean_ret = re.sub(r'^(20\d\d[-/]\d\d|20\d\d)\s+', '', clean_ret)
+        if clean_ret:
+            return clean_ret
+
     m_lower = (match_name or "").lower()
     t_lower = (team_name or "").lower()
     s_lower = (sport_name or "").lower()
@@ -131,25 +252,9 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
 
     # Only treat as Champions League if both teams are established top-5 or top-tier European clubs
     if nations_matched >= 2:
-        # If any team is typically Europa/Conference league tier (e.g. from smaller leagues), let ESPN competition name handle it or default properly
         return "Champions League"
 
-    if "bóng chày" in s_lower or "baseball" in s_lower:
-        return "MLB"
-    if "bóng rổ" in s_lower or "basketball" in s_lower:
-        return "NBA"
-    if "bóng chuyền" in s_lower or "volleyball" in s_lower:
-        if "ziraat" in t_lower:
-            return "Efeler Ligi"
-        if any(c in t_lower for c in ["perugia", "milano", "trentino", "civitanova"]):
-            return "SuperLega"
-        return "Bóng chuyền"
-    if "cầu lông" in s_lower or "badminton" in s_lower:
-        return "BWF World Tour"
-    if "bóng bàn" in s_lower or "table tennis" in s_lower:
-        return "WTT Series"
-
-    # Dynamic resolution via ESPN Search API for any club worldwide
+    # Dynamic resolution via Team / ESPN Catalog for any club worldwide
     dyn_tag = resolve_team_league(team_name, sport_name)
     if dyn_tag:
         return dyn_tag
@@ -164,19 +269,32 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         final_tags.append(tourn_tag)
 
     ALL_TOURNAMENT_TAGS = {
+        # Football - European Cups
         "Champions League", "Europa League", "Conference League", 
+        # Football - Domestic Leagues
         "Premier League", "Championship", 
         "Bundesliga", "Bundesliga 2", 
         "La Liga", "La Liga 2", 
         "Serie A", "Serie B", 
         "Ligue 1", "Ligue 2", 
-        "MLS", "NBA", "MLB", 
-        "Süper Lig", "Eredivisie", "Primeira Liga", 
+        "MLS", "Süper Lig", "Eredivisie", "Primeira Liga", 
         "Scottish Premiership", "Belgian Pro League", "Saudi Pro League",
-        "J1 League", "K League 1",
+        "J1 League", "K League 1", "Argentine Primera División", "Brasileirão",
+        # Football - Cups
         "FA Cup", "Carabao Cup", "Copa del Rey", "DFB-Pokal", "Coppa Italia", "Coupe de France",
-        "Efeler Ligi", "Turkish Efeler Ligi", "Italian SuperLega", "SuperLega", "SV.League", 
-        "BWF World Tour", "WTT Champions", "WTT Finals", "WTT Series"
+        # Baseball
+        "MLB", "NPB", "KBO", "CPBL", "WBC", "MiLB (Triple-A)",
+        # Basketball
+        "NBA", "EuroLeague", "WNBA", "B.League", "CBA", "KBL", "NCAA", "Liga ACB",
+        # Tennis
+        "Wimbledon", "US Open", "Roland Garros", "Australian Open", 
+        "ATP Masters 1000", "WTA 1000", "ATP Finals", "WTA Finals", "ATP 500", "WTA 500", "ATP Tour", "WTA Tour", "Davis Cup",
+        # Volleyball
+        "SuperLega", "Efeler Ligi", "Sultanlar Ligi", "SV.League", "CEV Champions League", "Volleyball Nations League", "V-League (Hàn Quốc)", "Bóng chuyền",
+        # Badminton
+        "All England Open", "BWF World Championships", "BWF Super 1000", "BWF Super 750", "BWF Super 500", "BWF Super 300", "BWF World Tour",
+        # Table Tennis
+        "WTT Grand Smash", "WTT Champions", "WTT Star Contender", "WTT Finals", "WTT Series", "ITTF World Tour"
     }
     clean_existing_tags = [t for t in (existing_tags or []) if t not in ALL_TOURNAMENT_TAGS]
 

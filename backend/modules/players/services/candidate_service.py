@@ -133,6 +133,16 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
     sport_order = {"Bóng đá": 1, "Bóng chày": 2, "Bóng rổ": 3, "Bóng chuyền": 4, "Cầu lông": 5, "Quần vợt": 6, "Bóng bàn": 7, "Môn khác": 8}
     candidates.sort(key=lambda x: (-x.get("score", 0), sport_order.get(x["sport"], 99)))
 
+    # Phân giải giải đấu tương ứng của CLB để người dùng có đầy đủ thông tin Đội + Giải đấu
+    from backend.modules.players.services.sports_service import resolve_team_league
+    for c in candidates:
+        team_name = c.get("team", "")
+        sport_name = c.get("sport", "")
+        if team_name and team_name not in ["Tự do", "Chưa rõ CLB", "Unknown"]:
+            c["team_league"] = resolve_team_league(team_name, sport_name)
+        else:
+            c["team_league"] = ""
+
     # AMBIGUITY EVALUATION:
     # If the user typed an exact full name (e.g. "Shota Imanaga") and top candidate matches exactly:
     if len(candidates) == 1:

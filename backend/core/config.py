@@ -57,7 +57,9 @@ EN_TO_VI_MAP = {
 SPORT_TO_ESPN = {
     "Bóng đá": "soccer",
     "Bóng rổ": "basketball",
-    "Bóng chày": "baseball"
+    "Bóng chày": "baseball",
+    "Khúc côn cầu": "hockey",
+    "Quần vợt": "tennis"
 }
 
 LEAGUE_SLUG_MAP = {
@@ -83,7 +85,19 @@ LEAGUE_SLUG_MAP = {
     "jpn.1": "J1 League",
     "kor.1": "K League 1",
     "mlb": "MLB",
-    "nba": "NBA"
+    "nba": "NBA",
+    "wnba": "WNBA",
+    "mens-college-basketball": "NCAA Basketball",
+    "womens-college-basketball": "NCAA Basketball (Nữ)",
+    "college-baseball": "NCAA Baseball",
+    "nhl": "NHL",
+    "uefa.champions": "Champions League",
+    "uefa.europa": "Europa League",
+    "uefa.conference": "Conference League",
+    "uefa.w.europa": "UEFA Women's Europa",
+    "eng.w.1": "Women's Super League",
+    "esp.w.1": "Liga F",
+    "usa.w.1": "NWSL"
 }
 
 CLUB_BLACKLIST = {

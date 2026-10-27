@@ -1373,6 +1373,8 @@ function openModal(player, resetFilter = true, customMatch = null) {
             aliasesElem.innerText = '';
             aliasesElem.classList.add('hidden');
         }
+        const teamRow = document.getElementById('modalPlayerTeamRow');
+        if (teamRow) teamRow.classList.add('hidden');
     } else {
         document.getElementById('modalPlayerName').innerText = `${player.name} - ${player.team || ''}`;
         document.getElementById('modalPlayerSub').innerText = `${player.sport} • Quốc tịch: ${player.country}`;
@@ -1384,6 +1386,12 @@ function openModal(player, resetFilter = true, customMatch = null) {
             } else {
                 aliasesElem.classList.add('hidden');
             }
+        }
+        const teamRow = document.getElementById('modalPlayerTeamRow');
+        const teamBadge = document.getElementById('modalPlayerTeamBadge');
+        if (teamRow && teamBadge) {
+            teamBadge.innerText = `CLB: ${player.team || 'Tự do'}${player.competition ? ' • 🏆 ' + player.competition : ''}`;
+            teamRow.classList.remove('hidden');
         }
     }
 
@@ -1945,7 +1953,8 @@ async function processNextPlayerInQueue() {
         const data = await res.json();
         const candidates = data.candidates || [];
 
-        if (data.has_ambiguity && candidates.length > 1) {
+        const shouldShowReview = (candidates.length > 1) || (candidates.length === 1 && window.addPlayerTotal === 1);
+        if (shouldShowReview && candidates.length >= 1) {
             box.classList.remove('hidden');
             inputSection.classList.add('hidden');
             submitBtn.classList.add('hidden');
@@ -1965,14 +1974,20 @@ async function processNextPlayerInQueue() {
                             <span class="text-xs bg-blue-950 text-blue-300 border border-blue-800/60 px-2 py-0.5 rounded font-medium">${escapeHtml(c.sport)}</span>
                             <span class="text-xs bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">${escapeHtml(c.country_flag || '🌐')} ${escapeHtml(c.country)}</span>
                         </div>
-                        <div class="text-xs text-gray-400 mt-1 truncate">
-                            CLB: <span class="text-emerald-400 font-medium">${escapeHtml(c.team || 'Tự do')}</span>
-                            ${c.snippet ? ` • <span class="text-gray-500 italic">${escapeHtml(c.snippet)}</span>` : ''}
+                        <div class="text-xs text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
+                            <span>CLB: <b class="text-emerald-400 font-semibold" id="candTeamDisplay_${i}">${escapeHtml(c.team || 'Tự do')}</b></span>
+                            <span id="candLeagueBadge_${i}" class="${c.team_league ? 'bg-blue-950/70 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded text-[11px]' : 'hidden'}">
+                                🏆 ${escapeHtml(c.team_league || '')}
+                            </span>
+                            <button type="button" onclick="openTeamSelectForCandidate(${i})" 
+                                class="text-[11px] text-blue-400 hover:text-blue-300 hover:underline cursor-pointer flex items-center gap-1 bg-gray-800/80 px-2 py-0.5 rounded border border-gray-700 transition">
+                                <span>🔍</span> Đổi CLB / Giải đấu
+                            </button>
                         </div>
                     </div>
                     <button type="button" onclick="confirmSelectCandidate(${i})" 
-                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shrink-0 transition shadow-sm active:scale-95 cursor-pointer">
-                        Chọn VĐV này
+                        class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shrink-0 transition shadow-sm active:scale-95 cursor-pointer">
+                        ${candidates.length === 1 ? 'Xác nhận thêm VĐV' : 'Chọn VĐV này'}
                     </button>
                 </div>
             `).join('');
@@ -2017,7 +2032,10 @@ async function addConfirmedCandidate(cand) {
                 team: cand.team || 'Tự do',
                 sport: cand.sport || 'Môn khác',
                 country: cand.country || 'Quốc tế',
-                aliases: cand.aliases || cand.name
+                aliases: cand.aliases || cand.name,
+                league: cand.team_league || '',
+                espn_team_id: cand.espn_team_id || '',
+                espn_league_slug: cand.espn_league_slug || ''
             })
         });
         const data = await res.json();
@@ -2062,19 +2080,277 @@ function skipCandidateItem() {
 
 function promptCustomTeam() {
     if (!window.currentDisambigCandidate) return;
-    const cand = window.currentDisambigCandidate;
-    const customTeam = prompt(`Nhập tên đội bóng / CLB chính xác cho "${cand.name}":`, cand.team || "");
-    if (customTeam !== null && customTeam.trim()) {
-        cand.team = customTeam.trim();
-        addConfirmedCandidate(cand).then(() => {
-            const box = document.getElementById('disambiguationBox');
-            const inputSection = document.getElementById('inputFormSection');
-            const submitBtn = document.getElementById('submitBtn');
-            box.classList.add('hidden');
-            inputSection.classList.remove('hidden');
-            submitBtn.classList.remove('hidden');
-            processNextPlayerInQueue();
-        });
+    openTeamSelectForCandidate(0);
+}
+
+// ==========================================
+// HỘP LỰA CHỌN CLB & GIẢI ĐẤU (TEAM DISAMBIGUATION)
+// ==========================================
+window.currentTeamSelectTarget = null; // { type: 'candidate', index: i } or { type: 'player', playerId: id }
+window._teamOptionsCache = {};
+window._currentTeamOptions = [];
+window._currentTeamSportFilter = '';
+let teamSearchDebounceTimer = null;
+
+function openTeamSelectForCandidate(index) {
+    if (!window._currentCandidateList || !window._currentCandidateList[index]) return;
+    const cand = window._currentCandidateList[index];
+    window.currentTeamSelectTarget = { type: 'candidate', index: index };
+    
+    const teamInput = document.getElementById('teamSearchInput');
+    teamInput.value = (cand.team && cand.team !== 'Tự do') ? cand.team : cand.name;
+    window._currentTeamSportFilter = cand.sport || '';
+    
+    document.getElementById('manualTeamName').value = cand.team || '';
+    document.getElementById('manualLeagueName').value = cand.team_league || '';
+    
+    document.getElementById('teamSelectModal').classList.remove('hidden');
+    updateTeamFilterPillUI();
+    fetchAndRenderTeamOptions(teamInput.value, window._currentTeamSportFilter);
+}
+
+function openTeamSelectFromDetail() {
+    if (!window.currentModalPlayer) return;
+    const player = window.currentModalPlayer;
+    window.currentTeamSelectTarget = { type: 'player', playerId: player.id };
+    
+    const teamInput = document.getElementById('teamSearchInput');
+    teamInput.value = (player.team && player.team !== 'Tự do') ? player.team : '';
+    window._currentTeamSportFilter = player.sport || '';
+    
+    document.getElementById('manualTeamName').value = player.team || '';
+    document.getElementById('manualLeagueName').value = player.competition || '';
+    
+    document.getElementById('teamSelectModal').classList.remove('hidden');
+    updateTeamFilterPillUI();
+    fetchAndRenderTeamOptions(teamInput.value, window._currentTeamSportFilter);
+}
+
+function closeTeamSelectModal() {
+    document.getElementById('teamSelectModal').classList.add('hidden');
+    window.currentTeamSelectTarget = null;
+}
+
+function handleTeamBackdropClick(event) {
+    if (event.target === document.getElementById('teamSelectModal')) {
+        closeTeamSelectModal();
+    }
+}
+
+function updateTeamFilterPillUI() {
+    document.querySelectorAll('#teamSportFilterPills .team-filter-pill').forEach(btn => {
+        const s = btn.getAttribute('data-sport') || '';
+        if (s.toLowerCase() === (window._currentTeamSportFilter || '').toLowerCase()) {
+            btn.className = "team-filter-pill px-2.5 py-1 rounded-lg bg-blue-600 text-white font-medium shrink-0 cursor-pointer";
+        } else {
+            btn.className = "team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0 cursor-pointer";
+        }
+    });
+}
+
+function filterTeamOptionsBySport(sport) {
+    window._currentTeamSportFilter = sport;
+    updateTeamFilterPillUI();
+    renderTeamOptionsList();
+}
+
+function onSearchTeamInput(val) {
+    if (teamSearchDebounceTimer) clearTimeout(teamSearchDebounceTimer);
+    teamSearchDebounceTimer = setTimeout(() => {
+        fetchAndRenderTeamOptions(val, window._currentTeamSportFilter);
+    }, 300);
+}
+
+async function fetchAndRenderTeamOptions(query, sport) {
+    const q = (query || "").trim();
+    const listEl = document.getElementById('teamOptionsList');
+    const loadingEl = document.getElementById('teamOptionsLoading');
+
+    if (!q || q.length < 2) {
+        listEl.innerHTML = `
+            <div class="py-8 text-center text-xs text-gray-500">
+                Nhập tên CLB vào ô tìm kiếm ở trên để tra cứu danh sách đội...
+            </div>
+        `;
+        return;
+    }
+    
+    loadingEl.classList.remove('hidden');
+    listEl.classList.add('hidden');
+    
+    try {
+        const cacheKey = `${q.toLowerCase()}`;
+        let teams = window._teamOptionsCache[cacheKey];
+        if (!teams) {
+            const res = await fetch(`/api/players/team-options?query=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            teams = data.teams || [];
+            window._teamOptionsCache[cacheKey] = teams;
+        }
+        window._currentTeamOptions = teams;
+        renderTeamOptionsList();
+    } catch (err) {
+        console.error("Error fetching team options:", err);
+        listEl.innerHTML = `<div class="py-6 text-center text-xs text-red-400">Lỗi khi tải danh sách đội. Vui lòng thử lại.</div>`;
+    } finally {
+        loadingEl.classList.add('hidden');
+        listEl.classList.remove('hidden');
+    }
+}
+
+function renderTeamOptionsList() {
+    const listEl = document.getElementById('teamOptionsList');
+    let teams = window._currentTeamOptions || [];
+    if (window._currentTeamSportFilter) {
+        teams = teams.filter(t => t.sport.toLowerCase() === window._currentTeamSportFilter.toLowerCase());
+    }
+    
+    if (teams.length === 0) {
+        listEl.innerHTML = `
+            <div class="py-8 text-center text-xs text-gray-400">
+                Không tìm thấy đội nào phù hợp. Bạn có thể tự nhập ở phần "Tự nhập CLB thủ công" bên dưới.
+            </div>
+        `;
+        return;
+    }
+    
+    listEl.innerHTML = teams.map((t, idx) => {
+        const sportBadgeClass = t.sport === 'Bóng đá' ? 'bg-blue-950 text-blue-300 border-blue-800/60' :
+                               (t.sport === 'Bóng chày' ? 'bg-amber-950 text-amber-300 border-amber-800/60' :
+                               (t.sport === 'Bóng rổ' ? 'bg-orange-950 text-orange-300 border-orange-800/60' : 'bg-gray-800 text-gray-300 border-gray-700'));
+        const genderBadgeClass = t.gender === 'Nữ' ? 'bg-pink-950 text-pink-300 border-pink-800/60' : 'bg-gray-800 text-gray-400 border-gray-700';
+        
+        return `
+            <div class="p-3 bg-gray-950 border border-gray-800 hover:border-blue-500/80 rounded-xl flex items-center justify-between gap-3 transition">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-white text-sm truncate">${escapeHtml(t.name)}</span>
+                        <span class="text-[10px] ${sportBadgeClass} border px-2 py-0.5 rounded font-medium">${escapeHtml(t.sport)}</span>
+                        <span class="text-[10px] ${genderBadgeClass} border px-1.5 py-0.5 rounded">${escapeHtml(t.gender)}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
+                        <span class="text-emerald-400 font-medium">🏆 ${escapeHtml(t.league || 'Giải đấu')}</span>
+                        ${t.subtitle && t.subtitle !== t.league ? `<span class="text-gray-500 text-[11px]">• ${escapeHtml(t.subtitle)}</span>` : ''}
+                    </div>
+                </div>
+                <button type="button" onclick="chooseTeamOption(${idx})" 
+                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shrink-0 transition shadow-sm active:scale-95 cursor-pointer">
+                    Chọn đội này
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+async function chooseTeamOption(teamIdx) {
+    let teams = window._currentTeamOptions || [];
+    if (window._currentTeamSportFilter) {
+        teams = teams.filter(t => t.sport.toLowerCase() === window._currentTeamSportFilter.toLowerCase());
+    }
+    const teamObj = teams[teamIdx];
+    if (!teamObj || !window.currentTeamSelectTarget) return;
+
+    const target = window.currentTeamSelectTarget;
+    if (target.type === 'candidate') {
+        const cand = window._currentCandidateList[target.index];
+        if (cand) {
+            cand.team = teamObj.name;
+            cand.sport = teamObj.sport;
+            cand.team_league = teamObj.league;
+            cand.espn_team_id = teamObj.team_id;
+            cand.espn_league_slug = teamObj.league_slug;
+
+            const nameEl = document.getElementById(`candTeamDisplay_${target.index}`);
+            if (nameEl) nameEl.innerText = teamObj.name;
+
+            const leagueEl = document.getElementById(`candLeagueBadge_${target.index}`);
+            if (leagueEl) {
+                leagueEl.innerText = `🏆 ${teamObj.league}`;
+                leagueEl.classList.remove('hidden');
+            }
+            showToast(`Đã chọn: ${teamObj.name} (${teamObj.league})`, 'success');
+        }
+        closeTeamSelectModal();
+    } else if (target.type === 'player') {
+        showToast(`Đang chuyển CLB sang "${teamObj.name}" và cập nhật lịch đấu...`, 'info');
+        try {
+            const res = await fetch(`/api/players/${target.playerId}/change-team`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    team: teamObj.name,
+                    sport: teamObj.sport,
+                    league: teamObj.league,
+                    espn_team_id: teamObj.team_id,
+                    espn_league_slug: teamObj.league_slug
+                })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message || `Đã chuyển CLB thành công!`, 'success');
+                closeTeamSelectModal();
+                closeModal();
+                await loadDashboard(true);
+            } else {
+                showToast(data.detail || data.message || `Không thể chuyển CLB`, 'error');
+            }
+        } catch (err) {
+            showToast(`Lỗi kết nối khi chuyển CLB`, 'error');
+        }
+    }
+}
+
+async function applyManualTeam() {
+    const customTeam = document.getElementById('manualTeamName').value.trim();
+    const customLeague = document.getElementById('manualLeagueName').value.trim();
+    if (!customTeam) {
+        showToast("Vui lòng nhập tên CLB", "warning");
+        return;
+    }
+    
+    if (!window.currentTeamSelectTarget) return;
+    const target = window.currentTeamSelectTarget;
+
+    if (target.type === 'candidate') {
+        const cand = window._currentCandidateList[target.index];
+        if (cand) {
+            cand.team = customTeam;
+            if (customLeague) cand.team_league = customLeague;
+
+            const nameEl = document.getElementById(`candTeamDisplay_${target.index}`);
+            if (nameEl) nameEl.innerText = customTeam;
+
+            const leagueEl = document.getElementById(`candLeagueBadge_${target.index}`);
+            if (leagueEl && customLeague) {
+                leagueEl.innerText = `🏆 ${customLeague}`;
+                leagueEl.classList.remove('hidden');
+            }
+            showToast(`Đã áp dụng CLB: ${customTeam}`, 'success');
+        }
+        closeTeamSelectModal();
+    } else if (target.type === 'player') {
+        showToast(`Đang cập nhật CLB cho cầu thủ...`, 'info');
+        try {
+            const res = await fetch(`/api/players/${target.playerId}/change-team`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    team: customTeam,
+                    league: customLeague
+                })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message || "Đã cập nhật CLB thành công!", "success");
+                closeTeamSelectModal();
+                closeModal();
+                await loadDashboard(true);
+            } else {
+                showToast(data.detail || "Không thể cập nhật CLB", "error");
+            }
+        } catch (err) {
+            showToast("Lỗi kết nối khi cập nhật CLB", "error");
+        }
     }
 }
 

@@ -34,10 +34,29 @@ class AddConfirmedPlayerRequest(BaseModel):
     sport: Optional[str] = "Môn khác"
     country: Optional[str] = "Quốc tế"
     aliases: Optional[str] = ""
+    league: Optional[str] = None
+    espn_team_id: Optional[str] = None
+    espn_league_slug: Optional[str] = None
+
+class ChangePlayerTeamRequest(BaseModel):
+    team: str
+    sport: Optional[str] = None
+    league: Optional[str] = None
+    espn_team_id: Optional[str] = None
+    espn_league_slug: Optional[str] = None
 
 class PlayerAddRequest(BaseModel):
     player_name: Optional[str] = None
     player_names: Optional[list[str]] = None
+
+@router.get("/team-options")
+def get_team_options(query: str = Query(...), sport: Optional[str] = Query(None)):
+    q = query.strip()
+    if not q:
+        return {"query": query, "count": 0, "teams": []}
+    from backend.modules.players.services.team_service import search_team_options
+    teams = search_team_options(q, sport)
+    return {"query": q, "count": len(teams), "teams": teams}
 
 @router.get("/candidates")
 def get_player_candidates(query: str = Query(...)):
@@ -93,8 +112,11 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
 
     club = db.query(Club).filter(Club.name.ilike(team_name), Club.sport_id == sport.id).first()
     if not club:
-        club = Club(name=team_name, sport_id=sport.id, country_id=nationality.id)
+        club = Club(name=team_name, sport_id=sport.id, country_id=nationality.id, api_team_id=payload.espn_team_id)
         db.add(club)
+        db.flush()
+    elif payload.espn_team_id:
+        club.api_team_id = payload.espn_team_id
         db.flush()
 
     player = db.query(Player).filter(Player.name.ilike(name)).first()
@@ -104,7 +126,8 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
             sport_id=sport.id,
             country_id=nationality.id,
             club_id=club.id,
-            name_aliases=payload.aliases or name
+            name_aliases=payload.aliases or name,
+            api_team_id=payload.espn_team_id
         )
         db.add(player)
         db.commit()
@@ -112,9 +135,24 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         player.sport_id = sport.id
         player.country_id = nationality.id
         player.club_id = club.id
+        if payload.espn_team_id:
+            player.api_team_id = payload.espn_team_id
         if payload.aliases:
             player.name_aliases = payload.aliases
         db.commit()
+
+    if payload.espn_team_id:
+        from backend.modules.players.services.espn_service import ESPN_TEAM_INFO_CACHE, SPORT_TO_ESPN, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
+        target_espn_sport = SPORT_TO_ESPN.get(sport_name, "soccer")
+        ESPN_TEAM_INFO_CACHE[(team_name.lower().strip(), sport_name.lower().strip())] = {
+            "id": str(payload.espn_team_id),
+            "uid": f"s:custom~t:{payload.espn_team_id}",
+            "name": team_name,
+            "sport": target_espn_sport,
+            "league": payload.espn_league_slug or ""
+        }
+        SCHEDULE_CACHE.clear()
+        SCHEDULE_30D_CACHE.clear()
 
     sched = fetch_real_schedule(team_name, sport_name, player_name=name)
     m_name = sched["match_name"] if sched else "Chưa có dữ liệu lịch đấu"
@@ -126,11 +164,7 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
 
     stats_info = fetch_player_match_stats(name, sport_name, team_name, event_id=ev_id, match_state=m_state)
     raw_comp = sched.get("competition") if sched else ""
-    m_comp = get_tournament_tag(team_name, sport_name, m_name, raw_comp)
-    if not m_comp:
-        if sport_name in ["Bóng chày", "baseball"]: m_comp = "MLB"
-        elif sport_name in ["Bóng rổ", "basketball"]: m_comp = "NBA"
-        else: m_comp = raw_comp
+    m_comp = payload.league.strip() if payload.league else (get_tournament_tag(team_name, sport_name, m_name, raw_comp) or raw_comp or "")
 
     perf = db.query(MatchPerformance).filter(MatchPerformance.player_id == player.id).first()
     if not perf:
@@ -186,6 +220,99 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
             "team": team_name,
             "sport": sport_name,
             "country": country_name
+        }
+    }
+
+@router.post("/{player_id}/change-team")
+def change_player_team(player_id: int, payload: ChangePlayerTeamRequest, db: Session = Depends(get_db)):
+    player = db.query(Player).filter(Player.id == player_id).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="Không tìm thấy vận động viên.")
+
+    new_team_name = payload.team.strip()
+    new_sport_name = payload.sport.strip() if payload.sport else player.sport_name
+    new_league = payload.league.strip() if payload.league else ""
+
+    sport = db.query(Sport).filter(Sport.name.ilike(new_sport_name)).first()
+    if not sport:
+        sport = Sport(name=new_sport_name)
+        db.add(sport)
+        db.flush()
+    player.sport_id = sport.id
+
+    club = db.query(Club).filter(Club.name.ilike(new_team_name), Club.sport_id == sport.id).first()
+    if not club:
+        club = Club(name=new_team_name, sport_id=sport.id, country_id=player.country_id, api_team_id=payload.espn_team_id)
+        db.add(club)
+        db.flush()
+    elif payload.espn_team_id:
+        club.api_team_id = payload.espn_team_id
+        db.flush()
+    player.club_id = club.id
+    if payload.espn_team_id:
+        player.api_team_id = payload.espn_team_id
+
+    if payload.espn_team_id:
+        from backend.modules.players.services.espn_service import ESPN_TEAM_INFO_CACHE, SPORT_TO_ESPN, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
+        target_espn_sport = SPORT_TO_ESPN.get(new_sport_name, "soccer")
+        ESPN_TEAM_INFO_CACHE[(new_team_name.lower().strip(), new_sport_name.lower().strip())] = {
+            "id": str(payload.espn_team_id),
+            "uid": f"s:custom~t:{payload.espn_team_id}",
+            "name": new_team_name,
+            "sport": target_espn_sport,
+            "league": payload.espn_league_slug or ""
+        }
+        SCHEDULE_CACHE.clear()
+        SCHEDULE_30D_CACHE.clear()
+
+    sched = fetch_real_schedule(new_team_name, new_sport_name, player_name=player.name)
+    m_name = sched["match_name"] if sched else "Chưa có dữ liệu lịch đấu"
+    m_date = sched["match_date"] if sched else None
+    m_state = sched.get("match_state", "pre") if sched else "pre"
+    m_res = sched.get("match_result") if sched else None
+    h_played = sched.get("has_played", False) if sched else False
+    ev_id = sched.get("event_id") if sched else None
+
+    raw_comp = sched.get("competition") if sched else ""
+    m_comp = new_league or (get_tournament_tag(new_team_name, new_sport_name, m_name, raw_comp) or raw_comp or "")
+
+    stats_info = fetch_player_match_stats(player.name, new_sport_name, new_team_name, event_id=ev_id, match_state=m_state)
+
+    perf = db.query(MatchPerformance).filter(MatchPerformance.player_id == player.id).first()
+    if not perf:
+        perf = MatchPerformance(player_id=player.id)
+        db.add(perf)
+    perf.match_name = m_name
+    perf.match_date = m_date
+    perf.match_state = m_state
+    perf.match_result = m_res
+    perf.has_played = h_played
+    perf.performance_rating = stats_info.get("rating")
+    perf.impression_tags = ", ".join(stats_info.get("tags", []))
+    perf.competition = m_comp
+
+    db.commit()
+
+    try:
+        fetch_player_upcoming_schedule_30d(new_team_name, new_sport_name, player_name=player.name, force_refresh=True)
+    except Exception:
+        pass
+
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
+
+    return {
+        "success": True,
+        "message": f"Đã chuyển CLB cho '{player.name}' sang '{new_team_name}' ({m_comp or 'Đang cập nhật'})!",
+        "player": {
+            "id": player.id,
+            "name": player.name,
+            "team": new_team_name,
+            "sport": new_sport_name,
+            "competition": m_comp
         }
     }
 

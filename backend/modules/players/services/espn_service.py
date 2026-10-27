@@ -176,10 +176,18 @@ def fetch_tennis_schedule(player_or_team_name: str) -> dict:
                         for ath in comp.get('competitors', []):
                             ath_name = ath.get('athlete', {}).get('displayName', '').lower()
                             if clean_target and clean_target in ath_name:
+                                raw_c = (
+                                    data.get('leagues', [{}])[0].get('name') or
+                                    ev.get('season', {}).get('displayName') or
+                                    comp.get('name') or
+                                    (tour.upper() + " Tour")
+                                )
+                                tennis_comp = get_tournament_tag(player_or_team_name, "Quần vợt", ev.get('name', ''), raw_c) or raw_c
                                 return {
                                     "match_name": f"{comp.get('name') or ev.get('name')}",
                                     "match_date": date_obj,
-                                    "match_state": "pre"
+                                    "match_state": "pre",
+                                    "competition": tennis_comp
                                 }
         except Exception:
             continue
@@ -435,11 +443,7 @@ def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
                         data.get('season', {}).get('displayName', '')
                     )
                     clean_comp = get_tournament_tag(team_name, sport_name, opp_name, raw_comp)
-                    if not clean_comp:
-                        if sport_name in ["Bóng chày", "baseball"]: clean_comp = "MLB"
-                        elif sport_name in ["Bóng rổ", "basketball"]: clean_comp = "NBA"
-                        else: clean_comp = raw_comp
-                    comp_league = clean_comp
+                    comp_league = clean_comp or raw_comp or ""
                     match_info = {
                         "match_name": opp_name,
                         "raw_match_name": ev_n,
@@ -790,11 +794,7 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
                             data.get("season", {}).get("displayName") or ""
                         )
                         clean_comp = get_tournament_tag(team_name, sport, opp_name, raw_comp)
-                        if not clean_comp:
-                            if sport in ["Bóng chày", "baseball"]: clean_comp = "MLB"
-                            elif sport in ["Bóng rổ", "basketball"]: clean_comp = "NBA"
-                            else: clean_comp = raw_comp
-                        comp_name = clean_comp
+                        comp_name = clean_comp or raw_comp or ""
 
                         status_type = comp_obj.get("status", {}).get("type", {})
                         status_state = status_type.get("state", "pre")
