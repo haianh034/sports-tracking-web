@@ -593,8 +593,21 @@ def get_dashboard_data(
                 m_news = []
             
             # Logic báo theo yêu cầu:
-            # 1. Trận đấu diễn ra quá 30 ngày (diff_d < -30): chuyển về đúng 1 báo tóm tắt trận đấu
+            # 1. Trận đấu diễn ra quá 30 ngày (diff_d < -30): chuyển về đúng 1 báo tóm tắt trận đấu và tự động dọn dẹp
             if diff_d < -30:
+                if m_news and len(m_news) > 0:
+                    try:
+                        urls_to_clean = [item["url"] for item in m_news if item.get("url")]
+                        if urls_to_clean:
+                            db.query(PlayerNews).filter(
+                                PlayerNews.player_id == p.id,
+                                PlayerNews.source_url.in_(urls_to_clean)
+                            ).delete(synchronize_session=False)
+                            db.commit()
+                            all_player_news = [n for n in all_player_news if n.source_url not in set(urls_to_clean)]
+                    except Exception:
+                        pass
+
                 ev_id = m.get("event_id")
                 if ev_id and not str(ev_id).startswith("non_espn_"):
                     ev_link = f"https://www.espn.com/match?gameId={ev_id}"

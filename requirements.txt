@@ -5,3 +5,5 @@ feedparser
 jinja2
 psycopg[binary]
 psycopg2-binary
+googlenewsdecoder>=0.2.2
+httpx

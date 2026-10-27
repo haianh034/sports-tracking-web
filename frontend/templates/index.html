@@ -351,23 +351,13 @@
                 </div>
 
                 <div>
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5 pb-2 border-b border-gray-800/80">
+                    <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-gray-800/80">
                         <div class="flex items-center gap-2">
                             <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-300 flex items-center gap-1.5" id="modalNewsSectionTitle">
-                                <span>🌐</span> Báo chí thể thao
+                                <span id="modalNewsIcon">🌐</span> <span id="modalNewsTitleText">Báo chí thể thao</span>
                             </h4>
+                            <span class="text-[10px] text-gray-500 italic hidden sm:inline">(chọn được nhiều mục cùng lúc)</span>
                             <span id="modalNewsCount" class="text-[11px] text-gray-400 font-medium"></span>
-                        </div>
-                        <!-- Nút chuyển tab nguồn tin trong modal -->
-                        <div class="flex items-center bg-gray-950 p-1 rounded-xl border border-gray-800 self-start sm:self-auto" id="modalNewsSourceTabs">
-                            <button type="button" id="modalSourceMatchBtn" onclick="switchModalNewsSource('match')"
-                                class="px-2.5 py-1 text-xs rounded-lg font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1 cursor-pointer">
-                                <span>⚽</span> Theo trận (D-1 → D+1)
-                            </button>
-                            <button type="button" id="modalSource24hBtn" onclick="switchModalNewsSource('24h')"
-                                class="px-2.5 py-1 text-xs rounded-lg font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1 cursor-pointer">
-                                <span>⚡</span> Toàn bộ tin 24h qua
-                            </button>
                         </div>
                     </div>
                     <div id="modalNewsFilterTabs" class="flex flex-wrap gap-1.5 mb-3"></div>
@@ -557,6 +547,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=15.0"></script>
+    <script src="/static/js/app.js?v=15.1"></script>
 </body>
 </html>

@@ -226,7 +226,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
 
             if news_entries:
                 now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-                cutoff_retention = now_utc - datetime.timedelta(days=14)
+                cutoff_retention = now_utc - datetime.timedelta(days=30)
                 db.query(PlayerNews).filter(
                     PlayerNews.player_id == p_id,
                     PlayerNews.published_at < cutoff_retention

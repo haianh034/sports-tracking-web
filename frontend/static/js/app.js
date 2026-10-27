@@ -1657,22 +1657,46 @@ function openModal(player, resetFilter = true, customMatch = null) {
         }
     }
 
-    // Modal News: Hỗ trợ 2 chế độ nguồn tin: Theo trận đấu (D-1 -> D+1) và Toàn bộ tin 24h qua
-    window.currentModalCustomMatch = customMatch;
-    window.currentModalMatchNews = (customMatch && customMatch.news) ? customMatch.news : ((player.details && player.details.news) ? player.details.news : []);
-    window.currentModal24hNews = (player.details && player.details.news_24h) ? player.details.news_24h : [];
-    
-    // Mặc định: nếu mở từ thẻ trận đấu có tin thì ưu tiên xem theo trận; nếu mở từ VĐV không có trận thì ưu tiên tin 24h
-    if (customMatch && customMatch.news && customMatch.news.length > 0) {
+    // Tự động xác định: Nếu trận đấu đã diễn ra -> Báo theo trận (D-1 -> D+1)
+    // Nếu trận đấu chưa diễn ra (tương lai / chưa đá) -> Toàn bộ tin 24h qua
+    const matchPlayed = isMatchFinishedOrPlayed(customMatch, player);
+    window.currentModalMatchPlayed = matchPlayed;
+
+    let targetNews = [];
+    if (matchPlayed) {
         window.currentModalNewsSource = 'match';
-    } else if (window.currentModal24hNews && window.currentModal24hNews.length > 0) {
-        window.currentModalNewsSource = '24h';
+        if (customMatch && customMatch.news) {
+            targetNews = customMatch.news;
+        } else if (player.details && player.details.all_matches) {
+            const pastMatch = player.details.all_matches.find(m => isMatchFinishedOrPlayed(m, null));
+            targetNews = (pastMatch && pastMatch.news) ? pastMatch.news : (player.details.news || []);
+        } else {
+            targetNews = (player.details && player.details.news) ? player.details.news : [];
+        }
     } else {
-        window.currentModalNewsSource = 'match';
+        window.currentModalNewsSource = '24h';
+        targetNews = (player.details && player.details.news_24h) ? player.details.news_24h : [];
     }
-    
+
+    window.currentModalNews = targetNews;
+
+    // Cập nhật icon & tiêu đề tự động theo đúng trạng thái trận đấu
+    const iconElem = document.getElementById('modalNewsIcon');
+    const titleElem = document.getElementById('modalNewsTitleText');
+    if (iconElem && titleElem) {
+        if (matchPlayed) {
+            iconElem.innerText = "⚽";
+            const matchDateLabel = customMatch ? (customMatch.date_full_vn || customMatch.date_vn || '') : '';
+            titleElem.innerText = matchDateLabel 
+                ? `Báo chí theo trận đấu ngày ${matchDateLabel} (D-1 → D+1)`
+                : "Báo chí theo trận đấu (D-1 → D+1)";
+        } else {
+            iconElem.innerText = "⚡";
+            titleElem.innerText = "Toàn bộ tin tức trong 24h qua (mới nhất)";
+        }
+    }
+
     selectedNewsCategories.clear();
-    updateModalNewsSourceButtons();
     renderModalNews();
 
     const apiMeta = document.getElementById('modalApiMeta');
@@ -1680,40 +1704,26 @@ function openModal(player, resetFilter = true, customMatch = null) {
     document.getElementById('detailModal').classList.remove('hidden');
 }
 
-function switchModalNewsSource(source) {
-    window.currentModalNewsSource = source;
-    selectedNewsCategories.clear();
-    updateModalNewsSourceButtons();
-    renderModalNews();
-}
-
-function updateModalNewsSourceButtons() {
-    const matchBtn = document.getElementById('modalSourceMatchBtn');
-    const btn24h = document.getElementById('modalSource24hBtn');
-    const isMatch = (window.currentModalNewsSource === 'match');
-    const matchCount = (window.currentModalMatchNews || []).length;
-    const count24h = (window.currentModal24hNews || []).length;
-
-    const activeClass = "px-2.5 py-1 text-xs rounded-lg font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer";
-    const inactiveClass = "px-2.5 py-1 text-xs rounded-lg font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5 cursor-pointer";
-
-    if (matchBtn) {
-        matchBtn.className = isMatch ? activeClass : inactiveClass;
-        matchBtn.innerHTML = `<span>⚽</span> <span>Theo trận (D-1 → D+1)</span> <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isMatch ? 'bg-blue-800 text-white' : 'bg-gray-800 text-gray-400'}">${matchCount}</span>`;
+function isMatchFinishedOrPlayed(match, player) {
+    if (match) {
+        if (match.has_played === true) return true;
+        if (match.is_past === true) return true;
+        if (match.match_state === 'post') return true;
+        if (match.diff_days !== undefined && match.diff_days < 0) return true;
+        const res = (match.match_result || '').toLowerCase().trim();
+        if (res && !res.includes('chưa') && !res.includes('vs') && res !== '-') return true;
+        return false;
     }
-    if (btn24h) {
-        btn24h.className = !isMatch ? activeClass : inactiveClass;
-        btn24h.innerHTML = `<span>⚡</span> <span>Toàn bộ tin 24h qua</span> <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${!isMatch ? 'bg-blue-800 text-white' : 'bg-gray-800 text-gray-400'}">${count24h}</span>`;
+    if (player) {
+        if (player.match_state === 'post') return true;
+        if (player.rating && Number(player.rating) > 0) return true;
+        const stats = (player.player_stats || '').toLowerCase().trim();
+        if (stats && !stats.includes('chưa có thông số') && !stats.includes('sạch lưới') && stats !== '-') return true;
+        if (player.details && player.details.match_state === 'post') return true;
+        const pRes = (player.match_result || (player.details && player.details.match_result) || '').toLowerCase().trim();
+        if (pRes && !pRes.includes('chưa') && !pRes.includes('vs') && pRes !== '-') return true;
     }
-
-    const titleElem = document.getElementById('modalNewsSectionTitle');
-    if (titleElem) {
-        if (isMatch) {
-            titleElem.innerHTML = `<span>⚽</span> Báo chí theo trận (D-1 đến D+1)`;
-        } else {
-            titleElem.innerHTML = `<span>⚡</span> Toàn bộ báo chí trong 24h qua`;
-        }
-    }
+    return false;
 }
 
 function toggleNewsCategoryFilter(catId) {
@@ -1789,10 +1799,13 @@ function renderModalNews() {
         ? normalizedNews
         : normalizedNews.filter(n => selectedNewsCategories.has(n.type));
 
+    // Lưu chính xác danh sách bài báo thực tế hiển thị trên màn hình
+    window.currentRenderedModalNews = filteredNews;
+
     const newsContainer = document.getElementById('modalNewsContainer');
     const newsCount = document.getElementById('modalNewsCount');
     if (newsCount) {
-        const sourceLabel = isMatch ? "theo trận (D-1 → D+1)" : "trong 24h qua";
+        const sourceLabel = isMatch ? "theo trận đấu" : "trong 24h qua";
         if (isAll) {
             newsCount.innerText = `${allNews.length} bài báo (${sourceLabel})`;
         } else {
@@ -1840,16 +1853,8 @@ function renderModalNews() {
 
 async function copyAllNewsLinks() {
     if (!window.currentModalPlayer) return;
-    const player = window.currentModalPlayer;
-    let newsList = window.currentModalNews || ((player.details && player.details.news) ? player.details.news : []);
-    if (selectedNewsCategories.size > 0) {
-        newsList = newsList.filter(n => {
-            let t = n.news_type;
-            if (t === 'transfer_rumor') t = 'transfer';
-            if (!NEWS_CATEGORIES[t]) t = 'side_news';
-            return selectedNewsCategories.has(t);
-        });
-    }
+    // Lấy chính xác danh sách bài báo đang được hiển thị thực tế trên giao diện Modal
+    const newsList = window.currentRenderedModalNews || window.currentModalNews || [];
     const validUrls = newsList.map(n => n.url).filter(Boolean);
     if (validUrls.length === 0) {
         showToast("Không có bài báo nào để sao chép liên kết!", "warning");
@@ -2718,18 +2723,21 @@ function renderNews24hTab() {
                 const flag = e.country_flag || '🌐';
                 const count = e.news_24h_count || 0;
                 const activeClass = isSelected
-                    ? 'bg-blue-600 text-white border-blue-400 font-bold shadow-md ring-2 ring-blue-500/30'
-                    : 'bg-gray-900/90 hover:bg-gray-800 text-gray-300 hover:text-white border-gray-800';
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black border-2 border-white shadow-xl shadow-blue-500/50 ring-4 ring-blue-400/50 scale-105 z-10'
+                    : 'bg-gray-950/80 hover:bg-gray-800 text-gray-400 hover:text-gray-200 border-gray-800 opacity-75 hover:opacity-100';
+                const checkIcon = isSelected ? '<span class="text-xs text-amber-300 font-black shrink-0">👉</span>' : '';
+                const nameClass = isSelected ? 'font-black text-white text-[13px] tracking-wide' : 'font-medium';
                 const countBadgeClass = isSelected
-                    ? 'bg-blue-800 text-white font-bold'
-                    : (count > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold' : 'bg-gray-800 text-gray-500');
+                    ? 'bg-amber-400 text-gray-950 font-black shadow-sm ring-1 ring-white/50'
+                    : (count > 0 ? 'bg-blue-950 text-blue-300 border border-blue-800 font-semibold' : 'bg-gray-900 text-gray-500');
 
                 return `
                     <button type="button" onclick="selectNews24hPlayer('${e.id}')"
-                        class="px-3 py-1.5 text-xs rounded-xl border transition-all duration-150 flex items-center gap-2 cursor-pointer active:scale-95 ${activeClass}">
-                        <span class="text-sm">${flag}</span>
-                        <span class="truncate max-w-[140px] sm:max-w-[180px]">${escapeHtml(e.name)}</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${countBadgeClass}">${count}</span>
+                        class="px-3.5 py-2 text-xs rounded-xl border transition-all duration-150 flex items-center gap-2 cursor-pointer active:scale-95 ${activeClass}">
+                        ${checkIcon}
+                        <span class="text-base shrink-0">${flag}</span>
+                        <span class="truncate max-w-[150px] sm:max-w-[200px] ${nameClass}">${escapeHtml(e.name)}</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full font-mono ${countBadgeClass}">${count}</span>
                     </button>
                 `;
             }).join('');

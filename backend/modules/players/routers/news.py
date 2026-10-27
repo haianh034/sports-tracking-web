@@ -1,6 +1,9 @@
+import logging
+import concurrent.futures
 from fastapi import APIRouter
 from pydantic import BaseModel
-import concurrent.futures
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/news", tags=["news"])
 
@@ -25,21 +28,24 @@ def decode_news_urls(payload: DecodeUrlsRequest):
     if to_decode:
         try:
             from googlenewsdecoder import gnewsdecoder
+
             def _dec(url):
                 try:
                     res = gnewsdecoder(url)
                     if res.get("success") and res.get("decoded_url"):
                         return url, res["decoded_url"]
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Error decoding Google News URL {url}: {e}")
                 return url, url
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as ex:
                 dec_results = list(ex.map(_dec, to_decode))
                 for raw_u, real_u in dec_results:
                     DECODED_URL_CACHE[raw_u] = real_u
-        except Exception:
-            pass
+        except ImportError as ie:
+            logger.error(f"googlenewsdecoder module not installed: {ie}")
+        except Exception as e:
+            logger.error(f"Unexpected error in decode_news_urls: {e}")
 
         final_list = []
         for u in payload.urls:
