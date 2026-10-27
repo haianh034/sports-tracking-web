@@ -275,13 +275,13 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
     # Sort all found by published_at descending
     all_found.sort(key=lambda x: x["published_at"], reverse=True)
 
-    # Giữ lại tin tức giá trị cao trong vòng 14 ngày gần nhất để đảm bảo thông tin luôn phong phú
+    # Giữ lại toàn bộ tin tức giá trị cao trong vòng 14 ngày gần nhất (tối đa 100 bài mới nhất)
     cutoff_recent = now_utc - datetime.timedelta(days=14)
     recent_news = [item for item in all_found if item["published_at"] >= cutoff_recent]
     if not recent_news and all_found:
-        recent_news = all_found[:25]
+        recent_news = all_found[:30]
 
-    return recent_news[:50]
+    return recent_news[:100]
 
 def scan_player_news(db: Session, player_id: int, player_name: str):
     player = db.query(Player).filter(Player.id == player_id).first()

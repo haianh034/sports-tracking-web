@@ -585,8 +585,8 @@ def get_dashboard_data(
                         for n in all_player_news
                         if win_start <= n.published_at <= win_end
                     ]
-                    # Nếu trận vừa diễn ra trong 7 ngày gần đây và lượng tin dưới 20, bổ sung tin mới nhất từ all_player_news
-                    if is_m_past and -7 <= diff_d <= 0 and len(m_news) < 20:
+                    # Nếu trận vừa diễn ra trong 7 ngày gần đây và lượng tin dưới 30, bổ sung tin mới nhất từ all_player_news
+                    if is_m_past and -7 <= diff_d <= 0 and len(m_news) < 30:
                         seen_m_urls = {item["url"] for item in m_news}
                         for n in all_player_news:
                             if n.source_url not in seen_m_urls:
@@ -597,7 +597,7 @@ def get_dashboard_data(
                                     "region": getattr(n, "region", "US") or "US"
                                 })
                                 seen_m_urls.add(n.source_url)
-                            if len(m_news) >= 30:
+                            if len(m_news) >= 50:
                                 break
                 except Exception:
                     m_news = []
@@ -758,7 +758,7 @@ def get_dashboard_data(
             if n.source_url not in seen_news_urls:
                 player_news_list.append(n)
                 seen_news_urls.add(n.source_url)
-            if len(player_news_list) >= 50:
+            if len(player_news_list) >= 100:
                 break
 
         player_item = {
