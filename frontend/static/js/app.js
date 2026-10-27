@@ -142,11 +142,13 @@ function switchTab(tab) {
     const upcomingTabBtn = document.getElementById('tabUpcomingBtn');
     const noMatchTabBtn = document.getElementById('tabNoMatchBtn');
     const scheduleTabBtn = document.getElementById('tabScheduleBtn');
+    const news24hTabBtn = document.getElementById('tabNews24hBtn');
 
     const activePanel = document.getElementById('activeTabPanel');
     const upcomingPanel = document.getElementById('upcomingTabPanel');
     const noMatchPanel = document.getElementById('noMatchTabPanel');
     const schedulePanel = document.getElementById('scheduleTabPanel');
+    const news24hPanel = document.getElementById('news24hTabPanel');
 
     const activeClass = "tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-blue-500 text-blue-400 transition-colors duration-150";
     const inactiveClass = "tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150";
@@ -155,8 +157,9 @@ function switchTab(tab) {
     if (upcomingTabBtn) upcomingTabBtn.className = tab === 'upcoming' ? activeClass : inactiveClass;
     if (noMatchTabBtn) noMatchTabBtn.className = tab === 'no_match' ? activeClass : inactiveClass;
     if (scheduleTabBtn) scheduleTabBtn.className = tab === 'schedule' ? activeClass : inactiveClass;
+    if (news24hTabBtn) news24hTabBtn.className = tab === 'news24h' ? activeClass : inactiveClass;
 
-    [activePanel, upcomingPanel, noMatchPanel, schedulePanel].forEach(p => {
+    [activePanel, upcomingPanel, noMatchPanel, schedulePanel, news24hPanel].forEach(p => {
         if (p) p.classList.add('hidden');
     });
 
@@ -164,6 +167,10 @@ function switchTab(tab) {
     else if (tab === 'upcoming' && upcomingPanel) upcomingPanel.classList.remove('hidden');
     else if (tab === 'no_match' && noMatchPanel) noMatchPanel.classList.remove('hidden');
     else if (tab === 'schedule' && schedulePanel) schedulePanel.classList.remove('hidden');
+    else if (tab === 'news24h' && news24hPanel) {
+        news24hPanel.classList.remove('hidden');
+        renderNews24hTab();
+    }
 }
 
 function isSameTeamName(teamA, teamB) {
@@ -507,6 +514,19 @@ async function loadDashboard(refreshDropdowns = true) {
         upcomingList.forEach(p => { window.activePlayersMap[p.id] = p; });
         noMatchList.forEach(p => { window.activePlayersMap[p.id] = p; });
         scheduleList.forEach(p => { window.activePlayersMap[p.id] = p; });
+
+        // Tính tổng số bài báo 24h qua của toàn bộ đối tượng theo dõi
+        const allUniqueEntities = Object.values(window.activePlayersMap);
+        const totalNews24h = allUniqueEntities.reduce((sum, p) => {
+            const count = (p.news_24h_count !== undefined) 
+                ? p.news_24h_count 
+                : ((p.details && p.details.news_24h) ? p.details.news_24h.length : 0);
+            return sum + count;
+        }, 0);
+        const news24hBadge = document.getElementById('news24hCountBadge');
+        if (news24hBadge) {
+            news24hBadge.innerText = totalNews24h;
+        }
 
         function getRatingBadge(rating) {
             if (rating === null || rating === undefined || rating === '' || isNaN(rating) || Number(rating) <= 0) {
@@ -1637,14 +1657,63 @@ function openModal(player, resetFilter = true, customMatch = null) {
         }
     }
 
-    // Modal News: If customMatch has news, use match news window (yesterday 00:00 to match day 23:59:59), else player.details.news
-    window.currentModalNews = (customMatch && customMatch.news) ? customMatch.news : ((player.details && player.details.news) ? player.details.news : []);
+    // Modal News: Hỗ trợ 2 chế độ nguồn tin: Theo trận đấu (D-1 -> D+1) và Toàn bộ tin 24h qua
+    window.currentModalCustomMatch = customMatch;
+    window.currentModalMatchNews = (customMatch && customMatch.news) ? customMatch.news : ((player.details && player.details.news) ? player.details.news : []);
+    window.currentModal24hNews = (player.details && player.details.news_24h) ? player.details.news_24h : [];
+    
+    // Mặc định: nếu mở từ thẻ trận đấu có tin thì ưu tiên xem theo trận; nếu mở từ VĐV không có trận thì ưu tiên tin 24h
+    if (customMatch && customMatch.news && customMatch.news.length > 0) {
+        window.currentModalNewsSource = 'match';
+    } else if (window.currentModal24hNews && window.currentModal24hNews.length > 0) {
+        window.currentModalNewsSource = '24h';
+    } else {
+        window.currentModalNewsSource = 'match';
+    }
+    
     selectedNewsCategories.clear();
+    updateModalNewsSourceButtons();
     renderModalNews();
 
     const apiMeta = document.getElementById('modalApiMeta');
     if (apiMeta) apiMeta.innerText = player.api_player_id ? `API ID: ${player.api_player_id}` : '';
     document.getElementById('detailModal').classList.remove('hidden');
+}
+
+function switchModalNewsSource(source) {
+    window.currentModalNewsSource = source;
+    selectedNewsCategories.clear();
+    updateModalNewsSourceButtons();
+    renderModalNews();
+}
+
+function updateModalNewsSourceButtons() {
+    const matchBtn = document.getElementById('modalSourceMatchBtn');
+    const btn24h = document.getElementById('modalSource24hBtn');
+    const isMatch = (window.currentModalNewsSource === 'match');
+    const matchCount = (window.currentModalMatchNews || []).length;
+    const count24h = (window.currentModal24hNews || []).length;
+
+    const activeClass = "px-2.5 py-1 text-xs rounded-lg font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5 cursor-pointer";
+    const inactiveClass = "px-2.5 py-1 text-xs rounded-lg font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5 cursor-pointer";
+
+    if (matchBtn) {
+        matchBtn.className = isMatch ? activeClass : inactiveClass;
+        matchBtn.innerHTML = `<span>⚽</span> <span>Theo trận (D-1 → D+1)</span> <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isMatch ? 'bg-blue-800 text-white' : 'bg-gray-800 text-gray-400'}">${matchCount}</span>`;
+    }
+    if (btn24h) {
+        btn24h.className = !isMatch ? activeClass : inactiveClass;
+        btn24h.innerHTML = `<span>⚡</span> <span>Toàn bộ tin 24h qua</span> <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${!isMatch ? 'bg-blue-800 text-white' : 'bg-gray-800 text-gray-400'}">${count24h}</span>`;
+    }
+
+    const titleElem = document.getElementById('modalNewsSectionTitle');
+    if (titleElem) {
+        if (isMatch) {
+            titleElem.innerHTML = `<span>⚽</span> Báo chí theo trận (D-1 đến D+1)`;
+        } else {
+            titleElem.innerHTML = `<span>⚡</span> Toàn bộ báo chí trong 24h qua`;
+        }
+    }
 }
 
 function toggleNewsCategoryFilter(catId) {
@@ -1666,7 +1735,9 @@ function toggleNewsCategoryFilter(catId) {
 function renderModalNews() {
     const player = window.currentModalPlayer;
     if (!player) return;
-    const allNews = window.currentModalNews || ((player.details && player.details.news) ? player.details.news : []);
+    const isMatch = (window.currentModalNewsSource === 'match');
+    const allNews = isMatch ? (window.currentModalMatchNews || []) : (window.currentModal24hNews || []);
+    window.currentModalNews = allNews;
 
     const normalizedNews = allNews.map(n => {
         let t = n.news_type;
@@ -1721,8 +1792,9 @@ function renderModalNews() {
     const newsContainer = document.getElementById('modalNewsContainer');
     const newsCount = document.getElementById('modalNewsCount');
     if (newsCount) {
+        const sourceLabel = isMatch ? "theo trận (D-1 → D+1)" : "trong 24h qua";
         if (isAll) {
-            newsCount.innerText = `${allNews.length} bài báo (24h)`;
+            newsCount.innerText = `${allNews.length} bài báo (${sourceLabel})`;
         } else {
             const names = Array.from(selectedNewsCategories)
                 .map(c => NEWS_CATEGORIES[c] ? NEWS_CATEGORIES[c].label : c)
@@ -1756,9 +1828,12 @@ function renderModalNews() {
                 </a>`;
         }).join('');
     } else {
+        const emptyMsg = isMatch
+            ? "Không tìm thấy bài báo nào trong khung thời gian thi đấu (D-1 đến D+1) thuộc danh mục đã chọn."
+            : "Không tìm thấy bài báo nào trong 24 giờ qua thuộc danh mục đã chọn.";
         newsContainer.innerHTML = `
             <div class="p-4 rounded-xl bg-gray-950/50 border border-gray-800 text-center text-gray-500 text-xs italic">
-                Không tìm thấy bài báo nào trong 24 giờ qua thuộc phân mục đã chọn.
+                ${emptyMsg}
             </div>`;
     }
 }
@@ -1766,7 +1841,7 @@ function renderModalNews() {
 async function copyAllNewsLinks() {
     if (!window.currentModalPlayer) return;
     const player = window.currentModalPlayer;
-    let newsList = (player.details && player.details.news) ? player.details.news : [];
+    let newsList = window.currentModalNews || ((player.details && player.details.news) ? player.details.news : []);
     if (selectedNewsCategories.size > 0) {
         newsList = newsList.filter(n => {
             let t = n.news_type;
@@ -2576,6 +2651,294 @@ async function addTeamFromCatalog(idCode, btnElem) {
             btnElem.disabled = false;
             btnElem.innerHTML = `<span>➕</span> Thêm`;
         }
+    }
+}
+
+// ==========================================
+// TAB TIN TỨC 24H: XEM TOÀN BỘ BÁO CỦA CẦU THỦ BẤT KỲ
+// ==========================================
+let currentNews24hPlayerId = null;
+let selectedNews24hCategories = new Set();
+
+function renderNews24hTab() {
+    const rawEntities = Object.values(window.activePlayersMap || {});
+    const uniqueEntitiesMap = {};
+    rawEntities.forEach(e => {
+        if (!uniqueEntitiesMap[e.id]) uniqueEntitiesMap[e.id] = e;
+    });
+    let entities = Object.values(uniqueEntitiesMap);
+
+    // Tính toán số lượng bài 24h cho từng đối tượng
+    entities.forEach(e => {
+        if (e.news_24h_count === undefined) {
+            e.news_24h_count = (e.details && e.details.news_24h) ? e.details.news_24h.length : 0;
+        }
+    });
+
+    // Sắp xếp: Ưu tiên đối tượng có nhiều tin 24h nhất lên đầu, tiếp đến là tên A-Z
+    entities.sort((a, b) => {
+        const countA = a.news_24h_count || 0;
+        const countB = b.news_24h_count || 0;
+        if (countB !== countA) return countB - countA;
+        return (a.name || '').localeCompare(b.name || '');
+    });
+
+    // Tìm kiếm nhanh
+    const searchInput = document.getElementById('news24hSearchInput');
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    let filteredEntities = entities;
+    if (query) {
+        filteredEntities = entities.filter(e => {
+            const name = (e.name || '').toLowerCase();
+            const team = (e.team || '').toLowerCase();
+            const sport = (e.sport || '').toLowerCase();
+            return name.includes(query) || team.includes(query) || sport.includes(query);
+        });
+    }
+
+    // Tự động chọn đối tượng đầu tiên nếu chưa chọn ai hoặc đối tượng hiện tại không còn tồn tại
+    if (!currentNews24hPlayerId || !uniqueEntitiesMap[currentNews24hPlayerId]) {
+        if (filteredEntities.length > 0) {
+            currentNews24hPlayerId = filteredEntities[0].id;
+        } else if (entities.length > 0) {
+            currentNews24hPlayerId = entities[0].id;
+        } else {
+            currentNews24hPlayerId = null;
+        }
+    }
+
+    // Render danh sách Pills chọn cầu thủ
+    const selectorContainer = document.getElementById('news24hPlayerSelector');
+    if (selectorContainer) {
+        if (filteredEntities.length === 0) {
+            selectorContainer.innerHTML = `<span class="text-xs text-gray-500 italic p-1">Không tìm thấy vận động viên nào phù hợp.</span>`;
+        } else {
+            selectorContainer.innerHTML = filteredEntities.map(e => {
+                const isSelected = (e.id === currentNews24hPlayerId);
+                const flag = e.country_flag || '🌐';
+                const count = e.news_24h_count || 0;
+                const activeClass = isSelected
+                    ? 'bg-blue-600 text-white border-blue-400 font-bold shadow-md ring-2 ring-blue-500/30'
+                    : 'bg-gray-900/90 hover:bg-gray-800 text-gray-300 hover:text-white border-gray-800';
+                const countBadgeClass = isSelected
+                    ? 'bg-blue-800 text-white font-bold'
+                    : (count > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold' : 'bg-gray-800 text-gray-500');
+
+                return `
+                    <button type="button" onclick="selectNews24hPlayer('${e.id}')"
+                        class="px-3 py-1.5 text-xs rounded-xl border transition-all duration-150 flex items-center gap-2 cursor-pointer active:scale-95 ${activeClass}">
+                        <span class="text-sm">${flag}</span>
+                        <span class="truncate max-w-[140px] sm:max-w-[180px]">${escapeHtml(e.name)}</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${countBadgeClass}">${count}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+    }
+
+    renderNews24hDetail();
+}
+
+function filterNews24hPlayers() {
+    renderNews24hTab();
+}
+
+function selectNews24hPlayer(id) {
+    currentNews24hPlayerId = id;
+    selectedNews24hCategories.clear();
+    renderNews24hTab();
+}
+
+function toggleNews24hCategory(catId) {
+    if (catId === 'all') {
+        selectedNews24hCategories.clear();
+    } else {
+        if (selectedNews24hCategories.has(catId)) {
+            selectedNews24hCategories.delete(catId);
+        } else {
+            selectedNews24hCategories.add(catId);
+        }
+        if (selectedNews24hCategories.size === 5) {
+            selectedNews24hCategories.clear();
+        }
+    }
+    renderNews24hDetail();
+}
+
+function renderNews24hDetail() {
+    const headerElem = document.getElementById('news24hSelectedHeader');
+    const contentElem = document.getElementById('news24hContentContainer');
+    if (!contentElem) return;
+
+    const p = (window.activePlayersMap || {})[currentNews24hPlayerId];
+    if (!p) {
+        if (headerElem) headerElem.classList.add('hidden');
+        contentElem.innerHTML = `
+            <div class="p-8 rounded-2xl bg-gray-900/40 border border-gray-800 text-center text-gray-500 text-xs italic">
+                Vui lòng chọn một vận động viên ở danh sách trên để xem toàn bộ tin tức 24h qua.
+            </div>`;
+        return;
+    }
+
+    if (headerElem) headerElem.classList.remove('hidden');
+
+    const flagElem = document.getElementById('news24hPlayerFlag');
+    if (flagElem) flagElem.innerText = p.country_flag || '🌐';
+
+    const nameElem = document.getElementById('news24hPlayerName');
+    if (nameElem) nameElem.innerText = p.name;
+
+    const metaElem = document.getElementById('news24hPlayerMeta');
+    if (metaElem) metaElem.innerText = `${p.sport} • ${p.team || 'Tự do'} • Quốc tịch: ${p.country || 'Quốc tế'}`;
+
+    const rawNews24h = (p.details && p.details.news_24h) ? p.details.news_24h : [];
+    const countBadge = document.getElementById('news24hPlayerCountBadge');
+    if (countBadge) {
+        countBadge.innerText = `${rawNews24h.length} bài báo trong 24h qua`;
+    }
+
+    // Chuẩn hóa phân loại tin
+    const normalizedNews = rawNews24h.map(n => {
+        let t = n.news_type;
+        if (t === 'transfer_rumor') t = 'transfer';
+        if (!NEWS_CATEGORIES[t]) t = 'side_news';
+        return { ...n, type: t };
+    });
+
+    const counts = { all: normalizedNews.length, match: 0, transfer: 0, statement: 0, analysis: 0, side_news: 0 };
+    normalizedNews.forEach(n => {
+        if (counts[n.type] !== undefined) counts[n.type]++;
+        else counts.side_news++;
+    });
+
+    const isAll = selectedNews24hCategories.size === 0;
+
+    // Render bộ lọc chuyên mục tin 24h
+    const filterTabsElem = document.getElementById('news24hFilterTabs');
+    if (filterTabsElem) {
+        const catOrder = [
+            { id: 'all', label: 'Tất cả', icon: '📑' },
+            { id: 'match', label: 'Thi đấu', icon: '⚽' },
+            { id: 'transfer', label: 'Chuyển nhượng', icon: '🔄' },
+            { id: 'statement', label: 'Phát biểu', icon: '🎙️' },
+            { id: 'analysis', label: 'Chuyên môn', icon: '📊' },
+            { id: 'side_news', label: 'Bên lề', icon: '📰' }
+        ];
+
+        filterTabsElem.innerHTML = catOrder.map(c => {
+            const count = counts[c.id] || 0;
+            const isSelected = (c.id === 'all') ? isAll : selectedNews24hCategories.has(c.id);
+            const activeClass = isSelected 
+                ? 'bg-blue-600 text-white border-blue-400 font-semibold shadow-md ring-2 ring-blue-500/30'
+                : 'bg-gray-950/80 hover:bg-gray-800 text-gray-400 hover:text-gray-200 border-gray-800';
+            const checkIcon = (!isAll && isSelected) ? '<span class="text-[10px] text-emerald-300 font-bold">✓</span> ' : '';
+
+            return `
+                <button type="button" onclick="toggleNews24hCategory('${c.id}')"
+                    class="px-3 py-1.5 text-xs rounded-lg border transition duration-150 flex items-center gap-1.5 cursor-pointer active:scale-95 ${activeClass}">
+                    <span>${c.icon}</span>
+                    <span>${checkIcon}${c.label}</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isSelected ? 'bg-blue-800 text-white' : 'bg-gray-800 text-gray-400'}">${count}</span>
+                </button>
+            `;
+        }).join('');
+    }
+
+    const filteredNews = isAll
+        ? normalizedNews
+        : normalizedNews.filter(n => selectedNews24hCategories.has(n.type));
+
+    window.currentRenderedNews24h = filteredNews;
+
+    if (filteredNews.length > 0) {
+        contentElem.innerHTML = filteredNews.map(n => {
+            const regionInfo = REGION_FLAGS[n.region] || { flag: '🌐', label: 'Báo Quốc Tế' };
+            const catInfo = NEWS_CATEGORIES[n.type] || NEWS_CATEGORIES.side_news;
+            const typeBadge = `<span class="${catInfo.color} border text-[10px] px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">${catInfo.icon} ${catInfo.label}</span>`;
+
+            return `
+                <a href="${escapeHtml(n.url)}" target="_blank" rel="noopener noreferrer" 
+                    class="group block p-4 rounded-xl bg-gray-900/80 hover:bg-gray-900 border border-gray-800 hover:border-blue-500/60 transition duration-150 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl select-none" title="${regionInfo.label}">${regionInfo.flag}</span>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-sm font-semibold text-blue-400 group-hover:text-blue-300 group-hover:underline line-clamp-2 leading-relaxed">
+                                ${escapeHtml(n.title)}
+                            </span>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-[11px] text-gray-400">${regionInfo.label}</span>
+                                ${typeBadge}
+                                <span class="text-[10px] text-gray-500 ml-auto font-mono">24h qua</span>
+                            </div>
+                        </div>
+                        <span class="text-gray-500 group-hover:text-blue-400 text-xs">🔗</span>
+                    </div>
+                </a>`;
+        }).join('');
+    } else {
+        contentElem.innerHTML = `
+            <div class="p-8 rounded-2xl bg-gray-900/40 border border-gray-800 text-center text-gray-500 text-xs italic">
+                Không có bài báo nào trong 24 giờ qua thuộc danh mục đã chọn cho ${escapeHtml(p.name)}.
+            </div>`;
+    }
+}
+
+async function copyCurrentNews24hLinks() {
+    const list = window.currentRenderedNews24h || [];
+    const validUrls = list.map(n => n.url).filter(Boolean);
+    if (validUrls.length === 0) {
+        showToast("Không có bài báo nào để sao chép liên kết!", "warning");
+        return;
+    }
+
+    const copyBtn = document.getElementById('btnCopyNews24hLinks');
+    const copyLabel = document.getElementById('copyBtnLabel24h');
+    const copyIcon = document.getElementById('copyIcon24h');
+    
+    if (copyBtn) copyBtn.disabled = true;
+    if (copyIcon) copyIcon.innerText = "⏳";
+    if (copyLabel) copyLabel.innerText = "Đang giải mã URL cho NotebookLM...";
+
+    let finalUrls = validUrls;
+    try {
+        const res = await fetch('/api/news/decode-urls', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ urls: validUrls })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.decoded_urls && data.decoded_urls.length > 0) {
+                finalUrls = data.decoded_urls;
+            }
+        }
+    } catch (e) {
+        console.warn("Lỗi khi giải mã URL:", e);
+    }
+
+    const textToCopy = finalUrls.join('\n');
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(textToCopy);
+        } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+        showToast(`Đã sao chép ${finalUrls.length} liên kết bài báo (24h) vào clipboard!`, "success");
+    } catch (err) {
+        console.error("Lỗi khi sao chép liên kết:", err);
+        showToast("Lỗi khi sao chép liên kết", "error");
+    } finally {
+        if (copyBtn) copyBtn.disabled = false;
+        if (copyIcon) copyIcon.innerText = "📋";
+        if (copyLabel) copyLabel.innerText = "Copy link báo 24h cho NotebookLM";
     }
 }
 

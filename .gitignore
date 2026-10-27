@@ -36,4 +36,5 @@ prisma.config.ts
 .claude/
 .cursor/
 .devin/
+.archify/
 

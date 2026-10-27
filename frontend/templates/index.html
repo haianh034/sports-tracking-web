@@ -176,6 +176,13 @@
                     <span>Schedule</span>
                     <span id="scheduleCountBadge" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700 font-semibold">0</span>
                 </button>
+
+                <button id="tabNews24hBtn" onclick="switchTab('news24h')"
+                    class="tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150">
+                    <span class="text-base">⚡</span>
+                    <span>Tin tức 24h</span>
+                    <span id="news24hCountBadge" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-semibold">0</span>
+                </button>
             </nav>
         </div>
 
@@ -226,6 +233,54 @@
                 <span class="text-xs text-gray-500 italic hidden sm:inline">Nhấp vào thẻ để xem toàn bộ lịch đấu 30 ngày & tin báo</span>
             </div>
             <div id="scheduleContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            </div>
+        </main>
+
+        <!-- PANEL HIỂN THỊ TOÀN BỘ TIN TỨC 24H CỦA CẦU THỦ BẤT KỲ -->
+        <main id="news24hTabPanel" class="tab-panel hidden transition-opacity duration-200">
+            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                        <span>⚡</span> Toàn bộ tin tức trong 24 giờ qua của vận động viên
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Kiểm tra ngay mọi tin tức mới nhất của bất kỳ ai trong danh sách theo dõi, độc lập với lịch thi đấu.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="news24hSearchInput" oninput="filterNews24hPlayers()" placeholder="Tìm nhanh cầu thủ..." 
+                        class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500 w-48 sm:w-60" />
+                </div>
+            </div>
+            
+            <!-- Danh sách chọn cầu thủ (Pills) -->
+            <div id="news24hPlayerSelector" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-900/60 rounded-xl border border-gray-800 max-h-48 overflow-y-auto">
+            </div>
+
+            <!-- Header cầu thủ đang chọn + Bộ lọc phân loại + Nút copy NotebookLM -->
+            <div id="news24hSelectedHeader" class="p-4 rounded-2xl bg-gray-900/80 border border-gray-800 mb-4 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-gray-800">
+                    <div class="flex items-center gap-3">
+                        <span id="news24hPlayerFlag" class="text-3xl"></span>
+                        <div>
+                            <h4 id="news24hPlayerName" class="text-base font-bold text-white"></h4>
+                            <div class="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+                                <span id="news24hPlayerMeta"></span>
+                                <span id="news24hPlayerCountBadge" class="bg-blue-900/60 text-blue-300 border border-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="copyCurrentNews24hLinks()" id="btnCopyNews24hLinks" 
+                            class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95 shadow-sm">
+                            <span id="copyIcon24h">📋</span> <span id="copyBtnLabel24h">Copy link báo 24h cho NotebookLM</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Filter categories for 24h news tab -->
+                <div id="news24hFilterTabs" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <!-- Danh sách tin tức 24h của cầu thủ được chọn -->
+            <div id="news24hContentContainer" class="space-y-2.5">
             </div>
         </main>
     </div>
@@ -296,13 +351,23 @@
                 </div>
 
                 <div>
-                    <div class="flex items-center justify-between mb-2.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5 pb-2 border-b border-gray-800/80">
                         <div class="flex items-center gap-2">
-                            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-                                <span>🌐</span> Báo chí trong 48h qua (ngày thi đấu & ngày hôm trước)
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-300 flex items-center gap-1.5" id="modalNewsSectionTitle">
+                                <span>🌐</span> Báo chí thể thao
                             </h4>
-                            <span class="text-[10px] text-gray-500 italic hidden sm:inline">(chọn được nhiều mục cùng lúc)</span>
                             <span id="modalNewsCount" class="text-[11px] text-gray-400 font-medium"></span>
+                        </div>
+                        <!-- Nút chuyển tab nguồn tin trong modal -->
+                        <div class="flex items-center bg-gray-950 p-1 rounded-xl border border-gray-800 self-start sm:self-auto" id="modalNewsSourceTabs">
+                            <button type="button" id="modalSourceMatchBtn" onclick="switchModalNewsSource('match')"
+                                class="px-2.5 py-1 text-xs rounded-lg font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1 cursor-pointer">
+                                <span>⚽</span> Theo trận (D-1 → D+1)
+                            </button>
+                            <button type="button" id="modalSource24hBtn" onclick="switchModalNewsSource('24h')"
+                                class="px-2.5 py-1 text-xs rounded-lg font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1 cursor-pointer">
+                                <span>⚡</span> Toàn bộ tin 24h qua
+                            </button>
                         </div>
                     </div>
                     <div id="modalNewsFilterTabs" class="flex flex-wrap gap-1.5 mb-3"></div>
@@ -492,6 +557,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=14.1"></script>
+    <script src="/static/js/app.js?v=15.0"></script>
 </body>
 </html>
