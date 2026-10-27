@@ -964,8 +964,8 @@ REST_KEYWORDS = [
 
 def get_player_recent_news_titles(player_name: str) -> list:
     try:
-        from backend.db.session import SessionLocal
-        from backend.db.models import Player, PlayerNews
+        from backend.core.db.session import SessionLocal
+        from backend.core.db.models import Player, PlayerNews
         db = SessionLocal()
         try:
             p = db.query(Player).filter(Player.name.ilike(f"%{player_name}%")).first()

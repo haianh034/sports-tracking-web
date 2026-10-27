@@ -566,13 +566,15 @@ def get_dashboard_data(
                 m["tags"] = m_tags
                 m["has_played"] = False
 
-            # 2. Match News Window: [D - 1 day 00:00:00 to D 23:59:59]
+            # 2. Match News Window: [D - 1 day 00:00:00 to D + 2 days 23:59:59]
+            # Mở rộng khung tin sau trận đến D+2 để bao trọn các bài báo phân tích, video bàn thắng và phản ứng sau trận
             if m_date_vn:
                 try:
                     d_dt = datetime.datetime.strptime(m_date_vn, "%Y-%m-%d").date()
                     d_prev = d_dt - datetime.timedelta(days=1)
+                    d_next = d_dt + datetime.timedelta(days=2)
                     win_start = datetime.datetime.combine(d_prev, datetime.time.min) - datetime.timedelta(hours=7)
-                    win_end = datetime.datetime.combine(d_dt, datetime.time.max) - datetime.timedelta(hours=7)
+                    win_end = datetime.datetime.combine(d_next, datetime.time.max) - datetime.timedelta(hours=7)
                     m_news = [
                         {
                             "title": n.title,
@@ -583,6 +585,20 @@ def get_dashboard_data(
                         for n in all_player_news
                         if win_start <= n.published_at <= win_end
                     ]
+                    # Nếu trận vừa diễn ra trong 7 ngày gần đây và lượng tin dưới 20, bổ sung tin mới nhất từ all_player_news
+                    if is_m_past and -7 <= diff_d <= 0 and len(m_news) < 20:
+                        seen_m_urls = {item["url"] for item in m_news}
+                        for n in all_player_news:
+                            if n.source_url not in seen_m_urls:
+                                m_news.append({
+                                    "title": n.title,
+                                    "url": n.source_url,
+                                    "news_type": n.news_type,
+                                    "region": getattr(n, "region", "US") or "US"
+                                })
+                                seen_m_urls.add(n.source_url)
+                            if len(m_news) >= 30:
+                                break
                 except Exception:
                     m_news = []
             else:
@@ -742,7 +758,7 @@ def get_dashboard_data(
             if n.source_url not in seen_news_urls:
                 player_news_list.append(n)
                 seen_news_urls.add(n.source_url)
-            if len(player_news_list) >= 20:
+            if len(player_news_list) >= 50:
                 break
 
         player_item = {
