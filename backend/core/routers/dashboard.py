@@ -355,8 +355,14 @@ def get_dashboard_data(
             next_match_text = "Không có trận trong 1 tháng sắp tới"
 
         p_news_titles = [n.title for n in news_today]
-        if not p_news_titles:
-            p_news_titles = [n.title for n in all_player_news[:15]]
+        if len(p_news_titles) < 15:
+            seen_t = set(p_news_titles)
+            for n in all_player_news:
+                if n.title not in seen_t:
+                    p_news_titles.append(n.title)
+                    seen_t.add(n.title)
+                if len(p_news_titles) >= 20:
+                    break
 
         # Kiểm tra kết quả trực tiếp thời gian thực cho trận đấu đang live/vừa kết thúc hôm nay
         clean_team_key = (team_name or "").lower().strip()
@@ -726,7 +732,18 @@ def get_dashboard_data(
                 "injury_desc": "Không có ghi nhận chấn thương"
             }
 
-        player_news_list = news_today if news_today else all_player_news[:10]
+        seen_news_urls = set()
+        player_news_list = []
+        for n in news_today:
+            if n.source_url not in seen_news_urls:
+                player_news_list.append(n)
+                seen_news_urls.add(n.source_url)
+        for n in all_player_news:
+            if n.source_url not in seen_news_urls:
+                player_news_list.append(n)
+                seen_news_urls.add(n.source_url)
+            if len(player_news_list) >= 20:
+                break
 
         player_item = {
             "id": p.id,

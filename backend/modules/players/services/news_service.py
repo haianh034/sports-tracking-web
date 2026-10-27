@@ -96,8 +96,16 @@ PLAYER_NATIVE_NAMES = {
     "hwang hee-chan": ["황희찬"],
     "hwang in-beom": ["황인범"],
     "oh hyeon-gyu": ["오현규"],
-    "lee kang-in": ["이강인"],
+    "lee kang-in": ["이강in", "이강인"],
     "lee jae-sung": ["이재성"],
+    "kim min-su": ["김민수"],
+    "bae jun-ho": ["배준호"],
+    "seol young-woo": ["설영우"],
+    "yang min-hyuk": ["양민혁"],
+    "cho gue-sung": ["조규성"],
+    "jeong woo-yeong": ["정우영"],
+    "paik seung-ho": ["백승호"],
+    "eom ji-sung": ["엄지성"],
     "daichi kamada": ["鎌田大地", "鎌田 大地"],
     "ko itakura": ["板倉滉", "板倉 滉"],
     "wataru endo": ["遠藤航", "遠藤 航"],
@@ -117,6 +125,13 @@ PLAYER_NATIVE_NAMES = {
     "hiroki ito": ["伊藤洋輝", "伊藤 洋輝"],
     "yuki ishikawa": ["石川祐希", "石川 祐希"],
     "keito nakamura": ["中村敬斗", "中村 敬斗"],
+    "daizen maeda": ["前田大然", "前田 大然"],
+    "kyogo furuhashi": ["古橋亨梧", "古橋 亨梧"],
+    "reo hatate": ["旗手怜央", "旗手 怜央"],
+    "takumi minamino": ["南野拓実", "南野 拓実"],
+    "koki machida": ["町田浩樹", "町田 浩樹"],
+    "koki ogawa": ["小川航基", "小川 航基"],
+    "yukinari sugawara": ["菅原由勢", "菅原 由勢"]
 }
 
 def fetch_player_news_entries(player_name: str, aliases: str = "", country_name: str = "") -> list:
@@ -161,6 +176,14 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
             if a not in latin_aliases:
                 latin_aliases.append(a)
 
+    # Đảo thứ tự Tên - Họ / Họ - Tên cho cầu thủ Đông Á (Hàn Quốc, Nhật Bản...) trong truyền thông quốc tế
+    # Ví dụ: "Oh Hyeon-gyu" <-> "Hyeon-gyu Oh", "Takefusa Kubo" <-> "Kubo Takefusa"
+    p_parts = player_name.split()
+    if len(p_parts) == 2:
+        inverted_name = f"{p_parts[1]} {p_parts[0]}"
+        if inverted_name.lower() not in [l.lower() for l in latin_aliases] and inverted_name.lower() != player_name.lower():
+            latin_aliases.append(inverted_name)
+
     for n in native_names:
         if n not in search_terms:
             search_terms.append(n)
@@ -203,8 +226,8 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
             target_q = f'"{native_names[0]}"'
         else:
             query_parts = [f'"{player_name}"']
-            if latin_aliases:
-                query_parts.append(f'"{latin_aliases[0]}"')
+            for la in latin_aliases[:2]:
+                query_parts.append(f'"{la}"')
             target_q = " OR ".join(query_parts)
 
         encoded_query = urllib.parse.quote(target_q)
@@ -252,24 +275,13 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
     # Sort all found by published_at descending
     all_found.sort(key=lambda x: x["published_at"], reverse=True)
 
-    # Khung 48 giờ chuẩn: Từ 00:00:00 ngày hôm trước đến 23:59:59 ngày hôm nay (tính theo giờ VN UTC+7)
-    today_ict = (now_utc + datetime.timedelta(hours=7)).date()
-    yesterday_ict = today_ict - datetime.timedelta(days=1)
-    win_start_utc = datetime.datetime.combine(yesterday_ict, datetime.time.min) - datetime.timedelta(hours=7)
-    win_end_utc = datetime.datetime.combine(today_ict, datetime.time.max) - datetime.timedelta(hours=7)
-    news_48h = [item for item in all_found if win_start_utc <= item["published_at"] <= win_end_utc]
-    
-    # Nếu trong khung 48h có ít hơn 5 tin, bổ sung các tin mới nhất gần đây để không bị trống báo
-    if len(news_48h) < 5 and all_found:
-        seen_urls = {item["source_url"] for item in news_48h}
-        for item in all_found[:20]:
-            if item["source_url"] not in seen_urls:
-                news_48h.append(item)
-                seen_urls.add(item["source_url"])
-            if len(news_48h) >= 15:
-                break
+    # Giữ lại tin tức giá trị cao trong vòng 14 ngày gần nhất để đảm bảo thông tin luôn phong phú
+    cutoff_recent = now_utc - datetime.timedelta(days=14)
+    recent_news = [item for item in all_found if item["published_at"] >= cutoff_recent]
+    if not recent_news and all_found:
+        recent_news = all_found[:25]
 
-    return news_48h
+    return recent_news[:50]
 
 def scan_player_news(db: Session, player_id: int, player_name: str):
     player = db.query(Player).filter(Player.id == player_id).first()

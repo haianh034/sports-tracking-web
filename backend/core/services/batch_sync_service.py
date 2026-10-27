@@ -226,10 +226,10 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
 
             if news_entries:
                 now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-                cutoff_24h = now_utc - datetime.timedelta(hours=24)
+                cutoff_retention = now_utc - datetime.timedelta(days=14)
                 db.query(PlayerNews).filter(
                     PlayerNews.player_id == p_id,
-                    PlayerNews.published_at < cutoff_24h
+                    PlayerNews.published_at < cutoff_retention
                 ).delete()
 
                 existing_news = db.query(PlayerNews).filter(PlayerNews.player_id == p_id).all()

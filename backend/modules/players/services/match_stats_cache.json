@@ -14936,5 +14936,909 @@
       "Không đăng ký thi đấu"
     ],
     "has_played": false
+  },
+  "Kim Min-jae_401874892_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký (Chấn thương)"
+    ],
+    "has_played": false
+  },
+  "Hiroki Ito_401874892_post": {
+    "stats_text": "{\"summary\": \"100% chuyền (2/2)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": null, \"rating\": null, \"summary\": \"100% chuyền (2/2)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"4 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5881200, \"opponent\": \"Freiburg\", \"minutes_played\": 4, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.0,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "1 thẻ vàng"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": null,
+      "rating": null,
+      "summary": "100% chuyền (2/2)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "100% (2/2)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "4 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5881200,
+      "opponent": "Freiburg",
+      "minutes_played": 4,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_742452_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742456_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742401_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742462_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742473_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742476_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742484_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742491_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742497_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742502_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742509_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742515_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742519_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742526_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_742531_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401867699_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401867706_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401867712_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401867718_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401867720_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401878416_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401898017_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401901388_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401909637_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401910984_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không đăng ký thi đấu"
+    ],
+    "has_played": false
+  },
+  "Kim Min-Su_401878398_post": {
+    "stats_text": "{\"summary\": \"3 tạo cơ hội, 4 sút, 95% chuyền (20/21)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.5, \"rating\": 7.5, \"summary\": \"3 tạo cơ hội, 4 sút, 95% chuyền (20/21)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"4 cú sút (3 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"95% (20/21)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"67% (2/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/8 (25%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"40 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (3 lần)\"], \"match_id\": 5793916, \"opponent\": \"Aberdeen\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.5,
+    "tags": [
+      "Đá chính",
+      "72 phút",
+      "Tạo cơ hội nhiều nhất trận (3 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.5,
+      "rating": 7.5,
+      "summary": "3 tạo cơ hội, 4 sút, 95% chuyền (20/21)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "3 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "4 cú sút (3 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "95% (20/21)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "67% (2/3)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/8 (25%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "40 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "72 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (3 lần)"
+      ],
+      "match_id": 5793916,
+      "opponent": "Aberdeen",
+      "minutes_played": 72,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878390_post": {
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 3 sút, 89% chuyền (16/18)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"summary\": \"1 tạo cơ hội, 3 sút, 89% chuyền (16/18)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (16/18)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/6 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"42 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"80 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5793924, \"opponent\": \"Falkirk\", \"minutes_played\": 80, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.0,
+    "tags": [
+      "Đá chính",
+      "80 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.0,
+      "rating": 7.0,
+      "summary": "1 tạo cơ hội, 3 sút, 89% chuyền (16/18)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "89% (16/18)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/6 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "42 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "80 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5793924,
+      "opponent": "Falkirk",
+      "minutes_played": 80,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878383_post": {
+    "stats_text": "{\"summary\": \"3 tạo cơ hội, 5 sút, 71% chuyền (12/17)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"summary\": \"3 tạo cơ hội, 5 sút, 71% chuyền (12/17)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"5 cú sút (2 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"71% (12/17)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"33% (1/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/8 (62%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"40 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"70 phút\", \"highlight\": false}], \"fun_facts\": [\"Missed a penalty\", \"Tạo cơ hội nhiều nhất trận (3 lần)\", \"Dứt điểm nhiều nhất trận (5 cú sút)\"], \"match_id\": 5793931, \"opponent\": \"Motherwell\", \"minutes_played\": 70, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.3,
+    "tags": [
+      "Đá chính",
+      "69 phút",
+      "Missed a penalty",
+      "Tạo cơ hội nhiều nhất trận (3 lần)",
+      "Dứt điểm nhiều nhất trận (5 cú sút)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "summary": "3 tạo cơ hội, 5 sút, 71% chuyền (12/17)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "3 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "5 cú sút (2 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "71% (12/17)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "33% (1/3)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "5/8 (62%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "40 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "70 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Missed a penalty",
+        "Tạo cơ hội nhiều nhất trận (3 lần)",
+        "Dứt điểm nhiều nhất trận (5 cú sút)"
+      ],
+      "match_id": 5793931,
+      "opponent": "Motherwell",
+      "minutes_played": 70,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878400_post": {
+    "stats_text": "{\"summary\": \"1 sút, 88% chuyền (7/8)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"summary\": \"1 sút, 88% chuyền (7/8)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"88% (7/8)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/2 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"15 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"30 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5793914, \"opponent\": \"St. Mirren\", \"minutes_played\": 30, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.5,
+    "tags": [
+      "Vào sân",
+      "30 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.5,
+      "rating": 6.5,
+      "summary": "1 sút, 88% chuyền (7/8)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "88% (7/8)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/2 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "15 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "30 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5793914,
+      "opponent": "St. Mirren",
+      "minutes_played": 30,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401911653_post": {
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 3 sút, 83% chuyền (19/23)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"summary\": \"1 tạo cơ hội, 3 sút, 83% chuyền (19/23)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"83% (19/23)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"71% (5/7)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"6/14 (43%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"47 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"71 phút\", \"highlight\": false}], \"fun_facts\": [\"Rê bóng nhiều nhất trận (5 lần)\"], \"match_id\": 5793939, \"opponent\": \"Celtic\", \"minutes_played\": 71, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.1,
+    "tags": [
+      "Đá chính",
+      "74 phút",
+      "Rê bóng nhiều nhất trận (5 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.1,
+      "rating": 7.1,
+      "summary": "1 tạo cơ hội, 3 sút, 83% chuyền (19/23)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "83% (19/23)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "71% (5/7)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "6/14 (43%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "47 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "71 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Rê bóng nhiều nhất trận (5 lần)"
+      ],
+      "match_id": 5793939,
+      "opponent": "Celtic",
+      "minutes_played": 71,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878375_post": {
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 3 sút, 83% chuyền (19/23)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"summary\": \"1 tạo cơ hội, 3 sút, 83% chuyền (19/23)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"83% (19/23)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"71% (5/7)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"6/14 (43%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"47 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"71 phút\", \"highlight\": false}], \"fun_facts\": [\"Rê bóng nhiều nhất trận (5 lần)\"], \"match_id\": 5793939, \"opponent\": \"Celtic\", \"minutes_played\": 71, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.1,
+    "tags": [
+      "Đá chính",
+      "71 phút",
+      "1 thẻ vàng",
+      "Rê bóng nhiều nhất trận (5 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.1,
+      "rating": 7.1,
+      "summary": "1 tạo cơ hội, 3 sút, 83% chuyền (19/23)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "83% (19/23)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "71% (5/7)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "6/14 (43%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "47 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "71 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Rê bóng nhiều nhất trận (5 lần)"
+      ],
+      "match_id": 5793939,
+      "opponent": "Celtic",
+      "minutes_played": 71,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878369_post": {
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 3 sút, 81% chuyền (25/31)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.7, \"rating\": 7.7, \"summary\": \"1 tạo cơ hội, 3 sút, 81% chuyền (25/31)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"81% (25/31)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (4/8)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"8/13 (62%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"53 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"88 phút\", \"highlight\": false}], \"fun_facts\": [\"Rê bóng nhiều nhất trận (4 lần)\"], \"match_id\": 5793945, \"opponent\": \"Kilmarnock\", \"minutes_played\": 88, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.7,
+    "tags": [
+      "Đá chính",
+      "88 phút",
+      "Rê bóng nhiều nhất trận (4 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.7,
+      "rating": 7.7,
+      "summary": "1 tạo cơ hội, 3 sút, 81% chuyền (25/31)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "81% (25/31)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (4/8)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "8/13 (62%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "53 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "88 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Rê bóng nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 5793945,
+      "opponent": "Kilmarnock",
+      "minutes_played": 88,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878366_post": {
+    "stats_text": "{\"summary\": \"3 tạo cơ hội, 4 sút, 74% chuyền (20/27)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.2, \"rating\": 7.2, \"summary\": \"3 tạo cơ hội, 4 sút, 74% chuyền (20/27)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"4 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"74% (20/27)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (3/3)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/7 (71%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"45 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"76 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (3 lần)\", \"Dứt điểm nhiều nhất trận (4 cú sút)\", \"Rê bóng nhiều nhất trận (3 lần)\"], \"match_id\": 5793948, \"opponent\": \"Dundee FC\", \"minutes_played\": 76, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.2,
+    "tags": [
+      "Đá chính",
+      "76 phút",
+      "Tạo cơ hội nhiều nhất trận (3 lần)",
+      "Dứt điểm nhiều nhất trận (4 cú sút)",
+      "Rê bóng nhiều nhất trận (3 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.2,
+      "rating": 7.2,
+      "summary": "3 tạo cơ hội, 4 sút, 74% chuyền (20/27)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "3 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "4 cú sút",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "74% (20/27)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (3/3)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "5/7 (71%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "45 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "76 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (3 lần)",
+        "Dứt điểm nhiều nhất trận (4 cú sút)",
+        "Rê bóng nhiều nhất trận (3 lần)"
+      ],
+      "match_id": 5793948,
+      "opponent": "Dundee FC",
+      "minutes_played": 76,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Kim Min-Su_401878358_post": {
+    "stats_text": "{\"summary\": \"5 tạo cơ hội, 5 sút, 88% chuyền (38/43)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.4, \"rating\": 8.4, \"summary\": \"5 tạo cơ hội, 5 sút, 88% chuyền (38/43)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"5 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"5 cú sút (2 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"88% (38/43)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/7 (29%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"65 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"6 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"80 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (5 lần)\"], \"match_id\": 5793956, \"opponent\": \"St. Johnstone\", \"minutes_played\": 80, \"goals\": 0, \"assists\": 0}}",
+    "rating": 8.4,
+    "tags": [
+      "Đá chính",
+      "80 phút",
+      "Tạo cơ hội nhiều nhất trận (5 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.4,
+      "rating": 8.4,
+      "summary": "5 tạo cơ hội, 5 sút, 88% chuyền (38/43)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "5 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "5 cú sút (2 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "88% (38/43)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/3)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/7 (29%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "65 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "6 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "80 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (5 lần)"
+      ],
+      "match_id": 5793956,
+      "opponent": "St. Johnstone",
+      "minutes_played": 80,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Oh Hyeon-gyu_401888264_post": {
+    "stats_text": "{\"summary\": \"1 bàn, 1 tạo cơ hội, 90% chuyền (9/10)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.9, \"rating\": 7.9, \"summary\": \"1 bàn, 1 tạo cơ hội, 90% chuyền (9/10)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (2 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (9/10)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/2 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"18 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"25 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5904783, \"opponent\": \"Başakşehir\", \"minutes_played\": 25, \"goals\": 1, \"assists\": 0}}",
+    "rating": 7.9,
+    "tags": [
+      "Vào sân",
+      "25 phút",
+      "1 bàn",
+      "Bàn quyết định"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.9,
+      "rating": 7.9,
+      "summary": "1 bàn, 1 tạo cơ hội, 90% chuyền (9/10)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (2 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "90% (9/10)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (2/2)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/2 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "18 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "25 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5904783,
+      "opponent": "Başakşehir",
+      "minutes_played": 25,
+      "goals": 1,
+      "assists": 0
+    }
   }
 }

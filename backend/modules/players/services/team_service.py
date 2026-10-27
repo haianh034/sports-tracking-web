@@ -179,3 +179,4 @@ def search_team_options(query: str, sport: str = None) -> list[dict]:
     # Sắp xếp theo độ liên quan
     results.sort(key=lambda x: -x["score"])
     return results
+
