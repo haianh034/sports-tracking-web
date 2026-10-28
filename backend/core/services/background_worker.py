@@ -32,8 +32,8 @@ class BackgroundSyncWorker:
         logger.info("BackgroundSyncWorker đã dừng.")
 
     async def _run_loop(self):
-        # Đợi 5 giây sau khi server khởi động để hệ thống ổn định trước lần quét đầu
-        await asyncio.sleep(5)
+        # Đợi 180 giây (3 phút) sau khi server khởi động để hệ thống và bộ nhớ container hoàn toàn ổn định
+        await asyncio.sleep(180)
         while self.is_running:
             try:
                 await self.sync_once()
@@ -56,6 +56,13 @@ class BackgroundSyncWorker:
                 return execute_batched_sync(db, update_news=True)
             finally:
                 db.close()
+                import gc
+                gc.collect()
+                try:
+                    import ctypes
+                    ctypes.CDLL("libc.so.6").malloc_trim(0)
+                except Exception:
+                    pass
 
         res = await loop.run_in_executor(None, _job)
         self.last_sync_time = datetime.datetime.now()

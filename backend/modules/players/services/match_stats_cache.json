@@ -433,37 +433,198 @@
     "has_played": true
   },
   "Son Heung-min_761506_post": {
-    "stats_text": "",
+    "stats_text": "{\"summary\": \"1 bàn, 2 kiến tạo, 5 tạo cơ hội, 90% chuyền (27/30)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 9.2, \"rating\": 9.2, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 2 kiến tạo, 5 tạo cơ hội, 90% chuyền (27/30)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"5 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"4 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (27/30)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"33% (1/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/5 (20%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"41 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"78 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (5 lần)\"], \"match_id\": 5071421, \"opponent\": \"Austin FC\", \"minutes_played\": 78, \"goals\": 1, \"assists\": 2}}",
+    "rating": 9.2,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Tạo cơ hội nhiều nhất trận (5 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 9.2,
+      "rating": 9.2,
+      "is_player_of_the_match": false,
+      "summary": "1 bàn, 2 kiến tạo, 5 tạo cơ hội, 90% chuyền (27/30)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "5 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "4 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "90% (27/30)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "33% (1/3)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/5 (20%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "41 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "78 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (5 lần)"
+      ],
+      "match_id": 5071421,
+      "opponent": "Austin FC",
+      "minutes_played": 78,
+      "goals": 1,
+      "assists": 2
+    }
+  },
+  "Son Heung-min_761525_post": {
+    "stats_text": "{\"summary\": \"2 sút, 73% chuyền (16/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 73% chuyền (16/22)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"73% (16/22)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/9 (44%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"39 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5071429, \"opponent\": \"New York City FC\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
     "rating": 6.5,
     "tags": [
       "Đá chính",
-      "90 phút"
-    ],
-    "has_played": true
-  },
-  "Son Heung-min_761525_post": {
-    "stats_text": "4 kiến tạo, 1 cú sút",
-    "rating": 9.4,
-    "tags": [
-      "Đá chính",
       "58 phút",
-      "4 kiến tạo",
-      "Cầu thủ xuất sắc nhất (MVP)"
+      "4 kiến tạo"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.5,
+      "rating": 6.5,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 73% chuyền (16/22)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "73% (16/22)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (1/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/9 (44%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "39 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5071429,
+      "opponent": "New York City FC",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_401865467_post": {
-    "stats_text": "1 bàn, 1 kiến tạo, 1 cú sút",
-    "rating": 8.5,
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 1 sút, 77% chuyền (10/13)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 77% chuyền (10/13)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"77% (10/13)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/3 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"24 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5165110, \"opponent\": \"Cruz Azul\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.4,
     "tags": [
       "Đá chính",
       "90 phút",
       "1 bàn",
       "1 kiến tạo",
-      "Cầu thủ xuất sắc nhất (MVP)",
       "Bàn mở tỉ số"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.4,
+      "rating": 6.4,
+      "is_player_of_the_match": false,
+      "summary": "1 tạo cơ hội, 1 sút, 77% chuyền (10/13)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "77% (10/13)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/3 (33%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "24 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5165110,
+      "opponent": "Cruz Azul",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_761531_post": {
     "stats_text": "",
@@ -474,104 +635,674 @@
     "has_played": false
   },
   "Son Heung-min_401865594_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 1 sút, 77% chuyền (10/13)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 77% chuyền (10/13)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"77% (10/13)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/3 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"24 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5165110, \"opponent\": \"Cruz Azul\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.4,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.4,
+      "rating": 6.4,
+      "is_player_of_the_match": false,
+      "summary": "1 tạo cơ hội, 1 sút, 77% chuyền (10/13)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "77% (10/13)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/3 (33%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "24 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5165110,
+      "opponent": "Cruz Azul",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_761558_post": {
-    "stats_text": "2 cú sút",
-    "rating": 6.7,
+    "stats_text": "{\"summary\": \"1 bàn, 1 kiến tạo, 1 tạo cơ hội, 75% chuyền (18/24)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.2, \"rating\": 8.2, \"is_player_of_the_match\": true, \"summary\": \"1 bàn, 1 kiến tạo, 1 tạo cơ hội, 75% chuyền (18/24)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"75% (18/24)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"33% (2/6)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/9 (22%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"44 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"89 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5071370, \"opponent\": \"San Jose Earthquakes\", \"minutes_played\": 89, \"goals\": 1, \"assists\": 1}}",
+    "rating": 8.2,
     "tags": [
       "Đá chính",
-      "90 phút"
+      "90 phút",
+      "Cầu thủ xuất sắc nhất (MVP)"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.2,
+      "rating": 8.2,
+      "is_player_of_the_match": true,
+      "summary": "1 bàn, 1 kiến tạo, 1 tạo cơ hội, 75% chuyền (18/24)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "75% (18/24)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "33% (2/6)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/9 (22%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "44 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "89 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5071370,
+      "opponent": "San Jose Earthquakes",
+      "minutes_played": 89,
+      "goals": 1,
+      "assists": 1
+    }
   },
   "Son Heung-min_761569_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 sút, 79% chuyền (11/14)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.0, \"rating\": 6.0, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 79% chuyền (11/14)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"79% (11/14)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/3 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"18 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"27 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5071283, \"opponent\": \"Colorado Rapids\", \"minutes_played\": 27, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.0,
     "tags": [
       "Đá chính",
       "77 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.0,
+      "rating": 6.0,
+      "is_player_of_the_match": false,
+      "summary": "1 sút, 79% chuyền (11/14)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "79% (11/14)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/3 (33%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "18 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "27 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5071283,
+      "opponent": "Colorado Rapids",
+      "minutes_played": 27,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_761571_post": {
-    "stats_text": "1 cú sút",
-    "rating": 6.6,
+    "stats_text": "{\"summary\": \"4 tạo cơ hội, 3 sút, 86% chuyền (30/35)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 3 sút, 86% chuyền (30/35)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"86% (30/35)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/5 (60%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"50 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 5071455, \"opponent\": \"LA Galaxy\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.3,
     "tags": [
       "Đá chính",
-      "90 phút"
+      "90 phút",
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "is_player_of_the_match": false,
+      "summary": "4 tạo cơ hội, 3 sút, 86% chuyền (30/35)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "4 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "86% (30/35)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (1/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/5 (60%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "50 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 5071455,
+      "opponent": "LA Galaxy",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_401869808_post": {
-    "stats_text": "2 kiến tạo",
-    "rating": 7.9,
+    "stats_text": "{\"summary\": \"90% chuyền (18/20)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.6, \"rating\": 6.6, \"is_player_of_the_match\": false, \"summary\": \"90% chuyền (18/20)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (18/20)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/7 (43%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"33 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"68 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5844849, \"opponent\": \"Toluca\", \"minutes_played\": 68, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.6,
     "tags": [
       "Đá chính",
       "90 phút",
       "2 kiến tạo"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.6,
+      "rating": 6.6,
+      "is_player_of_the_match": false,
+      "summary": "90% chuyền (18/20)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "90% (18/20)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/7 (43%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "33 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "68 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5844849,
+      "opponent": "Toluca",
+      "minutes_played": 68,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_761595_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"4 tạo cơ hội, 3 sút, 86% chuyền (30/35)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 3 sút, 86% chuyền (30/35)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"86% (30/35)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/5 (60%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"50 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 5071455, \"opponent\": \"LA Galaxy\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.3,
     "tags": [
       "Vào sân",
-      "1 phút"
+      "1 phút",
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "is_player_of_the_match": false,
+      "summary": "4 tạo cơ hội, 3 sút, 86% chuyền (30/35)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "4 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "86% (30/35)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (1/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/5 (60%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "50 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 5071455,
+      "opponent": "LA Galaxy",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_401869810_post": {
-    "stats_text": "",
-    "rating": 6.5,
-    "tags": [
-      "Đá chính",
-      "90 phút"
-    ],
-    "has_played": true
-  },
-  "Son Heung-min_761614_post": {
-    "stats_text": "",
-    "rating": 6.5,
-    "tags": [
-      "Đá chính",
-      "90 phút"
-    ],
-    "has_played": true
-  },
-  "Son Heung-min_761625_post": {
-    "stats_text": "1 cú sút",
+    "stats_text": "{\"summary\": \"90% chuyền (18/20)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.6, \"rating\": 6.6, \"is_player_of_the_match\": false, \"summary\": \"90% chuyền (18/20)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (18/20)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/7 (43%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"33 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"68 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5844849, \"opponent\": \"Toluca\", \"minutes_played\": 68, \"goals\": 0, \"assists\": 0}}",
     "rating": 6.6,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.6,
+      "rating": 6.6,
+      "is_player_of_the_match": false,
+      "summary": "90% chuyền (18/20)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "90% (18/20)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/7 (43%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "33 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "68 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5844849,
+      "opponent": "Toluca",
+      "minutes_played": 68,
+      "goals": 0,
+      "assists": 0
+    }
   },
-  "Son Heung-min_761643_post": {
-    "stats_text": "",
+  "Son Heung-min_761614_post": {
+    "stats_text": "{\"summary\": \"2 sút, 95% chuyền (39/41)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 95% chuyền (39/41)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"95% (39/41)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"33% (2/6)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/9 (56%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"62 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5071165, \"opponent\": \"Houston Dynamo FC\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
     "rating": 6.5,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.5,
+      "rating": 6.5,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 95% chuyền (39/41)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "95% (39/41)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "33% (2/6)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "5/9 (56%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "62 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5071165,
+      "opponent": "Houston Dynamo FC",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
-  "Son Heung-min_761658_post": {
-    "stats_text": "2 cú sút",
-    "rating": 6.7,
+  "Son Heung-min_761625_post": {
+    "stats_text": "{\"summary\": \"2 sút, 73% chuyền (16/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 73% chuyền (16/22)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"73% (16/22)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/9 (44%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"39 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5071429, \"opponent\": \"New York City FC\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.5,
     "tags": [
       "Đá chính",
       "90 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.5,
+      "rating": 6.5,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 73% chuyền (16/22)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "73% (16/22)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (1/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/9 (44%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "39 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5071429,
+      "opponent": "New York City FC",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Son Heung-min_761643_post": {
+    "stats_text": "{\"summary\": \"4 tạo cơ hội, 3 sút, 86% chuyền (30/35)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 3 sút, 86% chuyền (30/35)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"86% (30/35)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/5 (60%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"50 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 5071455, \"opponent\": \"LA Galaxy\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.3,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "is_player_of_the_match": false,
+      "summary": "4 tạo cơ hội, 3 sút, 86% chuyền (30/35)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "4 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "86% (30/35)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (1/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/5 (60%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "50 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 5071455,
+      "opponent": "LA Galaxy",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Son Heung-min_761658_post": {
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 7 sút, 82% chuyền (18/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 7 sút, 82% chuyền (18/22)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"7 cú sút (2 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"82% (18/22)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (3/6)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"6/14 (43%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"53 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (7 cú sút)\", \"Rê bóng nhiều nhất trận (3 lần)\"], \"match_id\": 5071209, \"opponent\": \"Seattle Sounders FC\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.8,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Dứt điểm nhiều nhất trận (7 cú sút)",
+      "Rê bóng nhiều nhất trận (3 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.8,
+      "rating": 6.8,
+      "is_player_of_the_match": false,
+      "summary": "1 tạo cơ hội, 7 sút, 82% chuyền (18/22)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "7 cú sút (2 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "82% (18/22)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (3/6)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "6/14 (43%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "53 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Dứt điểm nhiều nhất trận (7 cú sút)",
+        "Rê bóng nhiều nhất trận (3 lần)"
+      ],
+      "match_id": 5071209,
+      "opponent": "Seattle Sounders FC",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Son Heung-min_761664_post": {
     "stats_text": "",
@@ -3108,76 +3839,482 @@
     "has_played": false
   },
   "Ao Tanaka_740900_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"85% chuyền (22/26)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"is_player_of_the_match\": false, \"summary\": \"85% chuyền (22/26)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"85% (22/26)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/5 (80%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"37 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"45 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795430, \"opponent\": \"Brentford\", \"minutes_played\": 45, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.8,
     "tags": [
       "Vào sân",
       "22 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.8,
+      "rating": 6.8,
+      "is_player_of_the_match": false,
+      "summary": "85% chuyền (22/26)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "85% (22/26)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/5 (80%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "37 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "45 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795430,
+      "opponent": "Brentford",
+      "minutes_played": 45,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_740912_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"2 sút, 89% chuyền (48/54)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.6, \"rating\": 6.6, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 89% chuyền (48/54)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (48/54)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/8 (50%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"68 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"81 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795480, \"opponent\": \"Manchester United\", \"minutes_played\": 81, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.6,
     "tags": [
       "Đá chính",
       "70 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.6,
+      "rating": 6.6,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 89% chuyền (48/54)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "89% (48/54)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/8 (50%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "68 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "81 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795480,
+      "opponent": "Manchester United",
+      "minutes_played": 81,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_740924_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"4 tạo cơ hội, 1 sút, 91% chuyền (40/44)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.5, \"rating\": 7.5, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 1 sút, 91% chuyền (40/44)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"91% (40/44)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/7 (29%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"64 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"89 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 4813700, \"opponent\": \"Wolverhampton Wanderers\", \"minutes_played\": 89, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.5,
     "tags": [
       "Đá chính",
-      "90 phút"
+      "90 phút",
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.5,
+      "rating": 7.5,
+      "is_player_of_the_match": false,
+      "summary": "4 tạo cơ hội, 1 sút, 91% chuyền (40/44)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "4 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "91% (40/44)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/7 (29%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "64 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "89 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 4813700,
+      "opponent": "Wolverhampton Wanderers",
+      "minutes_played": 89,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_740926_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 95% chuyền (37/39)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 95% chuyền (37/39)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"95% (37/39)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/3 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"7 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"89 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4813705, \"opponent\": \"AFC Bournemouth\", \"minutes_played\": 89, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.0,
     "tags": [
       "Đá chính",
       "89 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.0,
+      "rating": 7.0,
+      "is_player_of_the_match": false,
+      "summary": "1 tạo cơ hội, 95% chuyền (37/39)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "95% (37/39)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/3 (33%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "49 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "7 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "89 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 4813705,
+      "opponent": "AFC Bournemouth",
+      "minutes_played": 89,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_740942_post": {
-    "stats_text": "1 cú sút",
-    "rating": 6.6,
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 2 sút, 92% chuyền (46/50)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 2 sút, 92% chuyền (46/50)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"92% (46/50)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/3 (67%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"59 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4813721, \"opponent\": \"Burnley\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.1,
     "tags": [
       "Đá chính",
       "72 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.1,
+      "rating": 7.1,
+      "is_player_of_the_match": false,
+      "summary": "1 tạo cơ hội, 2 sút, 92% chuyền (46/50)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "92% (46/50)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/3 (67%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "59 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "72 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 4813721,
+      "opponent": "Burnley",
+      "minutes_played": 72,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_740954_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 sút, 73% chuyền (30/41)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 73% chuyền (30/41)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"73% (30/41)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/11 (45%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"61 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"10 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"89 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most defensive contributions (19)\"], \"match_id\": 4813733, \"opponent\": \"Tottenham Hotspur\", \"minutes_played\": 89, \"goals\": 0, \"assists\": 0}}",
+    "rating": 7.3,
     "tags": [
       "Đá chính",
-      "90 phút"
+      "90 phút",
+      "Had the most defensive contributions (19)"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "is_player_of_the_match": false,
+      "summary": "1 sút, 73% chuyền (30/41)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "73% (30/41)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "5/11 (45%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "61 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "10 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "89 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the most defensive contributions (19)"
+      ],
+      "match_id": 4813733,
+      "opponent": "Tottenham Hotspur",
+      "minutes_played": 89,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Ao Tanaka_740962_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 2 sút, 79% chuyền (19/24)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.8, \"rating\": 7.8, \"is_player_of_the_match\": false, \"summary\": \"1 kiến tạo, 1 tạo cơ hội, 2 sút, 79% chuyền (19/24)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"79% (19/24)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/4 (100%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"37 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"73 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795437, \"opponent\": \"Brighton & Hove Albion\", \"minutes_played\": 73, \"goals\": 0, \"assists\": 1}}",
+    "rating": 7.8,
     "tags": [
       "Đá chính",
       "60 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.8,
+      "rating": 7.8,
+      "is_player_of_the_match": false,
+      "summary": "1 kiến tạo, 1 tạo cơ hội, 2 sút, 79% chuyền (19/24)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "79% (19/24)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/4 (100%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "37 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "73 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795437,
+      "opponent": "Brighton & Hove Albion",
+      "minutes_played": 73,
+      "goals": 0,
+      "assists": 1
+    }
   },
   "Ao Tanaka_740971_post": {
-    "stats_text": "",
-    "rating": 6.5,
+    "stats_text": "{\"summary\": \"2 sút, 89% chuyền (48/54)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.6, \"rating\": 6.6, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 89% chuyền (48/54)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (48/54)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/8 (50%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"68 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"81 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5795480, \"opponent\": \"Manchester United\", \"minutes_played\": 81, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.6,
     "tags": [
       "Đá chính",
       "78 phút"
     ],
-    "has_played": true
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.6,
+      "rating": 6.6,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 89% chuyền (48/54)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "89% (48/54)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/8 (50%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "68 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "81 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 5795480,
+      "opponent": "Manchester United",
+      "minutes_played": 81,
+      "goals": 0,
+      "assists": 0
+    }
   },
   "Lee Kang-in_748314_post": {
     "stats_text": "",

@@ -186,7 +186,12 @@ def get_dashboard_data(
         player_data_tuples.append((p, team_name, sport_name, country_name))
 
     # Load existing historical match performances from database to avoid repeated external API calls
-    all_db_perfs = db.query(MatchPerformance).all()
+    # Tối ưu bộ nhớ: Chỉ tải các trận trong 90 ngày gần nhất hoặc chưa xác định ngày
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    perf_cutoff_dt = now_utc - datetime.timedelta(days=90)
+    all_db_perfs = db.query(MatchPerformance).filter(
+        (MatchPerformance.match_date >= perf_cutoff_dt) | (MatchPerformance.match_date == None)
+    ).all()
     perf_by_player_event = {}
     perf_by_player_date = {}
     for perf in all_db_perfs:
@@ -201,7 +206,7 @@ def get_dashboard_data(
         return p.id, fetch_player_career_schedule(p.name, t_name, s_name)
 
     sched_map = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
         for pid, s_list in ex.map(_fetch_player_career, player_data_tuples):
             sched_map[pid] = s_list
 
@@ -233,7 +238,7 @@ def get_dashboard_data(
         fetch_espn_summary(url, ev_id)
 
     if unique_past_events:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as ex:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
             list(ex.map(_prefetch_summary, unique_past_events))
 
     # Khung 48 giờ chuẩn: Từ 00:00:00 ngày hôm trước đến 23:59:59 ngày hôm nay (tính theo giờ Việt Nam UTC+7)
@@ -254,10 +259,19 @@ def get_dashboard_data(
         if p_d_str == today_str_vn:
             today_perf_by_player[perf.player_id] = perf
 
-    all_db_player_news = db.query(PlayerNews).order_by(PlayerNews.published_at.desc()).all()
+    # Tối ưu hóa bộ nhớ: Chỉ tải tin tức trong 35 ngày gần nhất và giới hạn tối đa 25 tin mới nhất mỗi cầu thủ
+    news_cutoff_utc = now_utc - datetime.timedelta(days=35)
+    all_db_player_news = (
+        db.query(PlayerNews)
+        .filter(PlayerNews.published_at >= news_cutoff_utc)
+        .order_by(PlayerNews.published_at.desc())
+        .all()
+    )
     news_by_player = {}
     for n in all_db_player_news:
-        news_by_player.setdefault(n.player_id, []).append(n)
+        p_list = news_by_player.setdefault(n.player_id, [])
+        if len(p_list) < 25:
+            p_list.append(n)
 
     for p, team_name, sport_name, country_name in player_data_tuples:
         espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
@@ -955,15 +969,22 @@ def get_dashboard_data(
         return t["id"], fetch_national_team_schedule(t)
 
     nt_sched_map = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
         for tid, s_list in ex.map(_fetch_nt_sched, filtered_nts):
             nt_sched_map[tid] = s_list
 
-    # Batch load national team news from DB
-    all_nt_news = db.query(NationalTeamNews).all()
+    # Batch load national team news from DB (tối ưu bộ nhớ: 35 ngày gần nhất, tối đa 25 tin/đội)
+    all_nt_news = (
+        db.query(NationalTeamNews)
+        .filter(NationalTeamNews.published_at >= news_cutoff_utc)
+        .order_by(NationalTeamNews.published_at.desc())
+        .all()
+    )
     nt_news_by_team = {}
     for n in all_nt_news:
-        nt_news_by_team.setdefault(n.team_id, []).append(n)
+        t_list = nt_news_by_team.setdefault(n.team_id, [])
+        if len(t_list) < 25:
+            t_list.append(n)
 
     for nt in filtered_nts:
         nt_id = nt["id"]
@@ -1207,5 +1228,12 @@ def get_dashboard_data(
         "total_all": total_filtered_players + total_filtered_national_teams
     }
     _DASHBOARD_CACHE[cache_key] = (now_ts, result_data)
+    import gc
+    gc.collect()
+    try:
+        import ctypes
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
     return result_data
 

@@ -84,7 +84,7 @@ def get_live_scores_map() -> dict:
         except Exception:
             return sport, []
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
         results = list(ex.map(_fetch_url, urls_to_fetch))
 
     live_map = {}

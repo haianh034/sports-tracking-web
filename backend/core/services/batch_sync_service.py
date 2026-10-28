@@ -56,7 +56,7 @@ def fetch_bulk_scoreboards() -> dict:
             return league, []
 
     tasks = [(lg, dt_str) for lg in TOP_LEAGUES for dt_str in dates_to_check]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
         results = list(ex.map(_fetch_league_date, tasks))
 
     for league, events in results:
@@ -110,7 +110,7 @@ def prefetch_unique_team_schedules(unique_teams: list):
         except Exception:
             pass
 
-    workers_count = min(32, max(1, len(unique_teams)))
+    workers_count = min(3, max(1, len(unique_teams)))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers_count) as ex:
         list(ex.map(_fetch_one, unique_teams))
 
@@ -190,7 +190,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
             except Exception:
                 return (p_id, None, None, "pre", None, False, {}, "", [])
 
-        player_workers = min(32, max(1, len(player_data)))
+        player_workers = min(3, max(1, len(player_data)))
         with concurrent.futures.ThreadPoolExecutor(max_workers=player_workers) as ex:
             results = list(ex.map(_sync_player, player_data))
 
@@ -253,6 +253,13 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         try:
             from backend.core.routers.dashboard import invalidate_dashboard_cache
             invalidate_dashboard_cache()
+        except Exception:
+            pass
+        import gc
+        gc.collect()
+        try:
+            import ctypes
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
         except Exception:
             pass
         return {"count": len(players), "status": "completed"}
