@@ -308,10 +308,37 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
 
     summary_text = ", ".join(summary_parts) if summary_parts else (f"{minutes_played} phút" if minutes_played else "")
 
+    # Kiểm tra danh hiệu Cầu thủ xuất sắc nhất trận (MOTM / Player of the Match) do chính FotMob công nhận
+    is_potm = False
+    potm_obj = m_data.get("content", {}).get("matchFacts", {}).get("playerOfTheMatch")
+    if potm_obj and str(potm_obj.get("id")) == str(fotmob_p_id):
+        is_potm = True
+    else:
+        top_players = m_data.get("content", {}).get("matchFacts", {}).get("topPlayers", {})
+        for tp_list in [top_players.get("homeTopPlayers", []), top_players.get("awayTopPlayers", [])]:
+            for tp in tp_list:
+                if str(tp.get("id")) == str(fotmob_p_id) and tp.get("manOfTheMatch"):
+                    is_potm = True
+                    break
+            if is_potm:
+                break
+        if not is_potm:
+            lineup = m_data.get("content", {}).get("lineup", {})
+            for t_key in ["homeTeam", "awayTeam"]:
+                t_obj = lineup.get(t_key, {})
+                for player_entry in t_obj.get("starters", []) + t_obj.get("subs", []):
+                    if str(player_entry.get("id")) == str(fotmob_p_id):
+                        if player_entry.get("performance", {}).get("playerOfTheMatch"):
+                            is_potm = True
+                        break
+                if is_potm:
+                    break
+
     result = {
         "source": "FotMob",
         "fotmob_rating": fotmob_rating,
         "rating": fotmob_rating,
+        "is_player_of_the_match": is_potm,
         "summary": summary_text,
         "metrics": metrics,
         "fun_facts": fun_facts,

@@ -260,6 +260,7 @@ def get_dashboard_data(
         news_by_player.setdefault(n.player_id, []).append(n)
 
     for p, team_name, sport_name, country_name in player_data_tuples:
+        espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
         all_matches_raw = sched_map.get(p.id, [])
         all_player_news = list(news_by_player.get(p.id, []))
         news_today = [n for n in all_player_news if today_win_start_utc <= n.published_at <= today_win_end_utc]
@@ -476,6 +477,12 @@ def get_dashboard_data(
                             m_tags.append(t)
                 m["tags"] = m_tags
                 m["has_played"] = False if is_no_play else h_played
+                is_fb = False
+                if espn_sport == "soccer" and m.get("rating"):
+                    _, c_details = unpack_stats(raw_stats)
+                    if not (c_details and c_details.get("source") == "FotMob"):
+                        is_fb = True
+                m["is_fallback_rating"] = is_fb
             elif is_m_past:
                 ev_id = m.get("event_id")
                 match_team = m.get("player_team") or team_name
@@ -486,9 +493,41 @@ def get_dashboard_data(
                     db_perf = perf_by_player_date.get((p.id, str(m_date_vn)))
 
                 if db_perf and (db_perf.player_stats or db_perf.impression_tags or db_perf.has_played is not None):
+                    has_fotmob = bool(db_perf.player_stats and '"source": "FotMob"' in db_perf.player_stats)
+                    # Quy tắc lưu cứng: Trận đấu diễn ra quá 3 ngày (diff_d < -3) được giữ nguyên vĩnh viễn trong DB, KHÔNG gọi lại API.
+                    # Chỉ kiểm tra nâng cấp FotMob nếu trận bóng đá vừa diễn ra trong vòng 3 ngày (-3 <= diff_d <= 0) và chưa có điểm chính thức FotMob:
+                    if db_perf.has_played and not has_fotmob and -3 <= diff_d <= 0 and espn_sport == "soccer" and ev_id:
+                        try:
+                            fresh_stats = fetch_player_match_stats(
+                                p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles
+                            )
+                            if fresh_stats and fresh_stats.get("detailed_stats"):
+                                db_perf.performance_rating = fresh_stats.get("rating")
+                                db_perf.player_stats = fresh_stats.get("stats_text")
+                                is_potm = fresh_stats.get("detailed_stats", {}).get("is_player_of_the_match", False) or ("Cầu thủ xuất sắc nhất (MVP)" in fresh_stats.get("tags", []))
+                                cur_tags = [t.strip() for t in (db_perf.impression_tags or "").split(",") if t.strip()]
+                                if is_potm:
+                                    if "Cầu thủ xuất sắc nhất (MVP)" not in cur_tags:
+                                        cur_tags.append("Cầu thủ xuất sắc nhất (MVP)")
+                                else:
+                                    cur_tags = [t for t in cur_tags if t != "Cầu thủ xuất sắc nhất (MVP)"]
+                                db_perf.impression_tags = ",".join(cur_tags)
+                                db.commit()
+                                has_fotmob = True
+                        except Exception:
+                            pass
+
                     m["has_played"] = db_perf.has_played or False
                     m["rating"] = db_perf.performance_rating if m["has_played"] else None
                     m["player_stats"] = db_perf.player_stats if m["has_played"] else None
+                    
+                    # Chỉ gắn nhãn ước tính khi: Môn Bóng đá + Trong 3 ngày gần đây + Chưa có FotMob
+                    # Tất cả các môn khác (Bóng chuyền, Bóng rổ, Bóng chày...) và các trận quá 3 ngày đều là ĐIỂM CHÍNH THỨC ĐÃ LƯU CỨNG
+                    is_fb = False
+                    if espn_sport == "soccer" and -3 <= diff_d <= 0 and m["rating"] and not has_fotmob:
+                        is_fb = True
+                    m["is_fallback_rating"] = is_fb
+
                     m_tags = [clean_comp] if clean_comp else []
                     db_tags = [t.strip() for t in (db_perf.impression_tags or "").split(",") if t.strip()]
                     for t in db_tags:
@@ -517,11 +556,29 @@ def get_dashboard_data(
                         p_rating = real_stats.get("rating") if has_p else None
                         p_stats = real_stats.get("stats_text") if has_p else None
                         raw_tags_list = real_stats.get("tags", [])
+                        has_fotmob = bool(real_stats.get("detailed_stats"))
 
                         m["has_played"] = has_p
                         m["rating"] = p_rating
                         m["player_stats"] = p_stats
+                        
+                        is_fb = False
+                        if espn_sport == "soccer" and -3 <= diff_d <= 0 and p_rating and not has_fotmob:
+                            is_fb = True
+                        m["is_fallback_rating"] = is_fb
+
                         m_tags = [clean_comp] if clean_comp else []
+                        for t in raw_tags_list:
+                            if t:
+                                t_low = t.lower()
+                                if t_low == "bàn quyết định":
+                                    t = "Bàn mở tỉ số"
+                                    t_low = t.lower()
+                                if "cứu thua" in t_low and "xuất sắc" not in t_low:
+                                    continue
+                                if t not in m_tags:
+                                    m_tags.append(t)
+                        m["tags"] = m_tags
                         for t in raw_tags_list:
                             if t:
                                 t_low = t.lower()
@@ -785,6 +842,14 @@ def get_dashboard_data(
             if n.published_at and n.published_at >= cutoff_24h_utc
         ]
 
+        # Cờ fallback cho thẻ cầu thủ: CHỈ áp dụng cho bóng đá trong 3 ngày qua khi chưa có FotMob.
+        # Tất cả các môn khác (Bóng chuyền, Bóng rổ, Bóng chày...) đều là điểm chính thức đã chốt
+        is_player_fallback = False
+        if espn_sport == "soccer" and curr_rating:
+            has_fm = bool(curr_detailed_stats and curr_detailed_stats.get("source") == "FotMob")
+            if not has_fm and is_within_month:
+                is_player_fallback = True
+
         player_item = {
             "id": p.id,
             "entity_type": "player",
@@ -804,6 +869,7 @@ def get_dashboard_data(
             "player_stats": curr_stats,
             "detailed_stats": curr_detailed_stats,
             "rating": curr_rating,
+            "is_fallback_rating": is_player_fallback,
             "tags": curr_tags,
             "injury": injury_data,
             "is_within_month": is_within_month,
@@ -818,6 +884,7 @@ def get_dashboard_data(
                 "match_result": curr_match_result,
                 "player_stats": curr_stats,
                 "detailed_stats": curr_detailed_stats,
+                "is_fallback_rating": is_player_fallback,
                 "injury": injury_data,
                 "upcoming_matches_30d": upcoming_matches_30d,
                 "all_upcoming_matches": all_upcoming_matches,
@@ -1052,15 +1119,13 @@ def get_dashboard_data(
         sched_nt["earliest_match_utc"] = nt_upcoming_30d[0]["match_date_utc"] if nt_upcoming_30d else None
         schedule_players.append(sched_nt)
             
-    # Sắp xếp: Ưu tiên số lượng báo chí được nhắc tới trước, sau đó đến lịch thi đấu
+    # Sắp xếp: Ưu tiên có rating lên trước (từ cao đến thấp), rồi mới đến số lượng báo
     def sort_active_today_players(p):
         news_count = len(p.get("details", {}).get("news", []))
         rating_val = p.get("rating")
         has_rating = 1 if (isinstance(rating_val, (int, float)) and rating_val > 0) else 0
         rating_score = float(rating_val) if has_rating else 0.0
-        m_state = p.get("match_state", "pre")
-        state_priority = 3 if has_rating else (2 if m_state in ["post", "in"] else 1)
-        return (news_count, state_priority, rating_score)
+        return (has_rating, rating_score, news_count)
 
     def sort_by_news_and_time(p):
         news_count = len(p.get("details", {}).get("news", []))

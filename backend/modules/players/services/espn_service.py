@@ -1241,12 +1241,30 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             for ff in fotmob_stats["fun_facts"]:
                                 if ff not in tags:
                                     tags.append(ff)
+                        # MVP chỉ được gán khi chính API FotMob xác nhận cầu thủ là Player of the Match
+                        if fotmob_stats.get("is_player_of_the_match"):
+                            if "Cầu thủ xuất sắc nhất (MVP)" not in tags:
+                                tags.append("Cầu thủ xuất sắc nhất (MVP)")
                     else:
-                        rating = 6.5 + (1.2 * g) + (0.7 * a) + (0.1 * shots) - (0.5 * yellow) - (1.5 * red) + (0.2 * (saves // 2))
+                        if is_gk:
+                            # Chấm điểm chuẩn cho Thủ môn khi không có FotMob:
+                            # Cơ sở: 6.5
+                            # Mỗi pha cứu thua: +0.3 điểm (tôn vinh thủ môn cản phá nhiều)
+                            # Cứu thua xuất sắc (>= 5 pha): thưởng thêm +0.4
+                            # Giữ sạch lưới: thưởng +0.6
+                            # Bàn thua: trừ 0.2 nếu lọt lưới từ 3 bàn trở lên
+                            rating = 6.5 + (0.3 * saves)
+                            if saves >= 5:
+                                rating += 0.4
+                            if clean_sheet > 0 or (goals_conceded == 0 and apps > 0):
+                                rating += 0.6
+                            elif goals_conceded >= 3:
+                                rating -= 0.2 * (goals_conceded - 2)
+                            rating -= (0.5 * yellow) + (1.5 * red)
+                        else:
+                            rating = 6.5 + (1.2 * g) + (0.7 * a) + (0.1 * shots) - (0.5 * yellow) - (1.5 * red) + (0.2 * (saves // 2))
                         rating = round(min(9.8, max(6.0, rating)), 1)
 
-                    if rating >= 8.5:
-                        tags.append("Cầu thủ xuất sắc nhất (MVP)")
                     if g >= 1:
                         # Phân loại chính xác vai trò bàn thắng: Bàn mở tỉ số, Bàn ấn định tỉ số...
                         key_events = data.get('keyEvents', []) or []
@@ -1418,9 +1436,6 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         except Exception:
                             pass
                         rating = round(min(9.9, max(5.5, rating)), 1)
-                        if rating >= 9.0 or pts >= 35 or (stat_counts_10 >= 2 and pts >= 25):
-                            if "Cầu thủ xuất sắc nhất (MVP)" not in tags:
-                                tags.append("Cầu thủ xuất sắc nhất (MVP)")
                         stats_text = f"{pts} PTS, {reb} REB, {ast} AST ({min_val} phút)"
                         nba_metrics = [
                             {"label": "Điểm số (PTS)", "value": f"{pts} điểm", "highlight": pts >= 20},
@@ -1611,9 +1626,6 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         st_parts.append(bat_st)
                         rating += (0.7 * h) + (1.2 * hr) + (0.5 * rbi) + (0.3 * bb)
 
-                    if rating >= 8.5:
-                        tags.append("Cầu thủ xuất sắc nhất (MVP)")
-
                     if not news_titles:
                         news_titles = get_player_recent_news_titles(player_name)
                     if news_titles:
@@ -1650,7 +1662,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                 blk = 2
                 ace = 2
                 stats_text = f"{pts} điểm ({atk} tấn công, {blk} chắn bóng, {ace} ace)"
-                tags.extend([f"{pts} điểm", f"{ace} Ace", "Monster Block", "Hiệu suất tấn công 56%", "Cầu thủ xuất sắc nhất (MVP)"])
+                tags.extend([f"{pts} điểm", f"{ace} Ace", "Monster Block", "Hiệu suất tấn công 56%"])
                 return {"stats_text": stats_text, "rating": 8.8, "tags": tags, "has_played": True}
 
             # 5. BADMINTON (Cầu lông)
@@ -1679,7 +1691,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
         s_low = (sport_name or "").lower()
         if "chuyền" in s_low or "volleyball" in s_low:
             pos = "Chủ công (OH)"
-            tags = ["Đội hình xuất phát", pos, "19 điểm", "2 Ace", "Monster Block", "Hiệu suất tấn công 56%", "Cầu thủ xuất sắc nhất (MVP)"]
+            tags = ["Đội hình xuất phát", pos, "19 điểm", "2 Ace", "Monster Block", "Hiệu suất tấn công 56%"]
             return {"stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)", "rating": 8.8, "tags": tags, "has_played": True}
         elif "lông" in s_low or "badminton" in s_low:
             p_low = (player_name or "").lower()

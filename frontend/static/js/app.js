@@ -26,14 +26,39 @@ const NEWS_CATEGORIES = {
 
 let selectedNewsCategories = new Set(); // Rỗng = "Tất cả"
 
-function renderCardNewsBadges(p, customNewsList = null) {
-    const newsList = customNewsList !== null ? customNewsList : ((p.details && p.details.news) ? p.details.news : []);
-    const count = newsList.length;
+function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
+    let count = 0;
+    let is24hSource = false;
+    
+    if (customMatch) {
+        const isPlayed = isMatchFinishedOrPlayed(customMatch, null);
+        if (isPlayed) {
+            const list = customNewsList !== null ? customNewsList : (customMatch.news || []);
+            count = list.length;
+        } else {
+            const n24h = (p && p.details && p.details.news_24h) ? p.details.news_24h : [];
+            count = n24h.length;
+            is24hSource = true;
+        }
+    } else if (p) {
+        const isPlayed = isMatchFinishedOrPlayed(null, p);
+        if (isPlayed) {
+            const list = (p.details && p.details.news) ? p.details.news : [];
+            count = list.length;
+        } else {
+            const n24h = (p.details && p.details.news_24h) ? p.details.news_24h : [];
+            count = n24h.length;
+            is24hSource = true;
+        }
+    } else if (customNewsList !== null) {
+        count = customNewsList.length;
+    }
+
     if (count === 0) {
         return '<span class="text-xs text-gray-500">Chưa có tin mới</span>';
     }
     return `
-        <span class="text-xs text-amber-300/90 font-medium flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded-md" title="Tin tức tổng hợp xoay quanh trận đấu">
+        <span class="text-xs text-amber-300/90 font-medium flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded-md" title="${is24hSource ? 'Toàn bộ tin tức trong 24h qua' : 'Báo chí xoay quanh trận đấu (D-1 đến D+1)'}">
             📰 ${count} tin
         </span>
     `;
@@ -529,7 +554,7 @@ async function loadDashboard(refreshDropdowns = true) {
             news24hBadge.innerText = totalNews24h;
         }
 
-        function getRatingBadge(rating) {
+        function getRatingBadge(rating, isFallback = false) {
             if (rating === null || rating === undefined || rating === '' || isNaN(rating) || Number(rating) <= 0) {
                 return '';
             }
@@ -542,7 +567,13 @@ async function loadDashboard(refreshDropdowns = true) {
             } else {
                 colorClass = 'bg-rose-600 text-white';
             }
-            return `<span class="${colorClass} font-bold px-2 py-0.5 rounded-md text-xs shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap">★ ${r.toFixed(1)}</span>`;
+            const fallbackBadge = isFallback 
+                ? `<span class="text-[9px] px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50" title="Điểm ước tính tạm thời theo diễn biến (Đang chờ FotMob chốt điểm chính thức)">ước tính</span>` 
+                : '';
+            const tooltip = isFallback
+                ? "Điểm ước tính tạm thời theo diễn biến trận đấu (Sẽ tự động cập nhật khi FotMob có điểm chính thức)"
+                : "Điểm đánh giá chính thức từ FotMob (Opta)";
+            return `<span class="${colorClass} font-bold px-2 py-0.5 rounded-md text-xs shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap" title="${tooltip}">★ ${r.toFixed(1)}${fallbackBadge}</span>`;
         }
 
         const activeContainer = document.getElementById('activeContainer');
@@ -556,7 +587,7 @@ async function loadDashboard(refreshDropdowns = true) {
             activeContainer.innerHTML = activeList.map(p => {
                 const tagsHtml = (p.tags || []).filter(t => !t.toLowerCase().includes('tin tức')).map(t => renderTagBadge(t)).join('');
 
-                const ratingBadge = getRatingBadge(p.rating);
+                const ratingBadge = getRatingBadge(p.rating, p.is_fallback_rating);
                 const tz = p.details && p.details.match_date_utc ? formatMatchTimezones(p.details.match_date_utc, p.country_timezone, p.country_flag) : null;
 
                 const newsBadge = renderCardNewsBadges(p);
@@ -666,7 +697,7 @@ async function loadDashboard(refreshDropdowns = true) {
                 const tz = formatMatchTimezones(p.match_date_utc, p.country_timezone, p.country_flag);
                 const newsBadge = renderCardNewsBadges(p);
 
-                const ratingBadge = getRatingBadge(p.rating);
+                const ratingBadge = getRatingBadge(p.rating, p.is_fallback_rating);
                 const tagsHtml = (p.tags || []).filter(t => !t.toLowerCase().includes('tin tức')).map(t => renderTagBadge(t)).join('');
 
                 const isNT = (p.entity_type === 'national_team');
@@ -737,7 +768,7 @@ async function loadDashboard(refreshDropdowns = true) {
             noMatchContainer.innerHTML = noMatchList.map(p => {
                 const newsBadge = renderCardNewsBadges(p);
                 const tagsHtml = (p.tags || []).filter(t => !t.toLowerCase().includes('tin tức')).map(t => renderTagBadge(t)).join('');
-                const ratingBadge = getRatingBadge(p.rating);
+                const ratingBadge = getRatingBadge(p.rating, p.is_fallback_rating);
 
                 const isNT = (p.entity_type === 'national_team');
                 const cardTitle = isNT 
@@ -801,7 +832,7 @@ async function loadDashboard(refreshDropdowns = true) {
             } else {
                 scheduleContainer.innerHTML = scheduleList.map(p => {
                     const newsBadge = renderCardNewsBadges(p);
-                    const ratingBadge = getRatingBadge(p.rating);
+                    const ratingBadge = getRatingBadge(p.rating, p.is_fallback_rating);
 
                     const sched3 = p.upcoming_3_matches || [];
                     let sched3Html = '';
@@ -1225,6 +1256,10 @@ function renderCalendarCards(dateStr) {
         if (aHasR !== bHasR) return bHasR - aHasR;
         if (aHasR && aR !== bR) return bR - aR;
 
+        const aN = (a.match.news || []).length;
+        const bN = (b.match.news || []).length;
+        if (aN !== bN) return bN - aN;
+
         const getStatePriority = (entry) => {
             const state = entry.match.match_state || (entry.match.is_past ? 'post' : 'pre');
             if (state === 'in') return 3;
@@ -1234,10 +1269,6 @@ function renderCalendarCards(dateStr) {
         const aState = getStatePriority(a);
         const bState = getStatePriority(b);
         if (aState !== bState) return bState - aState;
-
-        const aN = (a.match.news || []).length;
-        const bN = (b.match.news || []).length;
-        if (aN !== bN) return bN - aN;
 
         const aTime = a.match.match_date_utc || '';
         const bTime = b.match.match_date_utc || '';
@@ -1254,7 +1285,7 @@ function renderCalendarCards(dateStr) {
         return;
     }
 
-    function getRatingBadge(rating) {
+    function getRatingBadge(rating, isFallback = false) {
         if (rating === null || rating === undefined || rating === '' || isNaN(rating) || Number(rating) <= 0) {
             return '';
         }
@@ -1263,7 +1294,13 @@ function renderCalendarCards(dateStr) {
         if (r >= 7.5) colorClass = 'bg-emerald-600 text-white';
         else if (r >= 6.5) colorClass = 'bg-amber-500 text-black';
         else colorClass = 'bg-rose-600 text-white';
-        return `<span class="${colorClass} font-bold px-2 py-0.5 rounded-md text-xs shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap">★ ${r.toFixed(1)}</span>`;
+        const fallbackBadge = isFallback 
+            ? `<span class="text-[9px] px-1 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50" title="Điểm ước tính tạm thời theo diễn biến (Đang chờ FotMob chốt điểm chính thức)">ước tính</span>` 
+            : '';
+        const tooltip = isFallback
+            ? "Điểm ước tính tạm thời theo diễn biến trận đấu (Sẽ tự động cập nhật khi FotMob có điểm chính thức)"
+            : "Điểm đánh giá chính thức từ FotMob (Opta)";
+        return `<span class="${colorClass} font-bold px-2 py-0.5 rounded-md text-xs shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap" title="${tooltip}">★ ${r.toFixed(1)}${fallbackBadge}</span>`;
     }
 
     window.activeCalendarEntries = matchedEntries;
@@ -1271,11 +1308,11 @@ function renderCalendarCards(dateStr) {
     calendarContainer.innerHTML = matchedEntries.map(({ player: p, match: m }, idx) => {
         const isPastOrLive = m.is_past || m.match_state === 'post' || m.match_state === 'in' || (dateStr < todayStr);
         const tagsHtml = (m.tags || []).filter(t => !t.toLowerCase().includes('tin tức')).map(t => renderTagBadge(t)).join('');
-        const newsBadge = renderCardNewsBadges(p, m.news || []);
+        const newsBadge = renderCardNewsBadges(p, m.news || [], m);
         const oppName = getOpponentName(m.match_name, p.team);
 
         // CRITICAL: Rating ONLY applies to completed/live matches, NEVER to upcoming matches!
-        const ratingBadge = isPastOrLive ? getRatingBadge(m.rating) : '';
+        const ratingBadge = isPastOrLive ? getRatingBadge(m.rating, m.is_fallback_rating) : '';
 
         let matchBoxHtml = '';
         if (isPastOrLive) {
@@ -1453,6 +1490,7 @@ function openModal(player, resetFilter = true, customMatch = null) {
 
     const ratingContainer = document.getElementById('modalRatingContainer');
     const displayRating = customMatch ? customMatch.rating : player.rating;
+    const isFallback = customMatch ? customMatch.is_fallback_rating : (player.is_fallback_rating || (player.details && player.details.is_fallback_rating));
     if (ratingContainer) {
         if (displayRating && Number(displayRating) > 0) {
             const r = Number(displayRating);
@@ -1460,7 +1498,10 @@ function openModal(player, resetFilter = true, customMatch = null) {
             if (r >= 7.5) colorClass = 'bg-emerald-600 text-white';
             else if (r >= 6.5) colorClass = 'bg-amber-500 text-black';
             else colorClass = 'bg-rose-600 text-white';
-            ratingContainer.innerHTML = `<span class="${colorClass} font-bold px-2.5 py-0.5 rounded text-xs inline-flex items-center gap-1">Điểm đánh giá: ★ ${r.toFixed(1)}</span>`;
+            const labelText = isFallback 
+                ? `Điểm ước tính tạm thời: ★ ${r.toFixed(1)} (Chờ FotMob chốt điểm chính thức)` 
+                : `Điểm đánh giá chính thức (FotMob): ★ ${r.toFixed(1)}`;
+            ratingContainer.innerHTML = `<span class="${colorClass} font-bold px-2.5 py-0.5 rounded text-xs inline-flex items-center gap-1.5 shadow-sm">${labelText}</span>`;
             ratingContainer.classList.remove('hidden');
         } else {
             ratingContainer.innerHTML = '';
@@ -1675,38 +1716,61 @@ function openModal(player, resetFilter = true, customMatch = null) {
         }
     }
 
-    // Tự động xác định nguồn báo chí cho Modal:
+    // Tự động xác định nguồn báo chí cho Modal theo đúng logic:
+    // - Nếu trận đấu đã diễn ra -> Báo theo trận (D-1 đến D+1)
+    // - Nếu trận đấu chưa diễn ra -> Toàn bộ tin 24h qua
     let targetNews = [];
-    if (customMatch && customMatch.news && customMatch.news.length > 0) {
-        // 1. Nếu mở từ một trận đấu cụ thể và trận đó có bài báo -> Lấy toàn bộ bài báo của trận đó
-        targetNews = customMatch.news;
+    let isMatchSource = false;
+    
+    if (customMatch) {
+        const isPlayed = isMatchFinishedOrPlayed(customMatch, null);
+        if (isPlayed) {
+            isMatchSource = true;
+            targetNews = (customMatch.news && customMatch.news.length > 0) 
+                ? customMatch.news 
+                : ((player.details && player.details.news) ? player.details.news : []);
+        } else {
+            isMatchSource = false;
+            targetNews = (player.details && player.details.news_24h) ? player.details.news_24h : [];
+        }
     } else {
-        const matchPlayed = isMatchFinishedOrPlayed(customMatch, player);
-        if (matchPlayed) {
-            if (customMatch && customMatch.news) {
-                targetNews = customMatch.news;
-            } else if (player.details && player.details.all_matches) {
-                const pastMatch = player.details.all_matches.find(m => isMatchFinishedOrPlayed(m, null) && m.news && m.news.length > 0);
-                targetNews = (pastMatch && pastMatch.news) ? pastMatch.news : (player.details.news || []);
-            } else {
-                targetNews = (player.details && player.details.news) ? player.details.news : [];
+        const isPlayed = isMatchFinishedOrPlayed(null, player);
+        if (isPlayed) {
+            isMatchSource = true;
+            targetNews = (player.details && player.details.news && player.details.news.length > 0)
+                ? player.details.news
+                : [];
+            if (targetNews.length === 0 && player.details && player.details.all_matches) {
+                const pastMatch = player.details.all_matches.slice().reverse().find(m => isMatchFinishedOrPlayed(m, null) && m.news && m.news.length > 0);
+                if (pastMatch) targetNews = pastMatch.news;
             }
         } else {
-            // Trận sắp tới / tương lai hoặc mở trực tiếp từ cầu thủ:
-            // Ưu tiên tin 24h qua nếu có, nếu không có thì lấy tin tức gần nhất trong player.details.news để không bao giờ bị trắng trang
+            isMatchSource = false;
             const n24h = (player.details && player.details.news_24h) ? player.details.news_24h : [];
-            targetNews = (n24h.length > 0) ? n24h : ((player.details && player.details.news) ? player.details.news : []);
+            targetNews = (n24h.length > 0) ? n24h : [];
+        }
+    }
+
+    // Fallback bảo vệ: Đảm bảo nếu cầu thủ có tin tức trong database thì không bao giờ bị trắng danh sách
+    if ((!targetNews || targetNews.length === 0) && player.details) {
+        if (isMatchSource && player.details.news && player.details.news.length > 0) {
+            targetNews = player.details.news;
+        } else if (player.details.news_24h && player.details.news_24h.length > 0) {
+            targetNews = player.details.news_24h;
+        } else if (player.details.news && player.details.news.length > 0) {
+            targetNews = player.details.news;
         }
     }
 
     window.currentModalNews = targetNews;
+    window.currentModalNewsSource = isMatchSource ? 'match' : '24h';
 
-    // Tiêu đề ngắn gọn chuẩn theo yêu cầu: "Báo liên quan"
+    // Tiêu đề ngắn gọn chuẩn theo yêu cầu
     const iconElem = document.getElementById('modalNewsIcon');
     const titleElem = document.getElementById('modalNewsTitleText');
     if (iconElem && titleElem) {
-        iconElem.innerText = "🌐";
-        titleElem.innerText = "Báo liên quan";
+        iconElem.innerText = isMatchSource ? "⚽" : "⚡";
+        titleElem.innerText = isMatchSource ? "Báo liên quan (Theo trận)" : "Báo liên quan (24h qua)";
     }
 
     selectedNewsCategories.clear();
@@ -1758,8 +1822,11 @@ function toggleNewsCategoryFilter(catId) {
 function renderModalNews() {
     const player = window.currentModalPlayer;
     if (!player) return;
-    const isMatch = (window.currentModalNewsSource === 'match');
-    const allNews = isMatch ? (window.currentModalMatchNews || []) : (window.currentModal24hNews || []);
+    const allNews = (window.currentModalNews && window.currentModalNews.length > 0)
+        ? window.currentModalNews
+        : ((player.details && player.details.news && player.details.news.length > 0)
+            ? player.details.news
+            : ((player.details && player.details.news_24h) ? player.details.news_24h : []));
     window.currentModalNews = allNews;
 
     const normalizedNews = allNews.map(n => {
@@ -1853,9 +1920,7 @@ function renderModalNews() {
                 </a>`;
         }).join('');
     } else {
-        const emptyMsg = isMatch
-            ? "Không tìm thấy bài báo nào trong khung thời gian thi đấu (D-1 đến D+1) thuộc danh mục đã chọn."
-            : "Không tìm thấy bài báo nào trong 24 giờ qua thuộc danh mục đã chọn.";
+        const emptyMsg = "Không tìm thấy bài báo nào phù hợp thuộc danh mục đã chọn.";
         newsContainer.innerHTML = `
             <div class="p-4 rounded-xl bg-gray-950/50 border border-gray-800 text-center text-gray-500 text-xs italic">
                 ${emptyMsg}
