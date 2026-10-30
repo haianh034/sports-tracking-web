@@ -7,17 +7,30 @@ from backend.core.config import EN_TO_VI_MAP
 
 def fetch_free_player_info(player_name: str) -> dict:
     headers = {'User-Agent': 'SportsTrackingWeb/2.0 (contact: admin@sportstracker.local)'}
-    search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(player_name)}&utf8=&format=json"
+    search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(player_name)}&utf8=&format=json&srlimit=5"
     
     try:
         req_search = urllib.request.Request(search_url, headers=headers)
         with urllib.request.urlopen(req_search, timeout=10) as response:
             search_data = json.loads(response.read().decode())
-            if not search_data.get('query', {}).get('search'):
+            results = search_data.get('query', {}).get('search', [])
+            if not results:
                 return {"found": False}
-            title = search_data['query']['search'][0]['title']
             
-        summary_url = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts|langlinks&exintro&explaintext&titles={urllib.parse.quote(title)}&lllimit=500&format=json"
+            # Ưu tiên chọn trang thuộc lĩnh vực thể thao / cầu thủ nếu có nhiều kết quả (tránh trùng tên diễn viên, địa danh)
+            title = results[0]['title']
+            for res in results:
+                t = res.get('title', '')
+                snip = re.sub(r'<[^>]+>', '', res.get('snippet', '')).lower()
+                if any(k in (t.lower() + " " + snip) for k in [
+                    "footballer", "soccer", "baseball", "basketball", "volleyball", 
+                    "striker", "defender", "centre-back", "midfielder", "winger", 
+                    "pitcher", "infielder", "athlete", "player"
+                ]):
+                    title = t
+                    break
+            
+        summary_url = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts|langlinks|revisions&exintro&explaintext&rvprop=content&rvsection=0&titles={urllib.parse.quote(title)}&lllimit=500&format=json"
         req_summary = urllib.request.Request(summary_url, headers=headers)
         with urllib.request.urlopen(req_summary, timeout=10) as response:
             pages = json.loads(response.read().decode()).get('query', {}).get('pages', {})
@@ -26,6 +39,11 @@ def fetch_free_player_info(player_name: str) -> dict:
             page = list(pages.values())[0]
             summary_raw = page.get('extract', '')
             summary = summary_raw.lower()
+            
+            # Đọc wikitext phần đầu trang (Infobox + Lead) để trích xuất thông tin cho mượn và CLB chủ quản
+            wikitext = ""
+            if "revisions" in page and page["revisions"]:
+                wikitext = page["revisions"][0].get("*", "")
             
             aliases = [player_name]
             from backend.modules.players.services.news_service import PLAYER_NATIVE_NAMES
@@ -83,29 +101,99 @@ def fetch_free_player_info(player_name: str) -> dict:
             team_name = "Tự do"
             blacklist = ["national team", "major league baseball", "nba", "premier league", "la liga", "serie a", "bundesliga", "nippon professional baseball", "the national", "protests", "slam", "open", "cup", "world"]
             
-            # Check explicit loan club first if mentioned as 'on loan at/to'
-            loan_match = re.search(r'\bon loan (?:at|to)\s+(?:the\s+)?(?:[^\.\n,]+ (?:club|team|side|franchise)\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)(?:\s+from\s+|\s+of\s+|\s+in\s+|\s*\/\s*|,|\.|\b(?:and|who)\b)', summary_raw, re.IGNORECASE)
-            if loan_match:
-                extracted = loan_match.group(1).strip()
-                extracted = re.sub(r'^(?:Premier League|La Liga|Bundesliga|2\.\s*Bundesliga|Serie A|Ligue 1|MLS|EFL Championship)\s+club\s+', '', extracted, flags=re.IGNORECASE)
-                if extracted.lower() not in blacklist and len(extracted) > 2:
-                    team_name = extracted
+            first_sentence = summary_raw.split('.')[0] if '.' in summary_raw else summary_raw
 
+            patterns = [
+                r'\bfor\s+(?:the\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)\s+of\s+(?:Major League Baseball|the NBA|the National Basketball Association|NPB|Nippon Professional Baseball|the Premier League|La Liga|Serie A|Bundesliga|Ligue 1)',
+                r'(?:is a(?:n)?|currently plays|plays)\s+.*?\bfor\s+(?:the\s+)?(?:[^\.\n,]+ (?:club|team|side|franchise)\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)(?:\s+of\s+|\s+in\s+|\s*\/\s*|,|\.|\b(?:and|who)\b)',
+                r'\bfor\s+(?:the\s+)?(?:[^\.\n,]+ (?:club|team|side|franchise)\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)(?:\s+of\s+|\s+in\s+|\s*\/\s*|,|\.|\b(?:and|who)\b)'
+            ]
+
+            # 1. Check current club from the standard Wikipedia lead sentence first
+            for pattern in patterns:
+                match = re.search(pattern, first_sentence)
+                if match:
+                    extracted = match.group(1).strip()
+                    extracted = re.sub(r'^(?:Premier League|La Liga|Bundesliga|2\.\s*Bundesliga|Serie A|Ligue 1|MLS|EFL Championship)\s+club\s+', '', extracted, flags=re.IGNORECASE)
+                    if extracted.lower() not in blacklist and len(extracted) > 2:
+                        team_name = extracted
+                        break
+
+            # 2. Check explicit current loan club in first sentence if mentioned as 'on loan at/to'
             if team_name == "Tự do":
-                patterns = [
-                    r'\bfor\s+(?:the\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)\s+of\s+(?:Major League Baseball|the NBA|the National Basketball Association|NPB|Nippon Professional Baseball|the Premier League|La Liga|Serie A|Bundesliga|Ligue 1)',
-                    r'(?:is a(?:n)?|currently plays|plays)\s+.*?\bfor\s+(?:the\s+)?(?:[^\.\n,]+ (?:club|team|side|franchise)\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)(?:\s+of\s+|\s+in\s+|\s*\/\s*|,|\.|\b(?:and|who)\b)',
-                    r'\bfor\s+(?:the\s+)?(?:[^\.\n,]+ (?:club|team|side|franchise)\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)(?:\s+of\s+|\s+in\s+|\s*\/\s*|,|\.|\b(?:and|who)\b)'
-                ]
+                loan_match = re.search(r'\bon loan (?:at|to)\s+(?:the\s+)?(?:[^\.\n,]+ (?:club|team|side|franchise)\s+)?([A-Z0-9\u00C0-\u024F][a-zA-Z0-9\u00C0-\u024F\s\.\-&\']+?)(?:\s+from\s+|\s+of\s+|\s+in\s+|\s*\/\s*|,|\.|\b(?:and|who)\b)', first_sentence, re.IGNORECASE)
+                if loan_match:
+                    extracted = loan_match.group(1).strip()
+                    extracted = re.sub(r'^(?:Premier League|La Liga|Bundesliga|2\.\s*Bundesliga|Serie A|Ligue 1|MLS|EFL Championship)\s+club\s+', '', extracted, flags=re.IGNORECASE)
+                    if extracted.lower() not in blacklist and len(extracted) > 2:
+                        team_name = extracted
+
+            # 3. Fallback to full extract if lead sentence did not yield a club
+            if team_name == "Tự do":
                 for pattern in patterns:
                     match = re.search(pattern, summary_raw)
                     if match:
                         extracted = match.group(1).strip()
-                        # Remove common prefix like "Premier League club ", "Bundesliga club "
                         extracted = re.sub(r'^(?:Premier League|La Liga|Bundesliga|2\.\s*Bundesliga|Serie A|Ligue 1|MLS|EFL Championship)\s+club\s+', '', extracted, flags=re.IGNORECASE)
                         if extracted.lower() not in blacklist and len(extracted) > 2:
                             team_name = extracted
                             break
+
+            # 4. Phân tích Infobox từ wikitext để phát hiện CLB đang thi đấu theo dạng cho mượn (loan) và CLB chủ quản
+            active_loan_club = None
+            parent_club = None
+            if wikitext:
+                import datetime
+                current_year = datetime.datetime.now().year
+                years_dict = {}
+                clubs_dict = {}
+                for line in wikitext.splitlines():
+                    line_s = line.strip()
+                    m_yr = re.match(r'\|\s*years(\d+)\s*=\s*(.+)', line_s)
+                    if m_yr:
+                        years_dict[int(m_yr.group(1))] = m_yr.group(2).strip()
+                    m_cl = re.match(r'\|\s*clubs(\d+)\s*=\s*(.+)', line_s)
+                    if m_cl:
+                        clubs_dict[int(m_cl.group(1))] = m_cl.group(2).strip()
+                
+                m_curr = re.search(r'\|\s*current_club\s*=\s*(?:\[\[([^\]|]+)(?:\|[^\]]+)?\]\]|([^\n\r\|{}]+))', wikitext)
+                if m_curr:
+                    raw_curr = (m_curr.group(1) or m_curr.group(2) or '').strip()
+                    raw_curr = re.sub(r'\s+F\.?C\.?$', '', raw_curr, flags=re.IGNORECASE).strip()
+                    if raw_curr.lower() not in blacklist and len(raw_curr) > 2:
+                        parent_club = raw_curr
+
+                if clubs_dict:
+                    max_idx = max(clubs_dict.keys())
+                    last_club_raw = clubs_dict[max_idx]
+                    last_yr = years_dict.get(max_idx, '').replace('–', '-').replace('&ndash;', '-')
+                    is_last_loan = bool(re.search(r'\(loan\)|[→\->]', last_club_raw, re.IGNORECASE))
+                    
+                    yr_matches = [int(y) for y in re.findall(r'\b(20\d\d)\b', last_yr)]
+                    is_last_active = False
+                    if yr_matches:
+                        if max(yr_matches) >= current_year - 1:
+                            is_last_active = True
+                    elif '-' in last_yr or 'present' in last_yr.lower() or not last_yr:
+                        is_last_active = True
+
+                    if is_last_active:
+                        m_name = re.search(r'\[\[([^\]|]+)(?:\|([^\]]+))?\]\]', last_club_raw)
+                        if m_name:
+                            c_name = (m_name.group(2) or m_name.group(1)).strip()
+                        else:
+                            c_name = re.sub(r'[{}\[\]→\->]|loan', '', last_club_raw).strip()
+                        c_name = re.sub(r'\s+F\.?C\.?$', '', c_name, flags=re.IGNORECASE).strip()
+                        if c_name.lower() not in blacklist and len(c_name) > 2:
+                            if is_last_loan:
+                                active_loan_club = c_name
+                            elif team_name == "Tự do":
+                                team_name = c_name
+
+            if active_loan_club:
+                if not parent_club:
+                    parent_club = team_name if team_name != "Tự do" else None
+                team_name = active_loan_club
 
             if sport in ["Quần vợt", "Cầu lông", "Bóng bàn"] and (team_name == "Tự do" or any(b in team_name.lower() for b in blacklist)):
                 team_name = f"Đội tuyển {country_name}"
@@ -115,6 +203,8 @@ def fetch_free_player_info(player_name: str) -> dict:
                 "api_player_id": f"wiki_p_{abs(hash(title)) % 90000}",
                 "api_team_id": f"wiki_t_{abs(hash(team_name)) % 9000}",
                 "team_name": team_name,
+                "loan_club": active_loan_club,
+                "parent_club": parent_club,
                 "country_name": country_name,
                 "timezone": tz,
                 "country_flag": flag,
@@ -142,7 +232,21 @@ def get_team_aliases_from_wiki(team_name: str) -> list:
         "paris saint-germain": ["PSG", "Paris Saint-Germain"],
         "ajax": ["Ajax", "Ajax Amsterdam"],
         "psv": ["PSV", "PSV Eindhoven"],
-        "feyenoord": ["Feyenoord", "Feyenoord Rotterdam"]
+        "feyenoord": ["Feyenoord", "Feyenoord Rotterdam"],
+        "bayern munich": ["Bayern München", "FC Bayern München", "Bayern"],
+        "bayern münchen": ["Bayern Munich", "FC Bayern Munich", "Bayern"],
+        "borussia mönchengladbach": ["Borussia Moenchengladbach", "Mönchengladbach", "Gladbach"],
+        "borussia dortmund": ["BVB", "Dortmund"],
+        "inter milan": ["Internazionale", "Inter"],
+        "ac milan": ["Milan"],
+        "beşiktaş": ["Besiktas", "Besiktas JK"],
+        "c.d. nacional": ["C.D. Nacional", "CD Nacional", "Nacional da Madeira"],
+        "cd nacional": ["C.D. Nacional", "CD Nacional", "Nacional da Madeira"],
+        "jong az alkmaar": ["Jong AZ Alkmaar", "Jong AZ"],
+        "jong az": ["Jong AZ Alkmaar", "Jong AZ"],
+        "jong ajax": ["Jong Ajax", "Jong Ajax Amsterdam"],
+        "jong psv": ["Jong PSV", "Jong PSV Eindhoven"],
+        "jong utrecht": ["Jong FC Utrecht", "Jong Utrecht"]
     }
     key = clean_name.lower()
     if key in team_alias_dict:
@@ -165,10 +269,7 @@ def get_team_aliases_from_wiki(team_name: str) -> list:
         if prefix_no_num and prefix_no_num != prefix_clean:
             aliases.append(prefix_no_num)
 
-    words = clean_name.split()
-    if len(words) > 1:
-        aliases.append(words[-1])
-        aliases.append(" ".join(words[1:]))
+    # Luôn tìm kiếm bằng tên đầy đủ của câu lạc bộ hoặc các tên viết tắt chính thức, không bao giờ cắt vụn từ
     norm_name = unicodedata.normalize('NFKD', clean_name).encode('ASCII', 'ignore').decode('utf-8')
     if norm_name != clean_name:
         aliases.append(norm_name)

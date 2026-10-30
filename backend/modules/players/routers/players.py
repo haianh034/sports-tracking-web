@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 import concurrent.futures
+import datetime
 
 from backend.core.db.session import get_db
 from backend.core.db.models import Player, Sport, Nationality, Club, MatchPerformance, PlayerNews
-from backend.core.config import EN_TO_VI_MAP
+from backend.core.config import EN_TO_VI_MAP, normalize_player_name
 from backend.modules.players.services.candidate_service import search_athlete_candidates
 from backend.core.services.wiki_service import fetch_free_player_info
 from backend.modules.players.services.espn_service import fetch_real_schedule, fetch_player_match_stats, fetch_player_upcoming_schedule_30d, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
@@ -119,7 +120,13 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         club.api_team_id = payload.espn_team_id
         db.flush()
 
-    player = db.query(Player).filter(Player.name.ilike(name)).first()
+    # Kiểm tra trùng lặp thông minh: So khớp cả tên nguyên bản lẫn tên đã chuẩn hóa loại bỏ dấu thanh/macron
+    norm_new = normalize_player_name(name)
+    all_players = db.query(Player).filter(Player.sport_id == sport.id).all()
+    player = next((p for p in all_players if normalize_player_name(p.name) == norm_new), None)
+    if not player:
+        player = db.query(Player).filter(Player.name.ilike(name)).first()
+
     if not player:
         player = Player(
             name=name,
@@ -137,8 +144,16 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         player.club_id = club.id
         if payload.espn_team_id:
             player.api_team_id = payload.espn_team_id
+        # Bổ sung alias mới nếu tên nhập vào có cách viết khác nhau (như Ko Itakura vs Kō Itakura)
+        existing_aliases = [a.strip() for a in (player.name_aliases or "").split(",") if a.strip()]
+        if name not in existing_aliases and name.lower() != player.name.lower():
+            existing_aliases.append(name)
         if payload.aliases:
-            player.name_aliases = payload.aliases
+            for al in payload.aliases.split(","):
+                al_s = al.strip()
+                if al_s and al_s not in existing_aliases:
+                    existing_aliases.append(al_s)
+        player.name_aliases = ", ".join(existing_aliases)
         db.commit()
 
     if payload.espn_team_id:
@@ -154,44 +169,33 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         SCHEDULE_CACHE.clear()
         SCHEDULE_30D_CACHE.clear()
 
-    sched = fetch_real_schedule(team_name, sport_name, player_name=name)
-    m_name = sched["match_name"] if sched else "Chưa có dữ liệu lịch đấu"
-    m_date = sched["match_date"] if sched else None
-    m_state = sched.get("match_state", "pre") if sched else "pre"
-    m_res = sched.get("match_result") if sched else None
-    h_played = sched.get("has_played", False) if sched else False
-    ev_id = sched.get("event_id") if sched else None
+    recent_30d = []
+    try:
+        recent_30d = fetch_player_upcoming_schedule_30d(team_name, sport_name, player_name=name)
+    except Exception:
+        pass
 
-    stats_info = fetch_player_match_stats(name, sport_name, team_name, event_id=ev_id, match_state=m_state)
-    raw_comp = sched.get("competition") if sched else ""
-    m_comp = payload.league.strip() if payload.league else (get_tournament_tag(team_name, sport_name, m_name, raw_comp) or raw_comp or "")
-
-    perf = db.query(MatchPerformance).filter(MatchPerformance.player_id == player.id).first()
-    if not perf:
-        perf = MatchPerformance(
+    # Đồng bộ toàn bộ lịch sử thi đấu trong quá khứ (mùa giải) và lịch tương lai cho VĐV
+    try:
+        from backend.modules.players.services.match_sync_service import sync_player_matches_history
+        sync_player_matches_history(
             player_id=player.id,
-            match_name=m_name,
-            match_date=m_date,
-            match_state=m_state,
-            match_result=m_res,
-            has_played=h_played,
-            performance_rating=stats_info.get("rating"),
-            player_stats=None,
-            impression_tags=", ".join(stats_info.get("tags", [])),
-            competition=m_comp
+            player_name=name,
+            team_name=team_name,
+            sport_name=sport_name,
+            league=payload.league.strip() if payload.league else None,
+            espn_team_id=payload.espn_team_id,
+            db=db,
+            force_refresh=True
         )
-        db.add(perf); db.commit()
-    else:
-        perf.match_name = m_name
-        perf.match_date = m_date
-        perf.match_state = m_state
-        perf.match_result = m_res
-        perf.has_played = h_played
-        perf.performance_rating = stats_info.get("rating")
-        perf.player_stats = None
-        perf.impression_tags = ", ".join(stats_info.get("tags", []))
-        perf.competition = m_comp
-        db.commit()
+    except Exception as e:
+        print(f"Error syncing match history for {name}: {e}")
+
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
 
     # Pre-warm 30d schedule cache for instantaneous dashboard response
     try:
@@ -265,33 +269,30 @@ def change_player_team(player_id: int, payload: ChangePlayerTeamRequest, db: Ses
         SCHEDULE_CACHE.clear()
         SCHEDULE_30D_CACHE.clear()
 
-    sched = fetch_real_schedule(new_team_name, new_sport_name, player_name=player.name)
-    m_name = sched["match_name"] if sched else "Chưa có dữ liệu lịch đấu"
-    m_date = sched["match_date"] if sched else None
-    m_state = sched.get("match_state", "pre") if sched else "pre"
-    m_res = sched.get("match_result") if sched else None
-    h_played = sched.get("has_played", False) if sched else False
-    ev_id = sched.get("event_id") if sched else None
-
-    raw_comp = sched.get("competition") if sched else ""
-    m_comp = new_league or (get_tournament_tag(new_team_name, new_sport_name, m_name, raw_comp) or raw_comp or "")
-
-    stats_info = fetch_player_match_stats(player.name, new_sport_name, new_team_name, event_id=ev_id, match_state=m_state)
-
-    perf = db.query(MatchPerformance).filter(MatchPerformance.player_id == player.id).first()
-    if not perf:
-        perf = MatchPerformance(player_id=player.id)
-        db.add(perf)
-    perf.match_name = m_name
-    perf.match_date = m_date
-    perf.match_state = m_state
-    perf.match_result = m_res
-    perf.has_played = h_played
-    perf.performance_rating = stats_info.get("rating")
-    perf.impression_tags = ", ".join(stats_info.get("tags", []))
-    perf.competition = m_comp
-
+    # Xóa lịch thi đấu tương lai chưa diễn ra của CLB cũ
+    db.query(MatchPerformance).filter(
+        MatchPerformance.player_id == player.id,
+        MatchPerformance.match_state == "pre"
+    ).delete()
     db.commit()
+
+    # Đồng bộ toàn bộ lịch sử thi đấu của CLB mới (bao gồm cả các trận đã đấu trong mùa và lịch sắp tới)
+    try:
+        from backend.modules.players.services.match_sync_service import sync_player_matches_history
+        sync_player_matches_history(
+            player_id=player.id,
+            player_name=player.name,
+            team_name=new_team_name,
+            sport_name=new_sport_name,
+            league=new_league or None,
+            espn_team_id=payload.espn_team_id,
+            db=db,
+            force_refresh=True
+        )
+    except Exception as e:
+        print(f"Error syncing match history on change team for {player.name}: {e}")
+
+    m_comp = new_league or ""
 
     try:
         fetch_player_upcoming_schedule_30d(new_team_name, new_sport_name, player_name=player.name, force_refresh=True)

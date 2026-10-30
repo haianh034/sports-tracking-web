@@ -38,7 +38,7 @@ def decode_news_urls(payload: DecodeUrlsRequest):
                     logger.warning(f"Error decoding Google News URL {url}: {e}")
                 return url, url
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as ex:
                 dec_results = list(ex.map(_dec, to_decode))
                 for raw_u, real_u in dec_results:
                     DECODED_URL_CACHE[raw_u] = real_u

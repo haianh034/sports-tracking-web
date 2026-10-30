@@ -198,12 +198,17 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         for p_id, m_name, m_date, m_state, m_res, h_played, stats_info, m_comp, news_entries in results:
             if m_name:
                 actual_played = stats_info.get("has_played", h_played)
-                perf = db.query(MatchPerformance).filter(MatchPerformance.player_id == p_id).first()
+                m_date_str = (m_date + datetime.timedelta(hours=7)).strftime("%Y-%m-%d") if m_date else None
+                perf = db.query(MatchPerformance).filter(
+                    MatchPerformance.player_id == p_id,
+                    MatchPerformance.match_name == m_name
+                ).first()
                 if not perf:
                     perf = MatchPerformance(
                         player_id=p_id,
                         match_name=m_name,
                         match_date=m_date,
+                        date_str=m_date_str,
                         match_state=m_state,
                         match_result=m_res,
                         has_played=actual_played,
@@ -216,6 +221,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                 else:
                     perf.match_name = m_name
                     perf.match_date = m_date
+                    perf.date_str = m_date_str
                     perf.match_state = m_state
                     perf.match_result = m_res
                     perf.has_played = actual_played
@@ -225,18 +231,16 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                     perf.competition = m_comp
 
             if news_entries:
-                now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-                cutoff_retention = now_utc - datetime.timedelta(days=30)
-                db.query(PlayerNews).filter(
-                    PlayerNews.player_id == p_id,
-                    PlayerNews.published_at < cutoff_retention
-                ).delete()
-
+                from backend.modules.players.services.news_service import normalize_news_title
                 existing_news = db.query(PlayerNews).filter(PlayerNews.player_id == p_id).all()
                 existing_map = {n.source_url: n for n in existing_news}
+                existing_titles = {normalize_news_title(n.title): n for n in existing_news if n.title}
                 for item in news_entries:
+                    norm_t = normalize_news_title(item["title"])
                     if item["source_url"] in existing_map:
                         existing_map[item["source_url"]].news_type = item["news_type"]
+                        continue
+                    if norm_t and norm_t in existing_titles:
                         continue
                     news_item = PlayerNews(
                         player_id=p_id,
@@ -247,6 +251,9 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                         published_at=item["published_at"]
                     )
                     db.add(news_item)
+                    existing_map[item["source_url"]] = news_item
+                    if norm_t:
+                        existing_titles[norm_t] = news_item
                 db.commit()
 
         db.commit()

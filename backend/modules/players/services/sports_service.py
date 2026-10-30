@@ -99,11 +99,77 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
     t_lower = (team_name or "").lower()
     s_lower = (sport_name or "").lower()
     
-    # 1. Exact match by competition name from ESPN / official data
-    # European cups
-    if any(k in c_lower for k in ["champions league", "ucl", "cúp c1", "c1", "uefa.champions"]): return "Champions League"
-    if any(k in c_lower for k in ["europa league", "uel", "cúp c2", "c2", "uefa.europa"]): return "Europa League"
-    if any(k in c_lower for k in ["conference league", "uecl", "cúp c3", "c3", "uefa.conference"]): return "Conference League"
+    # Helper for Continental context detection
+    asian_club_indicators = [
+        "machida", "zelvia", "vissel", "kobe", "kawasaki", "frontale", "urawa", "marinos", 
+        "sanfrecce", "hiroshima", "gamba", "cerezo", "osaka", "kashima", "antlers", "nagoya", 
+        "grampus", "fukuoka", "shimizu", "s-pulse", "tokyo", "albirex", "niigata", "kyoto sanga",
+        "shanghai", "shenhua", "shandong", "taishan", "beijing", "guoan", "guangzhou", "zhejiang",
+        "ulsan", "jeonbuk", "pohang", "steelers", "gwangju", "seoul", "incheon", "daegu", "suwon",
+        "al hilal", "al-hilal", "al nassr", "al-nassr", "al ahli", "al-ahli", "al ittihad", "al-ittihad", 
+        "al ain", "al sadd", "al duhail", "buriram", "bangkok", "johor", "central coast", "melbourne", "sydney fc"
+    ]
+    is_asian_context = any(k in t_lower or k in m_lower for k in asian_club_indicators)
+
+    concacaf_indicators = [
+        "galaxy", "lafc", "whitecaps", "sounders", "inter miami", "timbers", "cruz azul", 
+        "america", "monterrey", "tigres", "pachuca", "columbus", "sporting kansas", "san miguelito", "cartaginés", "cartagines"
+    ]
+    is_concacaf_context = any(k in t_lower or k in m_lower for k in concacaf_indicators)
+
+    # 1. Continental Cups (AFC, CONCACAF, CONMEBOL, CAF) - Check BEFORE UEFA/generic cups
+    # AFC Champions League Elite (ACL Elite)
+    if any(k in c_lower for k in ["afc champions league elite", "afc champions league 1", "afc cl elite", "afc.champions", "afc champions elite"]):
+        return "AFC Champions League Elite"
+    # AFC Champions League Two (ACL Two / former AFC Cup)
+    if any(k in c_lower for k in ["afc champions league two", "afc champions league 2", "afc cl two", "afc.cup", "afc champions two"]):
+        return "AFC Champions League Two"
+    # AFC Challenge League
+    if any(k in c_lower for k in ["afc challenge", "afc.challenge"]):
+        return "AFC Challenge League"
+    # AFC Asian Cup (National teams)
+    if any(k in c_lower for k in ["afc asian cup", "asian cup", "afc.asian.cup"]):
+        return "AFC Asian Cup"
+    # Generic AFC Champions League / AFC Cup
+    if any(k in c_lower for k in ["afc champions", "afc cl", "cúp c1 châu á"]):
+        return "AFC Champions League"
+    if "afc cup" in c_lower:
+        return "AFC Cup"
+
+    # CONCACAF / CONMEBOL / CAF
+    if any(k in c_lower for k in ["concacaf champions", "concacaf.champions"]):
+        return "Concacaf Champions Cup"
+    if any(k in c_lower for k in ["copa libertadores", "libertadores", "conmebol.libertadores"]):
+        return "Copa Libertadores"
+    if any(k in c_lower for k in ["copa sudamericana", "sudamericana", "conmebol.sudamericana"]):
+        return "Copa Sudamericana"
+    if any(k in c_lower for k in ["caf champions", "caf.champions"]):
+        return "CAF Champions League"
+
+    # UEFA Continental Cups
+    if any(k in c_lower for k in ["uefa champions league", "uefa.champions", "uefa cl"]):
+        return "UEFA Champions League"
+    if any(k in c_lower for k in ["uefa europa league", "uefa.europa", "uefa el"]):
+        return "UEFA Europa League"
+    if any(k in c_lower for k in ["uefa conference league", "uefa.conference", "uefa ecl"]):
+        return "UEFA Conference League"
+
+    # Context-aware generic "Champions League" / "UCL" / "C1"
+    if any(k in c_lower for k in ["champions league", "ucl", "cúp c1", "c1"]):
+        if is_asian_context:
+            if "two" in c_lower or "2" in c_lower or "two" in m_lower or "2" in m_lower:
+                return "AFC Champions League Two"
+            elif "elite" in c_lower or "1" in c_lower or "elite" in m_lower:
+                return "AFC Champions League Elite"
+            return "AFC Champions League"
+        if is_concacaf_context:
+            return "Concacaf Champions Cup"
+        return "UEFA Champions League"
+
+    if any(k in c_lower for k in ["europa league", "uel", "cúp c2", "c2"]):
+        return "UEFA Europa League"
+    if any(k in c_lower for k in ["conference league", "uecl", "cúp c3", "c3"]):
+        return "UEFA Conference League"
     
     # Domestic Cups
     if "fa cup" in c_lower: return "FA Cup"
@@ -226,9 +292,25 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
     t_lower = (team_name or "").lower()
     s_lower = (sport_name or "").lower()
 
-    if "champions league" in m_lower or "cúp c1" in m_lower or "ucl" in m_lower: return "Champions League"
-    if "europa league" in m_lower or "uel" in m_lower or "c2" in m_lower: return "Europa League"
-    if "conference league" in m_lower or "uecl" in m_lower: return "Conference League"
+    if any(k in m_lower for k in ["afc champions league elite", "afc champions league 1", "afc cl elite"]):
+        return "AFC Champions League Elite"
+    if any(k in m_lower for k in ["afc champions league two", "afc champions league 2", "afc cl two"]):
+        return "AFC Champions League Two"
+    if any(k in m_lower for k in ["afc champions", "afc cl", "cúp c1 châu á"]):
+        return "AFC Champions League"
+    if "concacaf champions" in m_lower:
+        return "Concacaf Champions Cup"
+
+    if "champions league" in m_lower or "cúp c1" in m_lower or "ucl" in m_lower:
+        if is_asian_context:
+            return "AFC Champions League"
+        if is_concacaf_context:
+            return "Concacaf Champions Cup"
+        return "UEFA Champions League"
+    if "europa league" in m_lower or "uel" in m_lower or "c2" in m_lower:
+        return "UEFA Europa League"
+    if "conference league" in m_lower or "uecl" in m_lower:
+        return "UEFA Conference League"
 
     # Cross-league European clashes (teams from different domestic leagues)
     eng_clubs = ["arsenal", "liverpool", "manchester", "chelsea", "aston villa", "tottenham", "brighton", "crystal palace", "newcastle", "west ham"]
@@ -250,9 +332,9 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
         if any(c in all_names for c in grp):
             nations_matched += 1
 
-    # Only treat as Champions League if both teams are established top-5 or top-tier European clubs
+    # Only treat as European Champions League if both teams are established top-5 or top-tier European clubs
     if nations_matched >= 2:
-        return "Champions League"
+        return "UEFA Champions League"
 
     # Dynamic resolution via Team / ESPN Catalog for any club worldwide
     dyn_tag = resolve_team_league(team_name, sport_name)
@@ -269,8 +351,13 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         final_tags.append(tourn_tag)
 
     ALL_TOURNAMENT_TAGS = {
-        # Football - European Cups
-        "Champions League", "Europa League", "Conference League", 
+        # Football - European & Continental Cups
+        "UEFA Champions League", "Champions League", 
+        "UEFA Europa League", "Europa League", 
+        "UEFA Conference League", "Conference League", 
+        "AFC Champions League Elite", "AFC Champions League Two", "AFC Champions League",
+        "AFC Challenge League", "AFC Cup", "AFC Asian Cup",
+        "Concacaf Champions Cup", "Copa Libertadores", "Copa Sudamericana", "CAF Champions League", 
         # Football - Domestic Leagues
         "Premier League", "Championship", 
         "Bundesliga", "Bundesliga 2", 

@@ -4,6 +4,7 @@ os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
 
 # Khối 1: Core (Cơ sở hạ tầng, Database, Worker chung, Router Dashboard tổng hợp)
@@ -21,6 +22,20 @@ from backend.modules.national_teams.routers import national_teams
 async def lifespan(app: FastAPI):
     init_db()
     await worker.start()
+    # Tự động nạp sẵn (pre-warm) cache dashboard ngầm khi khởi động để người dùng truy cập lần đầu không bị chờ
+    import threading
+    def _warmup_cache():
+        try:
+            from backend.core.db.session import SessionLocal
+            from backend.core.routers.dashboard import get_dashboard_data
+            db = SessionLocal()
+            try:
+                get_dashboard_data(db=db)
+            finally:
+                db.close()
+        except Exception:
+            pass
+    threading.Thread(target=_warmup_cache, daemon=True, name="DashboardWarmup").start()
     yield
     await worker.stop()
 
@@ -33,6 +48,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 if os.path.exists("frontend/static"):
     app.mount("/static", StaticFiles(directory="frontend/static"), name="static")

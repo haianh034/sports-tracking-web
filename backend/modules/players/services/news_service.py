@@ -41,6 +41,13 @@ MATCH_KEYWORDS = [
     "골", "도움", "어시스트", "선발", "출전", "부상", "복귀", "승리", "패배", "경기"
 ]
 
+def normalize_news_title(title: str) -> str:
+    if not title:
+        return ""
+    cleaned = re.sub(r'\s*[-–|]\s*[^-–|]+$', '', title.strip())
+    target = cleaned if len(cleaned) >= 15 else title.strip()
+    return " ".join(target.lower().split())
+
 def _matches_any_keyword(text: str, kw_list: list) -> bool:
     for kw in kw_list:
         if kw.isascii() and " " not in kw:
@@ -218,6 +225,7 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
 
     all_found = []
     seen_links = set()
+    seen_titles = set()
 
     for reg in regions:
         # For native language regions (Japan, Korea), query directly with the native name (e.g. 久保建英 or 손흥민)
@@ -246,7 +254,8 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
             title = getattr(entry, "title", "").strip()
             link = getattr(entry, "link", "").strip()
             summary = getattr(entry, "summary", "").strip()
-            if not title or not link or link in seen_links:
+            norm_t = normalize_news_title(title)
+            if not title or not link or link in seen_links or (norm_t and norm_t in seen_titles):
                 continue
 
             pub_dt = None
@@ -262,6 +271,8 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
                     pub_dt = None
 
             seen_links.add(link)
+            if norm_t:
+                seen_titles.add(norm_t)
             news_type = classify_news_article(title, summary)
 
             all_found.append({
@@ -301,10 +312,14 @@ def scan_player_news(db: Session, player_id: int, player_name: str):
 
     existing_news = db.query(PlayerNews).filter(PlayerNews.player_id == player_id).all()
     existing_map = {n.source_url: n for n in existing_news}
+    existing_titles = {normalize_news_title(n.title): n for n in existing_news if n.title}
 
     for item in entries:
+        norm_t = normalize_news_title(item["title"])
         if item["source_url"] in existing_map:
             existing_map[item["source_url"]].news_type = item["news_type"]
+            continue
+        if norm_t and norm_t in existing_titles:
             continue
         news_item = PlayerNews(
             player_id=player_id,
@@ -315,5 +330,8 @@ def scan_player_news(db: Session, player_id: int, player_name: str):
             published_at=item["published_at"]
         )
         db.add(news_item)
+        existing_map[item["source_url"]] = news_item
+        if norm_t:
+            existing_titles[norm_t] = news_item
     db.commit()
 

@@ -7,6 +7,10 @@ import json
 import concurrent.futures
 import urllib.parse
 import re
+import time
+import logging
+
+logger = logging.getLogger("uvicorn.error")
 
 def get_starting_role_tag(player_name: str, sport_name: str) -> str:
     s_lower = (sport_name or "").lower()
@@ -91,6 +95,8 @@ def get_dashboard_data(
     entity_type: Optional[str] = Query(None, description="'all', 'player', or 'national_team'"),
     db: Session = Depends(get_db)
 ):
+    t_start = time.time()
+    logger.info("==> [API] Bắt đầu nạp bảng theo dõi (get_dashboard_data)...")
     all_db_players = db.query(Player).options(
         joinedload(Player.sport),
         joinedload(Player.nationality),
@@ -186,12 +192,7 @@ def get_dashboard_data(
         player_data_tuples.append((p, team_name, sport_name, country_name))
 
     # Load existing historical match performances from database to avoid repeated external API calls
-    # Tối ưu bộ nhớ: Chỉ tải các trận trong 90 ngày gần nhất hoặc chưa xác định ngày
-    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-    perf_cutoff_dt = now_utc - datetime.timedelta(days=90)
-    all_db_perfs = db.query(MatchPerformance).filter(
-        (MatchPerformance.match_date >= perf_cutoff_dt) | (MatchPerformance.match_date == None)
-    ).all()
+    all_db_perfs = db.query(MatchPerformance).all()
     perf_by_player_event = {}
     perf_by_player_date = {}
     for perf in all_db_perfs:
@@ -203,10 +204,11 @@ def get_dashboard_data(
     # Fetch player career schedules in parallel (supporting club transfer history)
     def _fetch_player_career(item):
         p, t_name, s_name, _ = item
-        return p.id, fetch_player_career_schedule(p.name, t_name, s_name)
+        team_id = p.api_team_id or (p.club.api_team_id if p.club else None)
+        return p.id, fetch_player_career_schedule(p.name, t_name, s_name, api_team_id=team_id)
 
     sched_map = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
         for pid, s_list in ex.map(_fetch_player_career, player_data_tuples):
             sched_map[pid] = s_list
 
@@ -226,7 +228,7 @@ def get_dashboard_data(
                 elif m_date_vn and (p.id, str(m_date_vn)) in perf_by_player_date:
                     has_in_db = True
 
-                if not has_in_db and ev_id and -300 <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
+                if not has_in_db and ev_id and -30 <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
                     cache_k = f"{p.name}_{ev_id}_post"
                     if cache_k not in MATCH_STATS_CACHE:
                         unique_past_events.add((espn_sport, str(ev_id)))
@@ -238,7 +240,7 @@ def get_dashboard_data(
         fetch_espn_summary(url, ev_id)
 
     if unique_past_events:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
             list(ex.map(_prefetch_summary, unique_past_events))
 
     # Khung 48 giờ chuẩn: Từ 00:00:00 ngày hôm trước đến 23:59:59 ngày hôm nay (tính theo giờ Việt Nam UTC+7)
@@ -256,22 +258,20 @@ def get_dashboard_data(
                 p_d_str = (perf.match_date + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
             except Exception:
                 pass
-        if p_d_str == today_str_vn:
+        if p_d_str in [today_str_vn, yesterday_ict.strftime("%Y-%m-%d")]:
             today_perf_by_player[perf.player_id] = perf
 
-    # Tối ưu hóa bộ nhớ: Chỉ tải tin tức trong 35 ngày gần nhất và giới hạn tối đa 25 tin mới nhất mỗi cầu thủ
-    news_cutoff_utc = now_utc - datetime.timedelta(days=35)
+    # Tải đầy đủ tin tức từ database để không bỏ sót bài báo nào của vận động viên
     all_db_player_news = (
         db.query(PlayerNews)
-        .filter(PlayerNews.published_at >= news_cutoff_utc)
         .order_by(PlayerNews.published_at.desc())
         .all()
     )
     news_by_player = {}
     for n in all_db_player_news:
-        p_list = news_by_player.setdefault(n.player_id, [])
-        if len(p_list) < 25:
-            p_list.append(n)
+        news_by_player.setdefault(n.player_id, []).append(n)
+
+    yesterday_str_vn = yesterday_ict.strftime("%Y-%m-%d")
 
     for p, team_name, sport_name, country_name in player_data_tuples:
         espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
@@ -287,8 +287,9 @@ def get_dashboard_data(
                 country_flag = info.get("flag", "🌐")
                 break
 
-        # XÁC ĐỊNH CHÍNH XÁC TRẬN ĐẤU HÔM NAY TỪ LỊCH ĐẤU THỰC TẾ (SCHED_MAP)
+        # XÁC ĐỊNH CHÍNH XÁC TRẬN ĐẤU TRONG KHUNG 48H (HÔM NAY VÀ HÔM QUA) TỪ LỊCH ĐẤU THỰC TẾ
         sched_today_match = None
+        candidate_matches = []
         for m in all_matches_raw:
             m_dvn = m.get("date_only_vn")
             if not m_dvn and m.get("match_date_utc"):
@@ -296,17 +297,36 @@ def get_dashboard_data(
                     m_dvn = (datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S") + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
                 except Exception:
                     pass
-            m_diff = m.get("diff_days")
-            if m_dvn == today_str_vn or m_diff == 0 or m.get("match_state") == "in":
-                sched_today_match = m
-                break
+            m_state = m.get("match_state", "pre")
+            if m_state == "in":
+                candidate_matches.append((0, m))
+            elif m_dvn == today_str_vn:
+                candidate_matches.append((1, m))
+            elif m_dvn == yesterday_str_vn:
+                vn_h = 12
+                if m.get("match_date_utc"):
+                    try:
+                        vn_h = (datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S") + datetime.timedelta(hours=7)).hour
+                    except Exception:
+                        pass
+                if vn_h >= 18:
+                    candidate_matches.append((2, m))  # Tối hôm qua (18h-24h)
+                else:
+                    candidate_matches.append((3, m))  # Rạng sáng / Sáng hôm qua
+        if candidate_matches:
+            candidate_matches.sort(key=lambda x: x[0])
+            sched_today_match = candidate_matches[0][1]
 
         # Tìm bản ghi hiệu suất tương ứng trong DB (nếu có)
-        match_today = today_perf_by_player.get(p.id)
-        if sched_today_match and sched_today_match.get("event_id"):
-            ev_perf = perf_by_player_event.get((p.id, str(sched_today_match.get("event_id"))))
-            if ev_perf:
-                match_today = ev_perf
+        match_today = None
+        if sched_today_match:
+            ev_id_str = str(sched_today_match.get("event_id") or "")
+            if ev_id_str:
+                match_today = perf_by_player_event.get((p.id, ev_id_str))
+            if not match_today and sched_today_match.get("date_only_vn"):
+                match_today = perf_by_player_date.get((p.id, str(sched_today_match.get("date_only_vn"))))
+        if not match_today:
+            match_today = today_perf_by_player.get(p.id)
 
         in_today_activity = False
         is_within_month = False
@@ -341,12 +361,63 @@ def get_dashboard_data(
                     match_result = match_today.match_result
                 if match_today.match_state:
                     match_state = match_today.match_state
+
+            # Nếu trận trong khung 48h đã kết thúc (post) mà chưa có điểm số/thông số từ FotMob, lấy ngay thông số thực tế
+            if match_state == "post" and (rating is None or not raw_stats):
+                ev_id = sched_today_match.get("event_id")
+                try:
+                    fresh_stats = fetch_player_match_stats(
+                        p.name, sport_name, team_name, event_id=ev_id, match_state="post", news_titles=p_news_titles
+                    )
+                    if fresh_stats:
+                        if fresh_stats.get("has_played"):
+                            rating = fresh_stats.get("rating")
+                            raw_stats = fresh_stats.get("stats_text")
+                        if fresh_stats.get("tags"):
+                            raw_tags = fresh_stats.get("tags", [])
+                        
+                        m_perf_date = None
+                        if sched_today_match.get("match_date_utc"):
+                            try:
+                                m_perf_date = datetime.datetime.strptime(sched_today_match["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S")
+                            except Exception:
+                                pass
+                        
+                        if not match_today:
+                            match_today = MatchPerformance(
+                                player_id=p.id,
+                                match_name=sched_today_match.get("match_name") or next_match_text,
+                                match_date=m_perf_date or now_utc,
+                                match_state=match_state,
+                                match_result=match_result,
+                                has_played=fresh_stats.get("has_played", False),
+                                performance_rating=rating,
+                                player_stats=raw_stats,
+                                impression_tags=", ".join(raw_tags),
+                                competition=comp_name
+                            )
+                            db.add(match_today)
+                            db.commit()
+                        else:
+                            match_today.match_name = sched_today_match.get("match_name") or next_match_text
+                            if m_perf_date:
+                                match_today.match_date = m_perf_date
+                            match_today.match_state = match_state
+                            match_today.match_result = match_result
+                            match_today.has_played = fresh_stats.get("has_played", False)
+                            match_today.performance_rating = rating
+                            match_today.player_stats = raw_stats
+                            match_today.impression_tags = ", ".join(raw_tags)
+                            match_today.competition = comp_name
+                            db.commit()
+                except Exception:
+                    pass
         elif match_today and match_today.match_date:
             match_ict = match_today.match_date + datetime.timedelta(hours=7)
             match_date_ict = match_ict.date()
             diff_days = (match_date_ict - today_ict).days
             match_date_utc = match_today.match_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-            if diff_days == 0:
+            if diff_days == 0 or diff_days == -1:
                 in_today_activity = True
                 is_within_month = True
                 next_match_text = match_today.match_name
@@ -368,6 +439,51 @@ def get_dashboard_data(
             in_today_activity = False
             is_within_month = False
             next_match_text = "Không có trận trong 1 tháng sắp tới"
+
+        # Xác định mốc giờ VN và Time Phase
+        time_phase = "today"
+        time_phase_label = "Hôm nay"
+        time_phase_badge = "☀️ Hôm nay"
+        match_time_vn = ""
+        match_timestamp = 0.0
+
+        target_dt_utc = match_date_utc or (sched_today_match.get("match_date_utc") if sched_today_match else None)
+        if not target_dt_utc and match_today and match_today.match_date:
+            target_dt_utc = match_today.match_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        if target_dt_utc:
+            try:
+                m_dt_utc = datetime.datetime.strptime(target_dt_utc[:19], "%Y-%m-%dT%H:%M:%S")
+                m_dt_vn = m_dt_utc + datetime.timedelta(hours=7)
+                match_timestamp = m_dt_vn.timestamp()
+                match_time_vn = m_dt_vn.strftime("%d/%m %H:%M")
+                m_date_vn_obj = m_dt_vn.date()
+                m_hour_vn = m_dt_vn.hour
+                hm_str = m_dt_vn.strftime("%H:%M")
+
+                if match_state == "in":
+                    time_phase = "live"
+                    time_phase_label = "Đang trực tiếp"
+                    time_phase_badge = f"🔴 TRỰC TIẾP • {hm_str}"
+                elif m_date_vn_obj == today_ict:
+                    time_phase = "today"
+                    time_phase_label = "Hôm nay"
+                    time_phase_badge = f"☀️ Hôm nay • {hm_str}"
+                elif m_date_vn_obj == yesterday_ict:
+                    if m_hour_vn >= 18:
+                        time_phase = "yesterday_evening"
+                        time_phase_label = "Tối hôm qua (18h-24h)"
+                        time_phase_badge = f"🌙 Tối qua • {hm_str}"
+                    else:
+                        time_phase = "yesterday_morning"
+                        time_phase_label = "Rạng sáng hôm qua"
+                        time_phase_badge = f"⏳ Rạng sáng qua • {hm_str}"
+                else:
+                    time_phase = "older"
+                    time_phase_label = m_dt_vn.strftime("%d/%m")
+                    time_phase_badge = f"📅 {m_dt_vn.strftime('%d/%m %H:%M')}"
+            except Exception:
+                pass
 
         p_news_titles = [n.title for n in news_today]
         if len(p_news_titles) < 15:
@@ -467,7 +583,8 @@ def get_dashboard_data(
             if in_today_activity:
                 m_ev_id = str(m.get("event_id") or "")
                 sched_ev_id = str(sched_today_match.get("event_id") or "") if sched_today_match else ""
-                if (m_ev_id and sched_ev_id and m_ev_id == sched_ev_id) or (m_date_vn and m_date_vn == today_str_vn):
+                sched_dvn = sched_today_match.get("date_only_vn") if sched_today_match else ""
+                if (m_ev_id and sched_ev_id and m_ev_id == sched_ev_id) or (m_date_vn and sched_dvn and m_date_vn == sched_dvn):
                     is_matching_today_perf = True
 
             if is_matching_today_perf:
@@ -534,6 +651,8 @@ def get_dashboard_data(
                     m["has_played"] = db_perf.has_played or False
                     m["rating"] = db_perf.performance_rating if m["has_played"] else None
                     m["player_stats"] = db_perf.player_stats if m["has_played"] else None
+                    if db_perf.match_result and (not m.get("match_result") or len(str(db_perf.match_result)) > len(str(m.get("match_result")))):
+                        m["match_result"] = db_perf.match_result
                     
                     # Chỉ gắn nhãn ước tính khi: Môn Bóng đá + Trong 3 ngày gần đây + Chưa có FotMob
                     # Tất cả các môn khác (Bóng chuyền, Bóng rổ, Bóng chày...) và các trận quá 3 ngày đều là ĐIỂM CHÍNH THỨC ĐÃ LƯU CỨNG
@@ -557,7 +676,7 @@ def get_dashboard_data(
                     m["tags"] = m_tags
                 else:
                     real_stats = None
-                    if ev_id and diff_d >= -300:
+                    if ev_id and -300 <= diff_d <= 0:
                         try:
                             real_stats = fetch_player_match_stats(
                                 p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles
@@ -676,21 +795,8 @@ def get_dashboard_data(
                 m_news = []
             
             # Logic báo theo yêu cầu:
-            # 1. Trận đấu diễn ra quá 30 ngày (diff_d < -30): chuyển về đúng 1 báo tóm tắt trận đấu và tự động dọn dẹp
+            # 1. Trận đấu diễn ra quá 30 ngày (diff_d < -30): chuyển về đúng 1 báo tóm tắt trận đấu
             if diff_d < -30:
-                if m_news and len(m_news) > 0:
-                    try:
-                        urls_to_clean = [item["url"] for item in m_news if item.get("url")]
-                        if urls_to_clean:
-                            db.query(PlayerNews).filter(
-                                PlayerNews.player_id == p.id,
-                                PlayerNews.source_url.in_(urls_to_clean)
-                            ).delete(synchronize_session=False)
-                            db.commit()
-                            all_player_news = [n for n in all_player_news if n.source_url not in set(urls_to_clean)]
-                    except Exception:
-                        pass
-
                 ev_id = m.get("event_id")
                 if ev_id and not str(ev_id).startswith("non_espn_"):
                     ev_link = f"https://www.espn.com/match?gameId={ev_id}"
@@ -706,7 +812,7 @@ def get_dashboard_data(
                     "region": "Quốc tế"
                 }]
             # 2. Trận đấu trong khoảng 30 ngày trở lại đây (-30 <= diff_d <= 0):
-            # Lưu lại báo theo khung 48h (ngày thi đấu và ngày hôm trước). Nếu DB chưa có thì lấy từ recap & lưu vào DB
+            # Lưu lại báo theo khung 48h. Nếu chưa có bài báo riêng thì bổ sung recap từ ESPN vào m_news (không chèn bài giả vào DB)
             elif is_m_past and -30 <= diff_d <= 0:
                 if len(m_news) == 0:
                     ev_id = m.get("event_id")
@@ -715,21 +821,24 @@ def get_dashboard_data(
                         m_date_vn, match_result=m.get("match_result"), comp_name=clean_comp
                     )
                     for r_item in recap_items:
-                        try:
-                            new_n = PlayerNews(
-                                player_id=p.id,
-                                title=r_item["title"],
-                                source_url=r_item["url"],
-                                news_type=r_item.get("news_type", "Thi đấu"),
-                                region=r_item.get("region", "US"),
-                                published_at=win_end
-                            )
-                            db.add(new_n)
-                            all_player_news.append(new_n)
-                            m_news.append(r_item)
-                        except Exception:
-                            m_news.append(r_item)
+                        m_news.append(r_item)
             
+            # Standardize match_result format to always include team names (e.g. 'TeamA 2 - 0 TeamB (FT)')
+            cur_res = m.get("match_result")
+            if cur_res:
+                clean_sc = re.sub(r'\(.*?\)', '', str(cur_res)).strip()
+                if re.match(r'^\d+\s*-\s*\d+$', clean_sc):
+                    raw_n = m.get("raw_match_name") or ""
+                    if " vs " in raw_n:
+                        parts = raw_n.split(" vs ")
+                        m["match_result"] = f"{parts[0].strip()} {clean_sc} {parts[1].strip()} (FT)"
+                    elif m.get("match_name"):
+                        mn = m.get("match_name").strip()
+                        if mn.startswith("vs "):
+                            m["match_result"] = f"{team_name} {clean_sc} {mn[3:].strip()} (FT)"
+                        elif mn.startswith("@ "):
+                            m["match_result"] = f"{mn[2:].strip()} {clean_sc} {team_name} (FT)"
+
             m_s, m_d = unpack_stats(m.get("player_stats"))
             m["player_stats"] = m_s
             m["detailed_stats"] = m_d
@@ -762,6 +871,19 @@ def get_dashboard_data(
             curr_match_date_utc = match_date_utc
             curr_match_state = match_state
             curr_match_result = match_result
+            if curr_match_result:
+                clean_sc = re.sub(r'\(.*?\)', '', str(curr_match_result)).strip()
+                if re.match(r'^\d+\s*-\s*\d+$', clean_sc):
+                    raw_n = sched_today_match.get("raw_match_name") if sched_today_match else ""
+                    if " vs " in raw_n:
+                        parts = raw_n.split(" vs ")
+                        curr_match_result = f"{parts[0].strip()} {clean_sc} {parts[1].strip()} (FT)"
+                    elif curr_match_name:
+                        mn = curr_match_name.strip()
+                        if mn.startswith("vs "):
+                            curr_match_result = f"{team_name} {clean_sc} {mn[3:].strip()} (FT)"
+                        elif mn.startswith("@ "):
+                            curr_match_result = f"{mn[2:].strip()} {clean_sc} {team_name} (FT)"
             curr_rating = rating
             c_summary, c_details = unpack_stats(raw_stats)
             curr_stats = c_summary
@@ -832,16 +954,24 @@ def get_dashboard_data(
                 "injury_desc": "Không có ghi nhận chấn thương"
             }
 
+        from backend.modules.players.services.news_service import normalize_news_title
         seen_news_urls = set()
+        seen_news_titles = set()
         player_news_list = []
         for n in news_today:
-            if n.source_url not in seen_news_urls:
+            norm_t = normalize_news_title(n.title) if n.title else ""
+            if n.source_url not in seen_news_urls and (not norm_t or norm_t not in seen_news_titles):
                 player_news_list.append(n)
                 seen_news_urls.add(n.source_url)
+                if norm_t:
+                    seen_news_titles.add(norm_t)
         for n in all_player_news:
-            if n.source_url not in seen_news_urls:
+            norm_t = normalize_news_title(n.title) if n.title else ""
+            if n.source_url not in seen_news_urls and (not norm_t or norm_t not in seen_news_titles):
                 player_news_list.append(n)
                 seen_news_urls.add(n.source_url)
+                if norm_t:
+                    seen_news_titles.add(norm_t)
 
         cutoff_24h_utc = now_utc - datetime.timedelta(hours=24)
         player_news_24h = [
@@ -889,7 +1019,11 @@ def get_dashboard_data(
             "is_within_month": is_within_month,
             "match_date_utc": curr_match_date_utc,
             "next_match_date": next_match_date_str,
-            "all_matches": all_matches,
+            "match_time_vn": match_time_vn,
+            "match_timestamp": match_timestamp,
+            "time_phase": time_phase,
+            "time_phase_label": time_phase_label,
+            "time_phase_badge": time_phase_badge,
             "news_24h_count": len(player_news_24h),
             "details": {
                 "match": curr_match_name,
@@ -929,6 +1063,10 @@ def get_dashboard_data(
         sched_item["tags"] = []
         sched_item["upcoming_3_matches"] = upcoming_matches_30d[:3]
         sched_item["earliest_match_utc"] = upcoming_matches_30d[0]["match_date_utc"] if upcoming_matches_30d else None
+        sched_details = dict(sched_item.get("details", {}))
+        sched_details.pop("news", None)
+        sched_details.pop("all_matches", None)
+        sched_item["details"] = sched_details
         schedule_players.append(sched_item)
 
     try:
@@ -969,22 +1107,19 @@ def get_dashboard_data(
         return t["id"], fetch_national_team_schedule(t)
 
     nt_sched_map = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
         for tid, s_list in ex.map(_fetch_nt_sched, filtered_nts):
             nt_sched_map[tid] = s_list
 
-    # Batch load national team news from DB (tối ưu bộ nhớ: 35 ngày gần nhất, tối đa 25 tin/đội)
+    # Batch load national team news from DB
     all_nt_news = (
         db.query(NationalTeamNews)
-        .filter(NationalTeamNews.published_at >= news_cutoff_utc)
         .order_by(NationalTeamNews.published_at.desc())
         .all()
     )
     nt_news_by_team = {}
     for n in all_nt_news:
-        t_list = nt_news_by_team.setdefault(n.team_id, [])
-        if len(t_list) < 25:
-            t_list.append(n)
+        nt_news_by_team.setdefault(n.team_id, []).append(n)
 
     for nt in filtered_nts:
         nt_id = nt["id"]
@@ -994,6 +1129,7 @@ def get_dashboard_data(
         nt_upcoming_30d = []
         nt_upcoming_all = []
         nt_match_today = None
+        nt_candidates = []
 
         for m in nt_matches:
             diff_d = m.get("diff_days", 999.0)
@@ -1022,13 +1158,31 @@ def get_dashboard_data(
             m["news"] = m_news
             m["news_count"] = len(m_news)
 
-            if m_date_vn == today_str_vn:
-                nt_match_today = m
+            m_state = m.get("match_state", "pre")
+            if m_state == "in":
+                nt_candidates.append((0, m))
+            elif m_date_vn == today_str_vn:
+                nt_candidates.append((1, m))
+            elif m_date_vn == yesterday_str_vn:
+                vn_h = 12
+                if m.get("match_date_utc"):
+                    try:
+                        vn_h = (datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S") + datetime.timedelta(hours=7)).hour
+                    except Exception:
+                        pass
+                if vn_h >= 18:
+                    nt_candidates.append((2, m))
+                else:
+                    nt_candidates.append((3, m))
 
             if not is_m_past and diff_d >= 0:
                 nt_upcoming_all.append(m)
                 if diff_d <= 30:
                     nt_upcoming_30d.append(m)
+
+        if nt_candidates:
+            nt_candidates.sort(key=lambda x: x[0])
+            nt_match_today = nt_candidates[0][1]
 
         tier_clean = nt.get("tier") or "Senior"
         if tier_clean == "Senior":
@@ -1064,6 +1218,47 @@ def get_dashboard_data(
             next_match_date_str = "N/A"
             in_today = False
 
+        # Xác định mốc giờ VN và Time Phase cho Đội tuyển
+        nt_time_phase = "today"
+        nt_time_phase_label = "Hôm nay"
+        nt_time_phase_badge = "☀️ Hôm nay"
+        nt_match_time_vn = ""
+        nt_match_timestamp = 0.0
+
+        if curr_match_date_utc:
+            try:
+                m_dt_utc = datetime.datetime.strptime(curr_match_date_utc[:19], "%Y-%m-%dT%H:%M:%S")
+                m_dt_vn = m_dt_utc + datetime.timedelta(hours=7)
+                nt_match_timestamp = m_dt_vn.timestamp()
+                nt_match_time_vn = m_dt_vn.strftime("%d/%m %H:%M")
+                m_date_vn_obj = m_dt_vn.date()
+                m_hour_vn = m_dt_vn.hour
+                hm_str = m_dt_vn.strftime("%H:%M")
+
+                if curr_match_state == "in":
+                    nt_time_phase = "live"
+                    nt_time_phase_label = "Đang trực tiếp"
+                    nt_time_phase_badge = f"🔴 TRỰC TIẾP • {hm_str}"
+                elif m_date_vn_obj == today_ict:
+                    nt_time_phase = "today"
+                    nt_time_phase_label = "Hôm nay"
+                    nt_time_phase_badge = f"☀️ Hôm nay • {hm_str}"
+                elif m_date_vn_obj == yesterday_ict:
+                    if m_hour_vn >= 18:
+                        nt_time_phase = "yesterday_evening"
+                        nt_time_phase_label = "Tối hôm qua (18h-24h)"
+                        nt_time_phase_badge = f"🌙 Tối qua • {hm_str}"
+                    else:
+                        nt_time_phase = "yesterday_morning"
+                        nt_time_phase_label = "Rạng sáng hôm qua"
+                        nt_time_phase_badge = f"⏳ Rạng sáng qua • {hm_str}"
+                else:
+                    nt_time_phase = "older"
+                    nt_time_phase_label = m_dt_vn.strftime("%d/%m")
+                    nt_time_phase_badge = f"📅 {m_dt_vn.strftime('%d/%m %H:%M')}"
+            except Exception:
+                pass
+
         tz_offset = "UTC+9"
 
         nt_item = {
@@ -1092,7 +1287,11 @@ def get_dashboard_data(
             "is_within_month": len(nt_upcoming_30d) > 0,
             "match_date_utc": curr_match_date_utc,
             "next_match_date": next_match_date_str,
-            "all_matches": nt_matches,
+            "match_time_vn": nt_match_time_vn,
+            "match_timestamp": nt_match_timestamp,
+            "time_phase": nt_time_phase,
+            "time_phase_label": nt_time_phase_label,
+            "time_phase_badge": nt_time_phase_badge,
             "news_24h_count": len([n for n in nt_news if n.published_at and n.published_at >= (now_utc - datetime.timedelta(hours=24))]),
             "details": {
                 "match": curr_match_name,
@@ -1138,6 +1337,10 @@ def get_dashboard_data(
         sched_nt = dict(nt_item)
         sched_nt["upcoming_3_matches"] = nt_upcoming_30d[:3]
         sched_nt["earliest_match_utc"] = nt_upcoming_30d[0]["match_date_utc"] if nt_upcoming_30d else None
+        sched_nt_details = dict(sched_nt.get("details", {}))
+        sched_nt_details.pop("news", None)
+        sched_nt_details.pop("all_matches", None)
+        sched_nt["details"] = sched_nt_details
         schedule_players.append(sched_nt)
             
     # Sắp xếp: Ưu tiên có rating lên trước (từ cao đến thấp), rồi mới đến số lượng báo
@@ -1217,7 +1420,6 @@ def get_dashboard_data(
         "server_time_utc": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "active_players": active_players,
         "upcoming_players": upcoming_players,
-        "inactive_players": upcoming_players,
         "no_match_players": no_match_players,
         "schedule_players": schedule_players,
         "calendar_counts": calendar_counts,
@@ -1235,5 +1437,6 @@ def get_dashboard_data(
         ctypes.CDLL("libc.so.6").malloc_trim(0)
     except Exception:
         pass
+    logger.info(f"<== [API] Hoàn tất nạp bảng theo dõi trong {time.time() - t_start:.2f}s!")
     return result_data
 

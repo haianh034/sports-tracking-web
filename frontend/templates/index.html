@@ -203,9 +203,36 @@
         </main>
 
         <main id="activeTabPanel" class="tab-panel transition-opacity duration-200">
-            <div class="mb-4 flex items-center justify-between">
-                <p class="text-xs sm:text-sm text-gray-400">Vận động viên & Đội tuyển thi đấu hôm nay hoặc có tin tức tiêu điểm.</p>
-                <span class="text-xs text-gray-500 italic hidden sm:inline">Ưu tiên xếp theo số lượng báo chí & phong độ</span>
+            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <span>⚡</span> Vận động viên & Đội tuyển thi đấu (Khung 48 giờ)
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Bao gồm các trận hôm nay và các trận vừa diễn ra từ tối qua.</p>
+                </div>
+                <!-- Bộ lọc phân loại thời gian: Hôm nay / Tối hôm qua / Rạng sáng hôm qua -->
+                <div id="activeTimePhaseFilterBar" class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" onclick="setActiveTimePhaseFilter('all')" id="phaseFilterAllBtn"
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition duration-150 bg-blue-600 text-white border-blue-400 shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <span>⚡ Tất cả</span>
+                        <span id="phaseCountAllBadge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-800 text-white font-mono">0</span>
+                    </button>
+                    <button type="button" onclick="setActiveTimePhaseFilter('today')" id="phaseFilterTodayBtn"
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition duration-150 bg-gray-950/80 hover:bg-gray-800 text-gray-400 hover:text-gray-200 border-gray-800 flex items-center gap-1.5 cursor-pointer">
+                        <span>☀️ Hôm nay</span>
+                        <span id="phaseCountTodayBadge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-gray-800 text-gray-400 font-mono">0</span>
+                    </button>
+                    <button type="button" onclick="setActiveTimePhaseFilter('yesterday_evening')" id="phaseFilterEveningBtn"
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition duration-150 bg-gray-950/80 hover:bg-gray-800 text-gray-400 hover:text-gray-200 border-gray-800 flex items-center gap-1.5 cursor-pointer">
+                        <span>🌙 Tối qua (18h-24h)</span>
+                        <span id="phaseCountEveningBadge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-gray-800 text-gray-400 font-mono">0</span>
+                    </button>
+                    <button type="button" onclick="setActiveTimePhaseFilter('yesterday_morning')" id="phaseFilterMorningBtn"
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition duration-150 bg-gray-950/80 hover:bg-gray-800 text-gray-400 hover:text-gray-200 border-gray-800 flex items-center gap-1.5 cursor-pointer">
+                        <span>⏳ Rạng sáng qua</span>
+                        <span id="phaseCountMorningBadge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-gray-800 text-gray-400 font-mono">0</span>
+                    </button>
+                </div>
             </div>
             <div id="activeContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             </div>
@@ -342,9 +369,15 @@
 
                 <div id="modalScheduleSection" class="bg-gray-950/70 border border-gray-800 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2.5">
-                        <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-                            <span>📅</span> Lịch thi đấu 30 ngày tới
-                        </h4>
+                        <div class="flex items-center gap-2">
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                                <span>📅</span> Lịch & Kết quả thi đấu
+                            </h4>
+                            <div class="inline-flex rounded-lg bg-gray-900 border border-gray-800 p-0.5 text-[11px]">
+                                <button type="button" id="tabUpcomingMatches" onclick="switchModalMatchesTab('upcoming')" class="px-2.5 py-0.5 rounded-md font-medium text-emerald-400 bg-gray-800 transition">Sắp tới</button>
+                                <button type="button" id="tabPastMatches" onclick="switchModalMatchesTab('past')" class="px-2.5 py-0.5 rounded-md font-medium text-gray-400 hover:text-gray-200 transition">Đã đấu</button>
+                            </div>
+                        </div>
                         <span id="modalScheduleCount" class="text-[11px] text-gray-400 font-medium"></span>
                     </div>
                     <div id="modalScheduleList" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
@@ -547,6 +580,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=15.7"></script>
+    <script src="/static/js/app.js?v=15.8"></script>
 </body>
 </html>

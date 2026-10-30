@@ -29,6 +29,7 @@ let selectedNewsCategories = new Set(); // Rỗng = "Tất cả"
 function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
     let count = 0;
     let is24hSource = false;
+    let isDbFallback = false;
     
     if (customMatch) {
         const isPlayed = isMatchFinishedOrPlayed(customMatch, null);
@@ -37,8 +38,13 @@ function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
             count = list.length;
         } else {
             const n24h = (p && p.details && p.details.news_24h) ? p.details.news_24h : [];
-            count = n24h.length;
-            is24hSource = true;
+            if (n24h.length > 0) {
+                count = n24h.length;
+                is24hSource = true;
+            } else if (p && p.details && p.details.news && p.details.news.length > 0) {
+                count = p.details.news.length;
+                isDbFallback = true;
+            }
         }
     } else if (p) {
         const isPlayed = isMatchFinishedOrPlayed(null, p);
@@ -47,8 +53,13 @@ function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
             count = list.length;
         } else {
             const n24h = (p.details && p.details.news_24h) ? p.details.news_24h : [];
-            count = n24h.length;
-            is24hSource = true;
+            if (n24h.length > 0) {
+                count = n24h.length;
+                is24hSource = true;
+            } else if (p.details && p.details.news && p.details.news.length > 0) {
+                count = p.details.news.length;
+                isDbFallback = true;
+            }
         }
     } else if (customNewsList !== null) {
         count = customNewsList.length;
@@ -57,8 +68,13 @@ function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
     if (count === 0) {
         return '<span class="text-xs text-gray-500">Chưa có tin mới</span>';
     }
+
+    let title = 'Báo chí xoay quanh trận đấu (D-1 đến D+1)';
+    if (is24hSource) title = 'Toàn bộ tin tức trong 24h qua';
+    else if (isDbFallback) title = 'Tin tức đã lưu trữ của cầu thủ';
+
     return `
-        <span class="text-xs text-amber-300/90 font-medium flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded-md" title="${is24hSource ? 'Toàn bộ tin tức trong 24h qua' : 'Báo chí xoay quanh trận đấu (D-1 đến D+1)'}">
+        <span class="text-xs text-amber-300/90 font-medium flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded-md" title="${title}">
             📰 ${count} tin
         </span>
     `;
@@ -468,6 +484,60 @@ function setEntityTypeFilter(type) {
     loadDashboard(true);
 }
 
+let currentTimePhaseFilter = 'all'; // 'all' | 'today' | 'yesterday_evening' | 'yesterday_morning'
+
+function updateTimePhaseFilterBadges(activeList) {
+    const counts = {
+        all: (activeList || []).length,
+        today: 0,
+        yesterday_evening: 0,
+        yesterday_morning: 0
+    };
+    (activeList || []).forEach(p => {
+        const ph = p.time_phase;
+        if (ph === 'today' || ph === 'live') counts.today++;
+        else if (ph === 'yesterday_evening') counts.yesterday_evening++;
+        else if (ph === 'yesterday_morning') counts.yesterday_morning++;
+    });
+
+    const bAll = document.getElementById('phaseCountAllBadge');
+    if (bAll) bAll.innerText = counts.all;
+    const bToday = document.getElementById('phaseCountTodayBadge');
+    if (bToday) bToday.innerText = counts.today;
+    const bEve = document.getElementById('phaseCountEveningBadge');
+    if (bEve) bEve.innerText = counts.yesterday_evening;
+    const bMorn = document.getElementById('phaseCountMorningBadge');
+    if (bMorn) bMorn.innerText = counts.yesterday_morning;
+}
+
+window.setActiveTimePhaseFilter = function(phase) {
+    currentTimePhaseFilter = phase;
+    const btnMap = {
+        'all': 'phaseFilterAllBtn',
+        'today': 'phaseFilterTodayBtn',
+        'yesterday_evening': 'phaseFilterEveningBtn',
+        'yesterday_morning': 'phaseFilterMorningBtn'
+    };
+    const activeClasses = ['bg-blue-600', 'text-white', 'border-blue-400', 'shadow-sm'];
+    const inactiveClasses = ['bg-gray-950/80', 'text-gray-400', 'border-gray-800'];
+
+    Object.keys(btnMap).forEach(key => {
+        const btn = document.getElementById(btnMap[key]);
+        if (!btn) return;
+        if (key === phase) {
+            btn.classList.add(...activeClasses);
+            btn.classList.remove(...inactiveClasses);
+        } else {
+            btn.classList.remove(...activeClasses);
+            btn.classList.add(...inactiveClasses);
+        }
+    });
+
+    if (window.renderActiveCards) {
+        window.renderActiveCards(currentTimePhaseFilter);
+    }
+};
+
 async function loadDashboard(refreshDropdowns = true) {
     const sportSelect = document.getElementById('sportFilter');
     const countrySelect = document.getElementById('countryFilter');
@@ -536,10 +606,12 @@ async function loadDashboard(refreshDropdowns = true) {
         if (allTotalBadge) allTotalBadge.innerText = totalAll;
 
         window.activePlayersMap = {};
-        activeList.forEach(p => { window.activePlayersMap[p.id] = p; });
-        upcomingList.forEach(p => { window.activePlayersMap[p.id] = p; });
-        noMatchList.forEach(p => { window.activePlayersMap[p.id] = p; });
-        scheduleList.forEach(p => { window.activePlayersMap[p.id] = p; });
+        [...scheduleList, ...noMatchList, ...upcomingList, ...activeList].forEach(p => {
+            if (p.details && p.details.all_matches && !p.all_matches) {
+                p.all_matches = p.details.all_matches;
+            }
+            window.activePlayersMap[p.id] = p;
+        });
 
         // Tính tổng số bài báo 24h qua của toàn bộ đối tượng theo dõi
         const allUniqueEntities = Object.values(window.activePlayersMap);
@@ -576,15 +648,32 @@ async function loadDashboard(refreshDropdowns = true) {
             return `<span class="${colorClass} font-bold px-2 py-0.5 rounded-md text-xs shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap" title="${tooltip}">★ ${r.toFixed(1)}${fallbackBadge}</span>`;
         }
 
-        const activeContainer = document.getElementById('activeContainer');
-        if (activeList.length === 0) {
-            activeContainer.innerHTML = `
-                <div class="col-span-full py-12 text-center bg-gray-900/40 rounded-2xl border border-gray-800">
-                    <span class="text-3xl">📭</span>
-                    <p class="text-gray-400 mt-2 text-sm font-medium">Chưa có cầu thủ nào hoạt động hôm nay theo bộ lọc.</p>
-                </div>`;
-        } else {
-            activeContainer.innerHTML = activeList.map(p => {
+        window.rawActiveList = activeList;
+        updateTimePhaseFilterBadges(activeList);
+
+        window.renderActiveCards = function(phaseFilter = 'all') {
+            const activeContainer = document.getElementById('activeContainer');
+            if (!activeContainer) return;
+
+            let filteredList = window.rawActiveList || [];
+            if (phaseFilter === 'today') {
+                filteredList = filteredList.filter(p => p.time_phase === 'today' || p.time_phase === 'live');
+            } else if (phaseFilter === 'yesterday_evening') {
+                filteredList = filteredList.filter(p => p.time_phase === 'yesterday_evening');
+            } else if (phaseFilter === 'yesterday_morning') {
+                filteredList = filteredList.filter(p => p.time_phase === 'yesterday_morning');
+            }
+
+            if (filteredList.length === 0) {
+                activeContainer.innerHTML = `
+                    <div class="col-span-full py-12 text-center bg-gray-900/40 rounded-2xl border border-gray-800">
+                        <span class="text-3xl">📭</span>
+                        <p class="text-gray-400 mt-2 text-sm font-medium">Không có trận đấu nào trong khung giờ này.</p>
+                    </div>`;
+                return;
+            }
+
+            activeContainer.innerHTML = filteredList.map(p => {
                 const tagsHtml = (p.tags || []).filter(t => !t.toLowerCase().includes('tin tức')).map(t => renderTagBadge(t)).join('');
 
                 const ratingBadge = getRatingBadge(p.rating, p.is_fallback_rating);
@@ -593,7 +682,16 @@ async function loadDashboard(refreshDropdowns = true) {
                 const newsBadge = renderCardNewsBadges(p);
 
                 const mState = p.match_state || (p.details && p.details.match_state) || 'pre';
-                const mResult = p.match_result || (p.details && p.details.match_result);
+                let mResult = p.match_result || (p.details && p.details.match_result);
+                if (mResult) {
+                    const cleanScore = mResult.replace(/\(.*?\)/g, '').trim();
+                    if (/^\d+\s*-\s*\d+$/.test(cleanScore)) {
+                        const team = p.team || 'Đội nhà';
+                        const oppClean = oppName ? oppName.replace(/^(vs|@)\s+/i, '') : 'Đối thủ';
+                        const isAway = (p.details && p.details.match) ? p.details.match.startsWith('@') : false;
+                        mResult = isAway ? `${oppClean} ${cleanScore} ${team} (FT)` : `${team} ${cleanScore} ${oppClean} (FT)`;
+                    }
+                }
                 const pStats = p.player_stats || (p.details && p.details.player_stats);
 
                 let matchBoxHtml = '';
@@ -608,6 +706,11 @@ async function loadDashboard(refreshDropdowns = true) {
                             <span class="w-16 shrink-0 text-gray-400">Kết quả:</span>
                             <span class="text-emerald-400 font-bold font-mono truncate text-right">${escapeHtml(mResult || 'Đã kết thúc (FT)')}</span>
                         </div>
+                        ${p.match_time_vn ? `
+                        <div class="pt-1 border-t border-gray-800/60 flex items-center justify-between text-[11px] gap-2">
+                            <span class="shrink-0 text-gray-400 flex items-center gap-1">🕒 Giờ đá:</span>
+                            <span class="text-emerald-400 font-mono truncate text-right">${escapeHtml(p.match_time_vn)}</span>
+                        </div>` : ''}
                         ${(pStats && pStats.trim() && pStats.trim() !== 'Sạch lưới') ? `
                         <div class="pt-1 border-t border-gray-800/60 flex items-center justify-between text-xs gap-2">
                             <span class="w-16 shrink-0 text-blue-400">Thông số:</span>
@@ -683,7 +786,9 @@ async function loadDashboard(refreshDropdowns = true) {
                         </div>
                     </div>`;
             }).join('');
-        }
+        };
+
+        window.renderActiveCards(currentTimePhaseFilter);
 
         const inactiveContainer = document.getElementById('inactiveContainer');
         if (!upcomingList || upcomingList.length === 0) {
@@ -894,7 +999,7 @@ async function loadDashboard(refreshDropdowns = true) {
             }
         }
 
-        window.calendarAllPlayers = (scheduleList && scheduleList.length > 0) ? scheduleList : [...activeList, ...upcomingList, ...noMatchList];
+        window.calendarAllPlayers = [...activeList, ...upcomingList, ...noMatchList];
         window.calendarCounts = data.calendar_counts || {};
         renderCalendarTimeline();
         if (selectedCalendarDate) {
@@ -1327,6 +1432,14 @@ function renderCalendarCards(dateStr) {
                         <span class="text-amber-300 font-bold font-mono truncate text-right">${escapeHtml(m.match_result || 'Đang diễn ra')}</span>
                     </div>`;
             } else {
+                let displayResult = m.match_result || 'Đã kết thúc (FT)';
+                const cleanScore = displayResult.replace(/\(.*?\)/g, '').trim();
+                if (/^\d+\s*-\s*\d+$/.test(cleanScore)) {
+                    const team = m.player_team || (p && p.team) || 'Đội nhà';
+                    const oppClean = oppName ? oppName.replace(/^(vs|@)\s+/i, '') : 'Đối thủ';
+                    const isAway = m.match_name ? m.match_name.startsWith('@') : false;
+                    displayResult = isAway ? `${oppClean} ${cleanScore} ${team} (FT)` : `${team} ${cleanScore} ${oppClean} (FT)`;
+                }
                 matchBoxHtml = `
                     <div class="flex items-center justify-between text-xs gap-2">
                         <span class="w-16 shrink-0 text-gray-400">Đối thủ:</span> 
@@ -1334,7 +1447,7 @@ function renderCalendarCards(dateStr) {
                     </div>
                     <div class="pt-1.5 border-t border-gray-800/80 flex items-center justify-between text-xs gap-2">
                         <span class="w-16 shrink-0 text-gray-400">Kết quả:</span>
-                        <span class="text-emerald-400 font-bold font-mono truncate text-right">${escapeHtml(m.match_result || 'Đã kết thúc (FT)')}</span>
+                        <span class="text-emerald-400 font-bold font-mono truncate text-right">${escapeHtml(displayResult)}</span>
                     </div>
                     ${(m.player_stats && m.player_stats.trim() && m.player_stats.trim() !== 'Sạch lưới') ? `
                     <div class="pt-1 border-t border-gray-800/60 flex items-center justify-between text-xs gap-2">
@@ -1478,8 +1591,15 @@ function openModal(player, resetFilter = true, customMatch = null) {
 
     let opp = customMatch ? getOpponentName(customMatch.match_name, player.team) : getOpponentName(player.details.match, player.team);
     let matchText = opp || "Không có thông tin lịch đấu";
-    const mResult = customMatch ? customMatch.match_result : (player.match_result || (player.details && player.details.match_result));
+    let mResult = customMatch ? customMatch.match_result : (player.match_result || (player.details && player.details.match_result));
     if (mResult) {
+        const cleanScore = mResult.replace(/\(.*?\)/g, '').trim();
+        if (/^\d+\s*-\s*\d+$/.test(cleanScore)) {
+            const team = player.team || 'Đội nhà';
+            const oppClean = opp ? opp.replace(/^(vs|@)\s+/i, '') : 'Đối thủ';
+            const isAway = (customMatch ? customMatch.match_name : (player.details && player.details.match))?.startsWith('@');
+            mResult = isAway ? `${oppClean} ${cleanScore} ${team} (FT)` : `${team} ${cleanScore} ${oppClean} (FT)`;
+        }
         matchText += ` • Kết quả: ${mResult}`;
     }
     const mStats = customMatch ? customMatch.player_stats : (player.player_stats || (player.details && player.details.player_stats));
@@ -1681,40 +1801,10 @@ function openModal(player, resetFilter = true, customMatch = null) {
         }
     }
 
-    // SECTION: UPCOMING SCHEDULE (CHỈ HIỂN THỊ LỊCH 30 NGÀY TỚI ĐỂ GỌN GÀNG, KHÔNG DÀI CẢ MÙA)
-    const upcoming30d = (player.details && player.details.upcoming_matches_30d) ? player.details.upcoming_matches_30d : [];
-    const schedList = (upcoming30d && upcoming30d.length > 0)
-        ? upcoming30d
-        : ((player.details && player.details.all_upcoming_matches)
-            ? player.details.all_upcoming_matches.filter(m => (m.diff_days >= 0 && m.diff_days <= 30))
-            : []);
-    const modalSchedCount = document.getElementById('modalScheduleCount');
-    const modalSchedList = document.getElementById('modalScheduleList');
-    if (modalSchedCount && modalSchedList) {
-        modalSchedCount.innerText = `${schedList.length} trận`;
-        if (schedList.length > 0) {
-            modalSchedList.innerHTML = schedList.map((m, idx) => `
-                <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-900/80 border border-gray-800/80 text-xs">
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <span class="w-5 h-5 rounded-full bg-blue-950 border border-blue-800 text-blue-400 font-mono text-[10px] flex items-center justify-center shrink-0">${idx + 1}</span>
-                        <div class="min-w-0 flex-1">
-                            <span class="font-semibold text-gray-200 block truncate" title="${escapeHtml(m.match_name)}">${escapeHtml(getOpponentName(m.match_name, player.team))}</span>
-                            <span class="text-[10px] text-gray-500 block truncate">${escapeHtml(m.competition || 'Giải đấu')}</span>
-                        </div>
-                    </div>
-                    <div class="text-right shrink-0 ml-3">
-                        <span class="text-emerald-400 font-mono font-medium block">${escapeHtml(m.date_full_vn || m.date_vn)}</span>
-                        <span class="text-[10px] text-gray-500 font-mono">Giờ VN (UTC+7)</span>
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            modalSchedList.innerHTML = `
-                <div class="text-xs text-gray-500 italic py-2 text-center">
-                    Không có lịch thi đấu chính thức trong 30 ngày sắp tới.
-                </div>`;
-        }
-    }
+    // SECTION: LỊCH THI ĐẤU & KẾT QUẢ CÁC TRẬN ĐÃ ĐẤU (TABS SẮP TỚI / ĐÃ ĐẤU)
+    window.currentModalPlayer = player;
+    window.currentModalMatchesTab = window.currentModalMatchesTab || 'upcoming';
+    switchModalMatchesTab(window.currentModalMatchesTab);
 
     // Tự động xác định nguồn báo chí cho Modal theo đúng logic:
     // - Nếu trận đấu đã diễn ra -> Báo theo trận (D-1 đến D+1)
@@ -1762,23 +1852,154 @@ function openModal(player, resetFilter = true, customMatch = null) {
         }
     }
 
+    let newsSourceType = 'match';
+    if (!isMatchSource) {
+        newsSourceType = (player.details && player.details.news_24h && player.details.news_24h.length > 0 && targetNews === player.details.news_24h) ? '24h' : 'all';
+    }
+
     window.currentModalNews = targetNews;
-    window.currentModalNewsSource = isMatchSource ? 'match' : '24h';
+    window.currentModalNewsSource = newsSourceType;
 
     // Tiêu đề ngắn gọn chuẩn theo yêu cầu
     const iconElem = document.getElementById('modalNewsIcon');
     const titleElem = document.getElementById('modalNewsTitleText');
     if (iconElem && titleElem) {
-        iconElem.innerText = isMatchSource ? "⚽" : "⚡";
-        titleElem.innerText = isMatchSource ? "Báo liên quan (Theo trận)" : "Báo liên quan (24h qua)";
+        if (newsSourceType === 'match') {
+            iconElem.innerText = "⚽";
+            titleElem.innerText = "Báo liên quan (Theo trận)";
+        } else if (newsSourceType === '24h') {
+            iconElem.innerText = "⚡";
+            titleElem.innerText = "Báo liên quan (24h qua)";
+        } else {
+            iconElem.innerText = "📰";
+            titleElem.innerText = "Báo liên quan (Tổng hợp)";
+        }
     }
 
     selectedNewsCategories.clear();
     renderModalNews();
 
+    // Tự động giải mã trước URL trong nền để khi bấm nút Copy vào NotebookLM sẽ sao chép ngay lập tức
+    triggerNewsUrlsPredecode(targetNews);
+
     const apiMeta = document.getElementById('modalApiMeta');
     if (apiMeta) apiMeta.innerText = player.api_player_id ? `API ID: ${player.api_player_id}` : '';
     document.getElementById('detailModal').classList.remove('hidden');
+}
+
+window.switchModalMatchesTab = function(tab) {
+    window.currentModalMatchesTab = tab;
+    const tabUpcoming = document.getElementById('tabUpcomingMatches');
+    const tabPast = document.getElementById('tabPastMatches');
+    if (tabUpcoming && tabPast) {
+        if (tab === 'past') {
+            tabPast.className = 'px-2.5 py-0.5 rounded-md font-medium text-emerald-400 bg-gray-800 transition shadow-sm';
+            tabUpcoming.className = 'px-2.5 py-0.5 rounded-md font-medium text-gray-400 hover:text-gray-200 transition';
+        } else {
+            tabUpcoming.className = 'px-2.5 py-0.5 rounded-md font-medium text-emerald-400 bg-gray-800 transition shadow-sm';
+            tabPast.className = 'px-2.5 py-0.5 rounded-md font-medium text-gray-400 hover:text-gray-200 transition';
+        }
+    }
+    renderModalScheduleList(tab);
+};
+
+function selectPastMatchInModal(idx) {
+    const player = window.currentModalPlayer;
+    if (!player) return;
+    const allMatches = player.all_matches || (player.details && player.details.all_matches) || [];
+    const pastMatches = allMatches.filter(m => (m.is_past || m.match_state === 'post' || (m.diff_days !== undefined && m.diff_days < -0.05))).slice().reverse();
+    const targetMatch = pastMatches[idx];
+    if (targetMatch) {
+        openModal(player, true, targetMatch);
+    }
+}
+
+function renderModalScheduleList(tab) {
+    const player = window.currentModalPlayer;
+    if (!player) return;
+    const modalSchedCount = document.getElementById('modalScheduleCount');
+    const modalSchedList = document.getElementById('modalScheduleList');
+    if (!modalSchedCount || !modalSchedList) return;
+
+    const allMatches = player.all_matches || (player.details && player.details.all_matches) || [];
+    
+    if (tab === 'past') {
+        const pastMatches = allMatches.filter(m => (m.is_past || m.match_state === 'post' || (m.diff_days !== undefined && m.diff_days < -0.05))).slice().reverse();
+        modalSchedCount.innerText = `${pastMatches.length} trận`;
+        if (pastMatches.length > 0) {
+            modalSchedList.innerHTML = pastMatches.map((m, idx) => {
+                const ratingVal = (m.rating !== undefined && m.rating !== null && !isNaN(m.rating)) ? Number(m.rating) : null;
+                let ratingBadge = '';
+                if (ratingVal && ratingVal > 0) {
+                    const rColor = ratingVal >= 8.0 ? 'bg-amber-950/80 border-amber-500/60 text-amber-300' : (ratingVal >= 7.0 ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300' : 'bg-blue-950/80 border-blue-500/60 text-blue-300');
+                    ratingBadge = `<span class="px-2 py-0.5 rounded-full border text-[11px] font-mono font-bold ${rColor}">${ratingVal.toFixed(1)}</span>`;
+                } else if (m.has_played === false) {
+                    ratingBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] bg-gray-800 text-gray-400 border border-gray-700/60">Không ra sân</span>`;
+                }
+                const scoreText = m.match_result || 'Đã kết thúc';
+                const tagPreview = (m.tags && m.tags.length > 0) 
+                    ? `<div class="flex flex-wrap gap-1 mt-1.5">${m.tags.filter(t => t !== m.competition && !t.includes('::')).slice(0, 3).map(t => `<span class="px-1.5 py-0.5 rounded bg-gray-800/90 border border-gray-700/50 text-[10px] text-gray-300">${escapeHtml(t)}</span>`).join('')}</div>` 
+                    : '';
+
+                return `
+                <div onclick="selectPastMatchInModal(${idx})" class="p-2.5 rounded-lg bg-gray-900/80 border border-gray-800/80 hover:border-gray-600 transition cursor-pointer text-xs group">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span class="w-5 h-5 rounded-full bg-gray-800 border border-gray-700 text-gray-400 font-mono text-[10px] flex items-center justify-center shrink-0 group-hover:border-blue-500 group-hover:text-blue-400 transition">${idx + 1}</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-gray-200 truncate group-hover:text-white transition" title="${escapeHtml(m.match_name)}">${escapeHtml(getOpponentName(m.match_name, player.team))}</span>
+                                    ${ratingBadge}
+                                </div>
+                                <span class="text-[11px] text-emerald-400 block truncate font-medium mt-0.5">${escapeHtml(scoreText)}</span>
+                                <span class="text-[10px] text-gray-500 block truncate">${escapeHtml(m.competition || 'Giải đấu')}</span>
+                                ${tagPreview}
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 ml-2">
+                            <span class="text-gray-300 font-mono font-medium block text-[11px]">${escapeHtml(m.date_full_vn || m.date_vn)}</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Giờ VN</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            modalSchedList.innerHTML = `
+                <div class="text-xs text-gray-500 italic py-3 text-center">
+                    Chưa có dữ liệu các trận đã đấu trong mùa này.
+                </div>`;
+        }
+    } else {
+        const upcoming30d = (player.details && player.details.upcoming_matches_30d) ? player.details.upcoming_matches_30d : [];
+        const schedList = (upcoming30d && upcoming30d.length > 0)
+            ? upcoming30d
+            : ((player.details && player.details.all_upcoming_matches)
+                ? player.details.all_upcoming_matches.filter(m => (m.diff_days >= 0 && m.diff_days <= 30))
+                : []);
+        modalSchedCount.innerText = `${schedList.length} trận`;
+        if (schedList.length > 0) {
+            modalSchedList.innerHTML = schedList.map((m, idx) => `
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-900/80 border border-gray-800/80 text-xs">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <span class="w-5 h-5 rounded-full bg-blue-950 border border-blue-800 text-blue-400 font-mono text-[10px] flex items-center justify-center shrink-0">${idx + 1}</span>
+                        <div class="min-w-0 flex-1">
+                            <span class="font-semibold text-gray-200 block truncate" title="${escapeHtml(m.match_name)}">${escapeHtml(getOpponentName(m.match_name, player.team))}</span>
+                            <span class="text-[10px] text-gray-500 block truncate">${escapeHtml(m.competition || 'Giải đấu')}</span>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0 ml-3">
+                        <span class="text-emerald-400 font-mono font-medium block">${escapeHtml(m.date_full_vn || m.date_vn)}</span>
+                        <span class="text-[10px] text-gray-500 font-mono">Giờ VN (UTC+7)</span>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            modalSchedList.innerHTML = `
+                <div class="text-xs text-gray-500 italic py-2 text-center">
+                    Không có lịch thi đấu chính thức trong 30 ngày sắp tới.
+                </div>`;
+        }
+    }
 }
 
 function isMatchFinishedOrPlayed(match, player) {
@@ -1928,63 +2149,173 @@ function renderModalNews() {
     }
 }
 
+window.decodedUrlCache = window.decodedUrlCache || {};
+let inFlightDecodePromise = null;
+
+function triggerNewsUrlsPredecode(newsList) {
+    if (!newsList || newsList.length === 0) return;
+    const urlsToDecode = newsList
+        .map(n => n.url)
+        .filter(u => u && u.includes('news.google.com') && !window.decodedUrlCache[u]);
+
+    if (urlsToDecode.length === 0) return;
+
+    inFlightDecodePromise = fetch('/api/news/decode-urls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: urlsToDecode })
+    })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+        if (data && data.decoded_urls) {
+            urlsToDecode.forEach((raw, idx) => {
+                const dec = data.decoded_urls[idx];
+                if (dec) window.decodedUrlCache[raw] = dec;
+            });
+        }
+    })
+    .catch(err => console.warn("Pre-decode error", err))
+    .finally(() => {
+        inFlightDecodePromise = null;
+    });
+}
+
+async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultLabel, successMessage) {
+    if (!validUrls || validUrls.length === 0) {
+        showToast("Không có bài báo nào để sao chép liên kết!", "warning");
+        return;
+    }
+
+    const copyBtn = document.getElementById(btnId);
+    const copyLabel = document.getElementById(labelId);
+    const copyIcon = document.getElementById(iconId);
+
+    // Hàm lấy URL đã giải mã (tái sử dụng inFlightDecodePromise nếu có hoặc gọi bổ sung)
+    const getFinalUrls = async () => {
+        if (inFlightDecodePromise) {
+            try { await inFlightDecodePromise; } catch (e) {}
+        }
+        const missing = validUrls.filter(u => u && u.includes('news.google.com') && !window.decodedUrlCache[u]);
+        if (missing.length > 0) {
+            try {
+                const res = await fetch('/api/news/decode-urls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls: missing })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.decoded_urls) {
+                        missing.forEach((raw, idx) => {
+                            const dec = data.decoded_urls[idx];
+                            if (dec) window.decodedUrlCache[raw] = dec;
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("Decode request error", e);
+            }
+        }
+        return validUrls.map(u => window.decodedUrlCache[u] || u);
+    };
+
+    // Kiểm tra xem đã giải mã trước đó xong chưa (fast-path: 0ms)
+    const alreadyDecoded = validUrls.every(u => !u.includes('news.google.com') || window.decodedUrlCache[u]);
+
+    if (!alreadyDecoded) {
+        if (copyBtn) copyBtn.disabled = true;
+        if (copyIcon) copyIcon.innerText = "⏳";
+        if (copyLabel) copyLabel.innerText = "Đang giải mã URL cho NotebookLM...";
+    }
+
+    try {
+        let textPromise;
+        if (alreadyDecoded) {
+            const finalUrls = validUrls.map(u => window.decodedUrlCache[u] || u);
+            textPromise = Promise.resolve(finalUrls.join('\n'));
+        } else {
+            textPromise = getFinalUrls().then(urls => urls.join('\n'));
+        }
+
+        let copied = false;
+
+        // Trình duyệt hiện đại: ClipboardItem liên kết trực tiếp User Gesture token qua Promise
+        if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+            try {
+                const blobPromise = textPromise.then(text => new Blob([text], { type: 'text/plain' }));
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'text/plain': blobPromise })
+                ]);
+                copied = true;
+            } catch (e) {
+                console.warn("ClipboardItem write failed, trying fallback writeText", e);
+            }
+        }
+
+        if (!copied) {
+            const textToCopy = await textPromise;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    copied = true;
+                } catch (e) {
+                    console.warn("clipboard.writeText failed, trying execCommand", e);
+                }
+            }
+
+            if (!copied) {
+                const textarea = document.createElement("textarea");
+                textarea.value = textToCopy;
+                textarea.style.position = "fixed";
+                textarea.style.opacity = "0";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    copied = document.execCommand("copy");
+                } catch (e) {
+                    console.error("execCommand error", e);
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        if (copied) {
+            showToast(successMessage || `Đã sao chép thành công ${validUrls.length} liên kết gốc cho NotebookLM!`, "success");
+            if (copyIcon) copyIcon.innerText = "✅";
+            if (copyLabel) copyLabel.innerText = "Đã chép link cho NotebookLM!";
+            setTimeout(() => {
+                if (copyIcon) copyIcon.innerText = "📋";
+                if (copyLabel) copyLabel.innerText = defaultLabel;
+            }, 2500);
+        } else {
+            showToast("Không thể sao chép liên kết vào clipboard. Vui lòng thử lại.", "error");
+        }
+    } catch (err) {
+        console.error("copyLinksToNotebookLM unexpected error", err);
+        showToast("Có lỗi xảy ra khi sao chép liên kết.", "error");
+    } finally {
+        if (copyBtn) copyBtn.disabled = false;
+        if (copyLabel && !copyLabel.innerText.includes("Đã chép")) {
+            if (copyIcon) copyIcon.innerText = "📋";
+            if (copyLabel) copyLabel.innerText = defaultLabel;
+        }
+    }
+}
+
 async function copyAllNewsLinks() {
     if (!window.currentModalPlayer) return;
     // Lấy chính xác danh sách bài báo đang được hiển thị thực tế trên giao diện Modal
     const newsList = window.currentRenderedModalNews || window.currentModalNews || [];
     const validUrls = newsList.map(n => n.url).filter(Boolean);
-    if (validUrls.length === 0) {
-        showToast("Không có bài báo nào để sao chép liên kết!", "warning");
-        return;
-    }
-
-    const copyBtn = document.getElementById('btnCopyNewsLinksBottom');
-    const copyLabel = document.getElementById('copyBtnLabel');
-    const copyIcon = document.getElementById('copyIcon');
-    
-    if (copyBtn) copyBtn.disabled = true;
-    if (copyIcon) copyIcon.innerText = "⏳";
-    if (copyLabel) copyLabel.innerText = "Đang giải mã URL cho NotebookLM...";
-
-    let finalUrls = validUrls;
-    try {
-        const res = await fetch('/api/news/decode-urls', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ urls: validUrls })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.decoded_urls && data.decoded_urls.length > 0) {
-                finalUrls = data.decoded_urls;
-            }
-        }
-    } catch (e) {
-        console.warn("Decode failed, fallback to raw urls", e);
-    } finally {
-        if (copyBtn) copyBtn.disabled = false;
-        if (copyIcon) copyIcon.innerText = "📋";
-        if (copyLabel) copyLabel.innerText = "Copy link báo cho NotebookLM";
-    }
-
-    const textToCopy = finalUrls.join('\n');
-    navigator.clipboard.writeText(textToCopy).then(() => {
-        showToast(`Đã sao chép thành công ${finalUrls.length} liên kết gốc cho NotebookLM!`, "success");
-    }).catch(err => {
-        const textarea = document.createElement("textarea");
-        textarea.value = textToCopy;
-        textarea.style.position = "fixed";
-        textarea.style.opacity = "0";
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand("copy");
-            showToast(`Đã sao chép thành công ${finalUrls.length} liên kết gốc cho NotebookLM!`, "success");
-        } catch (e) {
-            showToast("Không thể sao chép liên kết vào clipboard.", "error");
-        }
-        document.body.removeChild(textarea);
-    });
+    await copyLinksToNotebookLM(
+        validUrls,
+        'btnCopyNewsLinksBottom',
+        'copyBtnLabel',
+        'copyIcon',
+        'Copy link báo cho NotebookLM',
+        `Đã sao chép thành công ${validUrls.length} liên kết bài báo cho NotebookLM!`
+    );
 }
 
 function closeModal() {
@@ -2002,7 +2333,19 @@ function openAddPlayerModal() {
 }
 
 function closeAddPlayerModal() {
-    document.getElementById('addPlayerModal').classList.add('hidden');
+    const modal = document.getElementById('addPlayerModal');
+    if (modal) modal.classList.add('hidden');
+    const input = document.getElementById('inputPlayerName');
+    if (input) input.value = '';
+    const box = document.getElementById('disambiguationBox');
+    if (box) box.classList.add('hidden');
+    const inputSection = document.getElementById('inputFormSection');
+    if (inputSection) inputSection.classList.remove('hidden');
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.classList.remove('hidden');
+        submitBtn.disabled = false;
+    }
 }
 
 function handleAddBackdropClick(event) {
@@ -2171,14 +2514,25 @@ async function processNextPlayerInQueue() {
 async function confirmSelectCandidate(index) {
     if (window._currentCandidateList && window._currentCandidateList[index]) {
         const candidate = window._currentCandidateList[index];
-        await addConfirmedCandidate(candidate);
         
-        const box = document.getElementById('disambiguationBox');
-        const inputSection = document.getElementById('inputFormSection');
-        const submitBtn = document.getElementById('submitBtn');
-        box.classList.add('hidden');
-        inputSection.classList.remove('hidden');
-        submitBtn.classList.remove('hidden');
+        // Đóng ngay modal nếu đây là cầu thủ duy nhất/cuối cùng trong hàng đợi để người dùng không phải tự đóng
+        const isLastInQueue = (window.addPlayerQueue.length === 0);
+        if (isLastInQueue) {
+            closeAddPlayerModal();
+        } else {
+            const box = document.getElementById('disambiguationBox');
+            const inputSection = document.getElementById('inputFormSection');
+            const submitBtn = document.getElementById('submitBtn');
+            if (box) box.classList.add('hidden');
+            if (inputSection) inputSection.classList.remove('hidden');
+            if (submitBtn) submitBtn.classList.remove('hidden');
+        }
+
+        try {
+            await addConfirmedCandidate(candidate);
+        } catch (err) {
+            console.error("Error adding confirmed candidate:", err);
+        }
 
         await processNextPlayerInQueue();
     }
@@ -2235,9 +2589,12 @@ function skipCandidateItem() {
     const box = document.getElementById('disambiguationBox');
     const inputSection = document.getElementById('inputFormSection');
     const submitBtn = document.getElementById('submitBtn');
-    box.classList.add('hidden');
-    inputSection.classList.remove('hidden');
-    submitBtn.classList.remove('hidden');
+    if (box) box.classList.add('hidden');
+    if (inputSection) inputSection.classList.remove('hidden');
+    if (submitBtn) submitBtn.classList.remove('hidden');
+    if (window.addPlayerQueue.length === 0) {
+        closeAddPlayerModal();
+    }
     processNextPlayerInQueue();
 }
 
@@ -2718,8 +3075,10 @@ async function addTeamFromCatalog(idCode, btnElem) {
         const data = await res.json();
         if (res.ok && data.success) {
             showToast(`Đã thêm đội tuyển "${data.name}" vào danh sách theo dõi!`, 'success');
-            await loadNationalCatalog();
+            // Tự động đóng modal chọn để người dùng quay về màn hình chính ngay
+            closeAddPlayerModal();
             await loadDashboard(false);
+            await loadNationalCatalog();
         } else {
             showToast(data.detail || 'Lỗi khi thêm đội tuyển', 'error');
             if (btnElem) {
@@ -2877,6 +3236,9 @@ function renderNews24hDetail() {
     if (metaElem) metaElem.innerText = `${p.sport} • ${p.team || 'Tự do'} • Quốc tịch: ${p.country || 'Quốc tế'}`;
 
     const rawNews24h = (p.details && p.details.news_24h) ? p.details.news_24h : [];
+    // Tự động giải mã trước URL trong nền để khi bấm nút Copy vào NotebookLM sẽ sao chép ngay lập tức
+    triggerNewsUrlsPredecode(rawNews24h);
+
     const countBadge = document.getElementById('news24hPlayerCountBadge');
     if (countBadge) {
         countBadge.innerText = `${rawNews24h.length} bài báo trong 24h qua`;
@@ -2971,59 +3333,13 @@ function renderNews24hDetail() {
 async function copyCurrentNews24hLinks() {
     const list = window.currentRenderedNews24h || [];
     const validUrls = list.map(n => n.url).filter(Boolean);
-    if (validUrls.length === 0) {
-        showToast("Không có bài báo nào để sao chép liên kết!", "warning");
-        return;
-    }
-
-    const copyBtn = document.getElementById('btnCopyNews24hLinks');
-    const copyLabel = document.getElementById('copyBtnLabel24h');
-    const copyIcon = document.getElementById('copyIcon24h');
-    
-    if (copyBtn) copyBtn.disabled = true;
-    if (copyIcon) copyIcon.innerText = "⏳";
-    if (copyLabel) copyLabel.innerText = "Đang giải mã URL cho NotebookLM...";
-
-    let finalUrls = validUrls;
-    try {
-        const res = await fetch('/api/news/decode-urls', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ urls: validUrls })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.decoded_urls && data.decoded_urls.length > 0) {
-                finalUrls = data.decoded_urls;
-            }
-        }
-    } catch (e) {
-        console.warn("Lỗi khi giải mã URL:", e);
-    }
-
-    const textToCopy = finalUrls.join('\n');
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(textToCopy);
-        } else {
-            const textArea = document.createElement("textarea");
-            textArea.value = textToCopy;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-        }
-        showToast(`Đã sao chép ${finalUrls.length} liên kết bài báo (24h) vào clipboard!`, "success");
-    } catch (err) {
-        console.error("Lỗi khi sao chép liên kết:", err);
-        showToast("Lỗi khi sao chép liên kết", "error");
-    } finally {
-        if (copyBtn) copyBtn.disabled = false;
-        if (copyIcon) copyIcon.innerText = "📋";
-        if (copyLabel) copyLabel.innerText = "Copy link báo 24h cho NotebookLM";
-    }
+    await copyLinksToNotebookLM(
+        validUrls,
+        'btnCopyNews24hLinks',
+        'copyBtnLabel24h',
+        'copyIcon24h',
+        'Copy link báo 24h cho NotebookLM',
+        `Đã sao chép thành công ${validUrls.length} liên kết bài báo (24h) cho NotebookLM!`
+    );
 }
 

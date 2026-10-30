@@ -1,5 +1,30 @@
 import os
 from pathlib import Path
+import unicodedata
+import re
+
+def normalize_player_name(name: str) -> str:
+    """
+    Chuẩn hóa tên cầu thủ:
+    - Loại bỏ dấu thanh, macron (ō -> o, ū -> u, é -> e, ä -> a...)
+    - Chuẩn hóa trường âm tiếng Nhật (Kou -> Ko, Ryoutarou -> Ryotaro, Yuuto -> Yuto...)
+    - Chuẩn hóa khoảng trắng và chuyển chữ thường
+    Giúp chống trùng lặp dữ liệu do typo hoặc khác biệt giữa các hệ chuyển tự Latin (Hepburn, Wāpuro).
+    """
+    if not name:
+        return ""
+    nfkd = unicodedata.normalize('NFKD', str(name))
+    ascii_str = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    clean = re.sub(r'[\s\.\-]+', ' ', ascii_str).strip().lower()
+
+    # Quy chuẩn trường âm tiếng Nhật (ou -> o, uu -> u) cho phụ âm tiếng Nhật
+    c_patt = r'(?:ky|gy|sh|ch|ny|hy|by|py|my|ry|ts|[kstnhmyrwgzjdbp])'
+    clean = re.sub(rf'\b{c_patt}ou\b', lambda m: m.group(0)[:-2] + 'o', clean)
+    clean = re.sub(rf'({c_patt})ou(?=[bcdfghjklmnpqrstvwxyz])', r'\1o', clean)
+    clean = re.sub(rf'({c_patt})ou\b', r'\1o', clean)
+    clean = re.sub(rf'({c_patt})uu(?=[bcdfghjklmnpqrstvwxyz])', r'\1u', clean)
+    clean = re.sub(rf'({c_patt})uu\b', r'\1u', clean)
+    return clean
 
 # Load environment variables from .env file if present
 _env_path = Path(__file__).resolve().parent.parent.parent / ".env"
@@ -105,10 +130,17 @@ LEAGUE_SLUG_MAP = {
     "womens-college-basketball": "NCAA Basketball (Nữ)",
     "college-baseball": "NCAA Baseball",
     "nhl": "NHL",
-    "uefa.champions": "Champions League",
-    "uefa.europa": "Europa League",
-    "uefa.conference": "Conference League",
+    "uefa.champions": "UEFA Champions League",
+    "uefa.europa": "UEFA Europa League",
+    "uefa.conference": "UEFA Conference League",
     "uefa.w.europa": "UEFA Women's Europa",
+    "afc.champions": "AFC Champions League Elite",
+    "afc.cup": "AFC Champions League Two",
+    "afc.challenge": "AFC Challenge League",
+    "afc.asian.cup": "AFC Asian Cup",
+    "concacaf.champions": "Concacaf Champions Cup",
+    "conmebol.libertadores": "Copa Libertadores",
+    "conmebol.sudamericana": "Copa Sudamericana",
     "eng.w.1": "Women's Super League",
     "esp.w.1": "Liga F",
     "usa.w.1": "NWSL"
