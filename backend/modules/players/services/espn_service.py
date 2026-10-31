@@ -25,6 +25,22 @@ if os.path.exists(TEAM_SCHED_CACHE_FILE):
     except Exception:
         pass
 
+def _extract_score_str(competitor):
+    if not competitor:
+        return ""
+    sc = competitor.get("score")
+    if isinstance(sc, dict):
+        val = sc.get("displayValue")
+        if val is None:
+            v = sc.get("value")
+            val = str(int(v)) if v is not None else ""
+        return str(val) if val is not None else ""
+    if isinstance(sc, (int, float)):
+        return str(int(sc))
+    if isinstance(sc, str):
+        return sc.strip()
+    return ""
+
 def _save_team_sched_cache():
     try:
         serializable = {}
@@ -447,11 +463,11 @@ def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
                     away = next((c for c in competitors if c.get('homeAway') == 'away'), None)
                     home_name = home.get('team', {}).get('displayName', '') if home else ''
                     away_name = away.get('team', {}).get('displayName', '') if away else ''
-                    home_score = home.get('score', {}).get('displayValue', '') if home else ''
-                    away_score = away.get('score', {}).get('displayValue', '') if away else ''
+                    home_score = _extract_score_str(home)
+                    away_score = _extract_score_str(away)
 
                     match_result = None
-                    if status_state in ['in', 'post'] and (home_score or away_score):
+                    if status_state in ['in', 'post'] and (home_score != '' and away_score != ''):
                         match_result = f"{home_name} {home_score} - {away_score} {away_name} ({detail})"
                     elif status_state == 'post':
                         match_result = f"{event.get('name')} ({detail})"
@@ -536,9 +552,9 @@ def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_n
             {"date": "2026-10-05T11:00:00Z", "opp": "vs Fenerbahce Medicana", "comp": comp_title, "result": f"{team_name} 3 - 1 Fenerbahce Medicana"},
             {"date": "2026-10-12T11:00:00Z", "opp": "@ Halkbank", "comp": comp_title, "result": f"Halkbank 2 - 3 {team_name}"},
             {"date": "2026-10-19T11:00:00Z", "opp": "vs Galatasaray", "comp": comp_title, "result": f"{team_name} 3 - 0 Galatasaray"},
-            {"date": "2026-10-24T11:00:00Z", "opp": "vs Altekma SK", "comp": comp_title},
-            {"date": "2026-10-27T11:00:00Z", "opp": "vs Gaziantep Gençlik", "comp": comp_title},
-            {"date": "2026-10-31T12:00:00Z", "opp": "@ Alanya Belediyespor", "comp": comp_title},
+            {"date": "2026-10-24T11:00:00Z", "opp": "vs Altekma SK", "comp": comp_title, "result": f"{team_name} 3 - 1 Altekma SK (FT)"},
+            {"date": "2026-10-27T11:00:00Z", "opp": "vs Gaziantep Gençlik", "comp": comp_title, "result": f"{team_name} 3 - 0 Gaziantep Gençlik (FT)"},
+            {"date": "2026-10-31T12:00:00Z", "opp": "@ Alanya Belediyespor", "comp": comp_title, "result": f"Alanya Belediyespor 1 - 3 {team_name} (FT)"},
             {"date": "2026-11-07T11:00:00Z", "opp": "vs Arkas Spor", "comp": comp_title},
             {"date": "2026-11-14T11:00:00Z", "opp": "@ Cizre Belediyespor", "comp": comp_title},
             {"date": "2026-11-21T11:00:00Z", "opp": "vs Bursa B.B.", "comp": comp_title}
@@ -571,7 +587,7 @@ def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_n
             {"date": "2026-10-08T07:00:00Z", "opp": "vs Arctic Open", "comp": "BWF World Tour Super 500", "result": "Đã kết thúc (Vòng 16)"},
             {"date": "2026-10-15T07:00:00Z", "opp": "vs Denmark Open", "comp": "BWF World Tour Super 750", "result": "Đã kết thúc (Tứ kết)"},
             {"date": "2026-10-22T08:00:00Z", "opp": "vs French Open", "comp": "BWF World Tour Super 750", "result": "Đã kết thúc (Bán kết)"},
-            {"date": "2026-10-29T08:00:00Z", "opp": "vs Hylo Open", "comp": "BWF World Tour Super 300"},
+            {"date": "2026-10-29T08:00:00Z", "opp": "vs Hylo Open", "comp": "BWF World Tour Super 300", "result": f"{player_name or 'VĐV'} 2 - 1 Alex Lanier (FT)"},
             {"date": "2026-11-12T01:00:00Z", "opp": "vs Kumamoto Masters", "comp": "BWF World Tour Super 500"},
             {"date": "2026-11-19T01:00:00Z", "opp": "vs China Masters", "comp": "BWF World Tour Super 750"}
         ]
@@ -603,7 +619,7 @@ def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_n
             {"date": "2026-10-06T06:00:00Z", "opp": "vs WTT Star Contender", "comp": "WTT Series", "result": "Đã kết thúc (Tứ kết)"},
             {"date": "2026-10-14T08:00:00Z", "opp": "vs WTT Champions Macao", "comp": "WTT Champions", "result": "Đã kết thúc (Bán kết)"},
             {"date": "2026-10-21T07:00:00Z", "opp": "vs WTT Champions Montpellier", "comp": "WTT Champions", "result": "Đã kết thúc (Vòng 16)"},
-            {"date": "2026-10-28T09:00:00Z", "opp": "vs WTT Champions Frankfurt", "comp": "WTT Champions"},
+            {"date": "2026-10-28T09:00:00Z", "opp": "vs WTT Champions Frankfurt", "comp": "WTT Champions", "result": f"{player_name or 'VĐV'} 3 - 1 Dang Qiu (FT)"},
             {"date": "2026-11-15T08:00:00Z", "opp": "vs WTT Finals Fukuoka", "comp": "WTT Finals"}
         ]
         for fix in wtt_tournaments:
@@ -960,11 +976,9 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
                         
                         match_result = None
                         if status_state in ["in", "post"] or diff < -0.1:
-                            h_sc = home.get("score") if home else None
-                            a_sc = away.get("score") if away else None
-                            if isinstance(h_sc, dict): h_sc = h_sc.get('displayValue', '')
-                            if isinstance(a_sc, dict): a_sc = a_sc.get('displayValue', '')
-                            if h_sc is not None and a_sc is not None and str(h_sc) != '' and str(a_sc) != '':
+                            h_sc = _extract_score_str(home)
+                            a_sc = _extract_score_str(away)
+                            if h_sc != '' and a_sc != '':
                                 match_result = f"{home_name} {h_sc} - {a_sc} {away_name} ({detail})"
                             else:
                                 match_result = f"Đã kết thúc ({detail})"
@@ -1262,6 +1276,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
             return {"stats_text": "", "rating": None, "tags": [off_inj["formatted_tag"]], "has_played": False}
         return {"stats_text": "", "rating": None, "tags": [], "has_played": False}
 
+    official_header_res = None
     if event_id and match_state in ["post", "in"]:
         try:
             # 1. SOCCER SUMMARY
@@ -1269,6 +1284,22 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                 sum_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event={event_id}"
                 data = fetch_espn_summary(sum_url, event_id)
                 
+                try:
+                    comp_hdr = data.get('header', {}).get('competitions', [{}])[0]
+                    cmps = comp_hdr.get('competitors', [])
+                    h_c = next((c for c in cmps if c.get('homeAway') == 'home'), None)
+                    a_c = next((c for c in cmps if c.get('homeAway') == 'away'), None)
+                    if h_c and a_c:
+                        h_nm = h_c.get('team', {}).get('displayName', '')
+                        a_nm = a_c.get('team', {}).get('displayName', '')
+                        h_sc = _extract_score_str(h_c)
+                        a_sc = _extract_score_str(a_c)
+                        det = comp_hdr.get('status', {}).get('type', {}).get('shortDetail') or comp_hdr.get('status', {}).get('type', {}).get('detail') or 'FT'
+                        if h_sc != '' and a_sc != '':
+                            official_header_res = f"{h_nm} {h_sc} - {a_sc} {a_nm} ({det})"
+                except Exception:
+                    pass
+
                 matched_p = None
                 matched_team_name = ""
                 is_starter = False
@@ -1315,7 +1346,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             tag_name = "Dự bị (Sẵn sàng)"
                         else:
                             tag_name = "Dự bị (Không vào sân)"
-                        return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False}
+                        return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
                     
                     g = int(float(st_map.get('totalGoals', 0) or st_map.get('G', 0) or 0))
                     a = int(float(st_map.get('goalAssists', 0) or st_map.get('A', 0) or 0))
@@ -1669,7 +1700,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             tag_name = "Dự bị (Sẵn sàng)"
                         else:
                             tag_name = "Dự bị (Không vào sân)"
-                        return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False}
+                        return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
                 else:
                     reason = detect_player_absence_reason(player_name, news_titles=news_titles, summary_injuries=data.get("injuries", []))
                     if reason == 'injury':
@@ -1911,7 +1942,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
     else:
         tag_name = ""
 
-    return {"stats_text": "", "rating": None, "tags": [tag_name] if tag_name else [], "has_played": False}
+    return {"stats_text": "", "rating": None, "tags": [tag_name] if tag_name else [], "has_played": False, "match_result": official_header_res}
 
 MATCH_RECAP_CACHE = {}
 

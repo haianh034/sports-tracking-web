@@ -22,7 +22,7 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="/static/css/styles.css?v=2.5">
+    <link rel="stylesheet" href="/static/css/styles.css?v={{ app_version|default('2.5') }}">
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans antialiased selection:bg-blue-600 selection:text-white">
     <div class="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1">
@@ -34,39 +34,27 @@
                 <p class="text-xs sm:text-sm text-gray-400 mt-1">Hệ thống theo dõi vận động viên & đội tuyển quốc gia/đội trẻ tự động</p>
             </div>
 
+            <!-- CẬP NHẬT DỮ LIỆU, THỜI GIAN CẬP NHẬT, THÊM THEO DÕI ĐẶT CẠNH NHAU -->
             <div class="flex flex-wrap items-center gap-2.5">
                 <button onclick="syncAllPlayersData()" id="syncBtn" 
-                    class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-sm font-semibold px-3.5 py-2 rounded-lg shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition duration-150" title="Cập nhật lại câu lạc bộ, lịch thi đấu và quét tin tức">
+                    class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition duration-150" title="Cập nhật lại câu lạc bộ, lịch thi đấu và quét tin tức">
                     <span id="syncSpinner" class="hidden animate-spin">🔄</span>
                     <span id="syncIcon">🔄</span>
                     <span>Cập nhật dữ liệu</span>
                 </button>
 
+                <div id="lastUpdatedBadge" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900/90 border border-gray-800 text-xs text-gray-300 font-mono shadow-sm" title="Thời điểm máy chủ cập nhật dữ liệu gần nhất">
+                    <span>🕒</span>
+                    <span>Cập nhật: <strong id="lastUpdatedTimeText" class="text-emerald-400 font-semibold">--:--:--</strong></span>
+                </div>
+
                 <button onclick="openAddModal()" 
-                    class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-blue-600/30 flex items-center gap-2 transition duration-150">
+                    class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition duration-150">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                     <span>Thêm Theo Dõi</span>
                 </button>
-
-                <select id="sportFilter" onchange="loadDashboard(false)" class="bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
-                    <option value="">Tất cả môn</option>
-                    {% if sports %}
-                    {% for s in sports %}
-                    <option value="{{ s }}">{{ s }}</option>
-                    {% endfor %}
-                    {% endif %}
-                </select>
-
-                <select id="countryFilter" onchange="loadDashboard(false)" class="bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
-                    <option value="">Tất cả quốc tịch</option>
-                    {% if countries %}
-                    {% for c in countries %}
-                    <option value="{{ c }}">{{ c }}</option>
-                    {% endfor %}
-                    {% endif %}
-                </select>
             </div>
         </header>
 
@@ -75,8 +63,8 @@
             <button onclick="hideToast()" class="text-gray-400 hover:text-white">&times;</button>
         </div>
 
-        <!-- BỘ LỌC ĐỐI TƯỢNG (TẤT CẢ / VẬN ĐỘNG VIÊN / ĐỘI TUYỂN & ĐỘI TRẺ) -->
-        <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-900/80 p-2 rounded-2xl border border-gray-800 shadow-md">
+        <!-- BỘ LỌC ĐỐI TƯỢNG (TẤT CẢ / VĐV / ĐỘI TUYỂN), MÔN, QUỐC TỊCH & TÌM KIẾM CÙNG MỘ HÀNG -->
+        <div class="mb-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 shadow-md">
             <div class="flex items-center gap-2 flex-wrap">
                 <button id="entityFilterAllBtn" onclick="setEntityTypeFilter('all')"
                     class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all bg-blue-600 text-white shadow-md shadow-blue-600/30">
@@ -95,6 +83,35 @@
                 </button>
             </div>
 
+            <!-- TẤT CẢ MÔN, TẤT CẢ QUỐC TỊCH & THANH TÌM KIẾM ĐƯA VÀO CÙNG THANH BỘ LỌC -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <select id="sportFilter" onchange="onDashboardFilterChange()" class="bg-gray-950 border border-gray-800 hover:border-gray-700 text-gray-200 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <option value="">Tất cả môn</option>
+                    {% if sports %}
+                    {% for s in sports %}
+                    <option value="{{ s }}">{{ s }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+
+                <select id="countryFilter" onchange="onDashboardFilterChange()" class="bg-gray-950 border border-gray-800 hover:border-gray-700 text-gray-200 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <option value="">Tất cả quốc tịch</option>
+                    {% if countries %}
+                    {% for c in countries %}
+                    <option value="{{ c }}">{{ c }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+
+                <!-- THANH TÌM KIẾM VĐV / ĐỘI TUYỂN / CLB -->
+                <div class="relative min-w-[200px] sm:min-w-[240px] flex-1 sm:flex-initial">
+                    <input type="text" id="dashboardSearchInput" oninput="onDashboardSearchInput(this.value)"
+                        placeholder="🔍 Tìm VĐV, CLB, Đội..." 
+                        class="w-full bg-gray-950 border border-gray-800 rounded-xl pl-3 pr-8 py-1.5 text-xs sm:text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition shadow-inner">
+                    <button type="button" id="dashboardSearchClearBtn" onclick="clearDashboardSearch()" 
+                        class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-xs w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center">✕</button>
+                </div>
+            </div>
         </div>
 
         <!-- BỘ LỌC LỊCH THI ĐẤU TOÀN MÙA TRÊN CÙNG (DÙNG CHUNG CHO CẢ VĐV VÀ ĐỘI TUYỂN) -->
@@ -273,8 +290,12 @@
                     <p class="text-xs text-gray-400 mt-0.5">Kiểm tra ngay mọi tin tức mới nhất của bất kỳ ai trong danh sách theo dõi, độc lập với lịch thi đấu.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input type="text" id="news24hSearchInput" oninput="filterNews24hPlayers()" placeholder="Tìm nhanh cầu thủ..." 
-                        class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500 w-48 sm:w-60" />
+                    <div class="relative w-48 sm:w-64">
+                        <input type="text" id="news24hSearchInput" oninput="onNews24hSearchInput(this.value)" placeholder="🔍 Tìm nhanh VĐV, Đội..." 
+                            class="w-full bg-gray-950 border border-gray-700 rounded-xl pl-3 pr-8 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500 shadow-inner" />
+                        <button type="button" id="news24hSearchClearBtn" onclick="clearNews24hSearch()" 
+                            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-xs w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center">✕</button>
+                    </div>
                 </div>
             </div>
             
@@ -580,6 +601,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=15.8"></script>
+    <script src="/static/js/app.js?v={{ app_version|default('16.0') }}"></script>
 </body>
 </html>

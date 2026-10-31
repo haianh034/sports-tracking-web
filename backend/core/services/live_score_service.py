@@ -16,15 +16,39 @@ SOCCER_LEAGUES = [
     "uefa.europa",
     "uefa.euro.conf",
     "eng.1",
+    "eng.2",
     "esp.1",
     "ger.1",
+    "ger.2",
     "ita.1",
     "fra.1",
     "usa.1",
     "tur.1",
     "ned.1",
-    "por.1"
+    "ned.2",
+    "por.1",
+    "jpn.1",
+    "kor.1",
+    "afc.champions",
+    "bel.1",
+    "sco.1"
 ]
+
+def _extract_clean_score(competitor):
+    if not competitor:
+        return ""
+    sc = competitor.get("score")
+    if isinstance(sc, dict):
+        val = sc.get("displayValue")
+        if val is None:
+            v = sc.get("value")
+            val = str(int(v)) if v is not None else ""
+        return str(val) if val is not None else ""
+    if isinstance(sc, (int, float)):
+        return str(int(sc))
+    if isinstance(sc, str):
+        return sc.strip()
+    return ""
 
 def format_period_detail(sport: str, detail: str) -> str:
     if not detail:
@@ -70,21 +94,22 @@ def get_live_scores_map() -> dict:
         ("baseball", f"https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates={date_str}"),
         ("baseball", f"https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates={yesterday_str}"),
     ]
-    # Soccer leagues (chỉ tải ngày hôm nay & hôm qua)
+    # Soccer leagues (tải cả ngày hôm nay & hôm qua)
     for lg in SOCCER_LEAGUES:
         urls_to_fetch.append(("soccer", f"https://site.api.espn.com/apis/site/v2/sports/soccer/{lg}/scoreboard?dates={date_str}"))
+        urls_to_fetch.append(("soccer", f"https://site.api.espn.com/apis/site/v2/sports/soccer/{lg}/scoreboard?dates={yesterday_str}"))
 
     def _fetch_url(item):
         sport, u = item
         try:
             req = urllib.request.Request(u, headers=headers)
-            with urllib.request.urlopen(req, timeout=3) as resp:
+            with urllib.request.urlopen(req, timeout=4) as resp:
                 data = json.loads(resp.read().decode())
             return sport, data.get("events", [])
         except Exception:
             return sport, []
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
         results = list(ex.map(_fetch_url, urls_to_fetch))
 
     live_map = {}
@@ -105,15 +130,15 @@ def get_live_scores_map() -> dict:
             a_name = away.get('team', {}).get('displayName', '') if away else ''
             a_short = away.get('team', {}).get('name', '') if away else ''
             
-            h_score = str(home.get('score', '')).strip() if home and home.get('score') is not None else ''
-            a_score = str(away.get('score', '')).strip() if away and away.get('score') is not None else ''
+            h_score = _extract_clean_score(home)
+            a_score = _extract_clean_score(away)
 
             match_result_str = None
-            if state in ['in', 'post'] and (h_score or a_score):
+            if state in ['in', 'post'] and (h_score != '' and a_score != ''):
                 if period_text:
                     match_result_str = f"{h_name} {h_score} - {a_score} {a_name} ({period_text})"
                 else:
-                    match_result_str = f"{h_name} {h_score} - {a_score} {a_name}"
+                    match_result_str = f"{h_name} {h_score} - {a_score} {a_name} (FT)"
             elif state == 'post':
                 match_result_str = f"{ev.get('name', '')} (FT)"
 

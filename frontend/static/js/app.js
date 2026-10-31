@@ -28,56 +28,26 @@ let selectedNewsCategories = new Set(); // Rỗng = "Tất cả"
 
 function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
     let count = 0;
-    let is24hSource = false;
-    let isDbFallback = false;
     
-    if (customMatch) {
-        const isPlayed = isMatchFinishedOrPlayed(customMatch, null);
-        if (isPlayed) {
-            const list = customNewsList !== null ? customNewsList : (customMatch.news || []);
-            count = list.length;
-        } else {
-            const n24h = (p && p.details && p.details.news_24h) ? p.details.news_24h : [];
-            if (n24h.length > 0) {
-                count = n24h.length;
-                is24hSource = true;
-            } else if (p && p.details && p.details.news && p.details.news.length > 0) {
-                count = p.details.news.length;
-                isDbFallback = true;
-            }
-        }
-    } else if (p) {
-        const isPlayed = isMatchFinishedOrPlayed(null, p);
-        if (isPlayed) {
-            const list = (p.details && p.details.news) ? p.details.news : [];
-            count = list.length;
-        } else {
-            const n24h = (p.details && p.details.news_24h) ? p.details.news_24h : [];
-            if (n24h.length > 0) {
-                count = n24h.length;
-                is24hSource = true;
-            } else if (p.details && p.details.news && p.details.news.length > 0) {
-                count = p.details.news.length;
-                isDbFallback = true;
-            }
-        }
-    } else if (customNewsList !== null) {
+    if (customNewsList !== null) {
         count = customNewsList.length;
+    } else if (customMatch) {
+        count = (customMatch.news || []).length;
+    } else if (p) {
+        // Thẻ trên dashboard: lấy theo báo của trận đấu này trong khung D-1..D+1 (p.details.news)
+        const matchNews = (p.details && p.details.news) ? p.details.news : [];
+        count = matchNews.length;
     }
 
     if (count === 0) {
         return '<span class="text-xs text-gray-500">Chưa có tin mới</span>';
     }
 
-    let title = 'Báo chí xoay quanh trận đấu (D-1 đến D+1)';
-    if (is24hSource) title = 'Toàn bộ tin tức trong 24h qua';
-    else if (isDbFallback) title = 'Tin tức đã lưu trữ của cầu thủ';
-
-    return `
-        <span class="text-xs text-amber-300/90 font-medium flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded-md" title="${title}">
-            📰 ${count} tin
-        </span>
-    `;
+    const badgeClass = 'bg-blue-900/60 text-blue-300 border border-blue-700/60 font-semibold';
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs ${badgeClass} shadow-sm" title="Báo chí xoay quanh trận đấu (D-1 đến D+1)">
+        <span>📰</span>
+        <span>${count} bài báo</span>
+    </span>`;
 }
 
 function formatMatchTimezones(utcDateStr, targetTz, flagStr) {
@@ -467,6 +437,128 @@ function renderTagBadge(tag) {
 }
 
 let currentEntityTypeFilter = 'all'; // 'all' | 'player' | 'national_team'
+let currentDashboardSearchQuery = '';
+
+function normalizeSearchText(str) {
+    if (!str) return '';
+    return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
+function entityMatchesQuery(item, query) {
+    if (!query) return true;
+    const cleanQuery = normalizeSearchText(query);
+    if (!cleanQuery) return true;
+
+    const name = normalizeSearchText(item.name || '');
+    const aliases = normalizeSearchText(item.name_aliases || '');
+    const shortName = normalizeSearchText(item.short_name || '');
+    const team = normalizeSearchText(item.team || '');
+    const sport = normalizeSearchText(item.sport || '');
+    const country = normalizeSearchText(item.country || '');
+    const matchName = normalizeSearchText(item.details?.match || item.next_match || '');
+
+    return name.includes(cleanQuery) ||
+           aliases.includes(cleanQuery) ||
+           shortName.includes(cleanQuery) ||
+           team.includes(cleanQuery) ||
+           sport.includes(cleanQuery) ||
+           country.includes(cleanQuery) ||
+           matchName.includes(cleanQuery);
+}
+
+function onDashboardSearchInput(val) {
+    currentDashboardSearchQuery = (val || '').trim();
+    const clearBtn = document.getElementById('dashboardSearchClearBtn');
+    if (clearBtn) {
+        if (currentDashboardSearchQuery.length > 0) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+    }
+
+    // Đồng bộ sang thanh tìm kiếm của Tin nhanh 24h để người dùng không phải gõ lại
+    const news24hInput = document.getElementById('news24hSearchInput');
+    if (news24hInput && news24hInput.value !== val) {
+        news24hInput.value = val || '';
+        const nClearBtn = document.getElementById('news24hSearchClearBtn');
+        if (nClearBtn) {
+            if ((val || '').trim().length > 0) nClearBtn.classList.remove('hidden');
+            else nClearBtn.classList.add('hidden');
+        }
+    }
+
+    if (window._fullDashboardRawData) {
+        renderDashboardData(window._fullDashboardRawData, false);
+    }
+}
+
+function clearDashboardSearch() {
+    const input = document.getElementById('dashboardSearchInput');
+    if (input) input.value = '';
+    onDashboardSearchInput('');
+}
+
+function onNews24hSearchInput(val) {
+    const nClearBtn = document.getElementById('news24hSearchClearBtn');
+    if (nClearBtn) {
+        if ((val || '').trim().length > 0) nClearBtn.classList.remove('hidden');
+        else nClearBtn.classList.add('hidden');
+    }
+
+    // Đồng bộ sang thanh tìm kiếm dashboard
+    const dashInput = document.getElementById('dashboardSearchInput');
+    if (dashInput && dashInput.value !== val) {
+        dashInput.value = val || '';
+        const dClearBtn = document.getElementById('dashboardSearchClearBtn');
+        if (dClearBtn) {
+            if ((val || '').trim().length > 0) dClearBtn.classList.remove('hidden');
+            else dClearBtn.classList.add('hidden');
+        }
+        currentDashboardSearchQuery = (val || '').trim();
+        if (window._fullDashboardRawData) {
+            renderDashboardData(window._fullDashboardRawData, false);
+        }
+    }
+
+    renderNews24hTab();
+}
+
+function clearNews24hSearch() {
+    const input = document.getElementById('news24hSearchInput');
+    if (input) input.value = '';
+    onNews24hSearchInput('');
+}
+
+function onDashboardFilterChange() {
+    if (window._fullDashboardRawData) {
+        renderDashboardData(window._fullDashboardRawData, false);
+    } else {
+        loadDashboard(false);
+    }
+}
+
+function showEntityLoadingState(typeLabel = "dữ liệu") {
+    const activeContainer = document.getElementById('activeContainer');
+    const inactiveContainer = document.getElementById('inactiveContainer');
+    const noMatchContainer = document.getElementById('noMatchContainer');
+    const scheduleContainer = document.getElementById('scheduleContainer');
+    
+    const loadingHtml = `
+        <div class="col-span-full py-16 flex flex-col items-center justify-center bg-gray-900/60 rounded-2xl border border-gray-800 text-center shadow-lg my-4">
+            <div class="relative w-12 h-12 mb-3">
+                <div class="w-12 h-12 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+            </div>
+            <p class="text-sm font-bold text-gray-200">Đang nạp dữ liệu ${escapeHtml(typeLabel)}, vui lòng đợi trong giây lát...</p>
+            <p class="text-xs text-gray-400 mt-1">Hệ thống đang đồng bộ và nạp danh sách trực tiếp từ máy chủ</p>
+        </div>
+    `;
+    if (activeContainer) activeContainer.innerHTML = loadingHtml;
+    if (inactiveContainer) inactiveContainer.innerHTML = loadingHtml;
+    if (noMatchContainer) noMatchContainer.innerHTML = loadingHtml;
+    if (scheduleContainer) scheduleContainer.innerHTML = loadingHtml;
+}
 
 function setEntityTypeFilter(type) {
     currentEntityTypeFilter = type;
@@ -481,7 +573,16 @@ function setEntityTypeFilter(type) {
     if (playersBtn) playersBtn.className = (type === 'player') ? activeClass : inactiveClass;
     if (nationalBtn) nationalBtn.className = (type === 'national_team') ? activeClass : inactiveClass;
 
-    loadDashboard(true);
+    const typeLabel = (type === 'player') ? 'Vận động viên' : (type === 'national_team' ? 'Đội tuyển & Đội trẻ' : 'Tất cả đối tượng');
+
+    // Nếu đã có cache đầy đủ -> lọc và hiển thị tức thì (0ms)
+    if (window._fullDashboardRawData) {
+        renderDashboardData(window._fullDashboardRawData, false);
+        return;
+    }
+
+    showEntityLoadingState(typeLabel);
+    loadDashboard(false);
 }
 
 let currentTimePhaseFilter = 'all'; // 'all' | 'today' | 'yesterday_evening' | 'yesterday_morning'
@@ -539,54 +640,102 @@ window.setActiveTimePhaseFilter = function(phase) {
 };
 
 async function loadDashboard(refreshDropdowns = true) {
-    const sportSelect = document.getElementById('sportFilter');
-    const countrySelect = document.getElementById('countryFilter');
-    const sportVal = sportSelect.value;
-    const countryVal = countrySelect.value;
-    let url = '/api/dashboard?';
-    if (sportVal) url += `sport=${encodeURIComponent(sportVal)}&`;
-    if (countryVal) url += `country=${encodeURIComponent(countryVal)}&`;
-    if (currentEntityTypeFilter && currentEntityTypeFilter !== 'all') {
-        url += `entity_type=${encodeURIComponent(currentEntityTypeFilter)}&`;
+    if (!window._fullDashboardRawData) {
+        const typeLabel = (currentEntityTypeFilter === 'player') ? 'Vận động viên' : (currentEntityTypeFilter === 'national_team' ? 'Đội tuyển & Đội trẻ' : 'Tất cả đối tượng');
+        showEntityLoadingState(typeLabel);
     }
 
     try {
-        const res = await fetch(url);
+        const res = await fetch('/api/dashboard');
         if (!res.ok) {
             throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         }
         const data = await res.json();
         window._dashboardRetryAttempted = false;
+        window._fullDashboardRawData = data;
 
-        if (data.today_date_vn) {
-            window.serverTodayVNDate = data.today_date_vn;
+        renderDashboardData(data, refreshDropdowns);
+    } catch (err) {
+        console.error("Lỗi khi tải dữ liệu dashboard:", err);
+        if (!window._dashboardRetryAttempted) {
+            window._dashboardRetryAttempted = true;
+            console.log("Đang tự động kết nối lại sau 2.5 giây...");
+            setTimeout(() => {
+                loadDashboard(refreshDropdowns);
+            }, 2500);
         }
+    }
+}
 
-        if (refreshDropdowns) {
-            if (data.sports_list) {
-                const curSport = sportSelect.value;
-                const hasSport = data.sports_list.some(s => s.name === curSport);
-                sportSelect.innerHTML = '<option value="">Tất cả môn</option>' + 
-                    data.sports_list.map(s => `<option value="${escapeHtml(s.name)}" ${(hasSport && s.name === curSport) ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
-                if (!hasSport) {
-                    sportSelect.value = "";
-                }
-            }
-            if (data.countries_list) {
-                const curCountry = countrySelect.value;
-                const hasCountry = data.countries_list.some(c => c.name === curCountry);
-                countrySelect.innerHTML = '<option value="">Tất cả quốc tịch</option>' + 
-                    data.countries_list.map(c => `<option value="${escapeHtml(c.name)}" ${(hasCountry && c.name === curCountry) ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
-                if (!hasCountry) {
-                    countrySelect.value = "";
-                }
+function renderDashboardData(data, refreshDropdowns = true) {
+    if (!data) return;
+    try {
+
+    if (data.today_date_vn) {
+        window.serverTodayVNDate = data.today_date_vn;
+    }
+
+    if (data.server_time_vn) {
+        const timeEl = document.getElementById('lastUpdatedTimeText');
+        const badgeEl = document.getElementById('lastUpdatedBadge');
+        if (timeEl) timeEl.innerText = data.server_time_vn;
+        if (badgeEl) badgeEl.classList.remove('hidden');
+    }
+
+    const sportSelect = document.getElementById('sportFilter');
+    const countrySelect = document.getElementById('countryFilter');
+
+    if (refreshDropdowns && sportSelect && countrySelect) {
+        if (data.sports_list) {
+            const curSport = sportSelect.value;
+            const hasSport = data.sports_list.some(s => s.name === curSport);
+            sportSelect.innerHTML = '<option value="">Tất cả môn</option>' + 
+                data.sports_list.map(s => `<option value="${escapeHtml(s.name)}" ${(hasSport && s.name === curSport) ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+            if (!hasSport) {
+                sportSelect.value = "";
             }
         }
+        if (data.countries_list) {
+            const curCountry = countrySelect.value;
+            const hasCountry = data.countries_list.some(c => c.name === curCountry);
+            countrySelect.innerHTML = '<option value="">Tất cả quốc tịch</option>' + 
+                data.countries_list.map(c => `<option value="${escapeHtml(c.name)}" ${(hasCountry && c.name === curCountry) ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+            if (!hasCountry) {
+                countrySelect.value = "";
+            }
+        }
+    }
 
-        const activeList = data.active_players || [];
-        const upcomingList = data.upcoming_players || data.inactive_players || [];
-        const noMatchList = data.no_match_players || [];
-        const scheduleList = data.schedule_players || [];
+    const curSportVal = sportSelect ? sportSelect.value : '';
+    const curCountryVal = countrySelect ? countrySelect.value : '';
+
+    function filterEntity(list) {
+        if (!list || !Array.isArray(list)) return [];
+        return list.filter(item => {
+            // 1. Lọc theo loại đối tượng (Tất cả / VĐV / Đội tuyển)
+            if (currentEntityTypeFilter && currentEntityTypeFilter !== 'all') {
+                if (item.entity_type !== currentEntityTypeFilter) return false;
+            }
+            // 2. Lọc theo Môn thể thao
+            if (curSportVal && item.sport !== curSportVal) {
+                return false;
+            }
+            // 3. Lọc theo Quốc tịch
+            if (curCountryVal && item.country !== curCountryVal) {
+                return false;
+            }
+            // 4. Lọc theo Thanh tìm kiếm (Tên, CLB, Đội tuyển, Môn, Biệt danh)
+            if (currentDashboardSearchQuery && !entityMatchesQuery(item, currentDashboardSearchQuery)) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    const activeList = filterEntity(data.active_players || []);
+    const upcomingList = filterEntity(data.upcoming_players || data.inactive_players || []);
+    const noMatchList = filterEntity(data.no_match_players || []);
+    const scheduleList = filterEntity(data.schedule_players || []);
 
         document.getElementById('activeCountBadge').innerText = activeList.length;
         document.getElementById('upcomingCountBadge').innerText = upcomingList.length;
@@ -682,6 +831,7 @@ async function loadDashboard(refreshDropdowns = true) {
                 const newsBadge = renderCardNewsBadges(p);
 
                 const mState = p.match_state || (p.details && p.details.match_state) || 'pre';
+                const oppName = getOpponentName(p.details ? p.details.match : '', p.team);
                 let mResult = p.match_result || (p.details && p.details.match_result);
                 if (mResult) {
                     const cleanScore = mResult.replace(/\(.*?\)/g, '').trim();
@@ -695,7 +845,6 @@ async function loadDashboard(refreshDropdowns = true) {
                 const pStats = p.player_stats || (p.details && p.details.player_stats);
 
                 let matchBoxHtml = '';
-                const oppName = getOpponentName(p.details ? p.details.match : '', p.team);
                 if (mState === 'post') {
                     matchBoxHtml = `
                         <div class="flex items-center justify-between text-xs gap-2">
@@ -731,6 +880,10 @@ async function loadDashboard(refreshDropdowns = true) {
                         <div class="flex items-center justify-between text-xs gap-2">
                             <span class="w-16 shrink-0 text-gray-400">Đối thủ:</span> 
                             <span class="font-semibold text-gray-100 truncate text-right">${escapeHtml(oppName)}</span>
+                        </div>
+                        <div class="pt-1.5 border-t border-gray-800/80 flex items-center justify-between text-xs gap-2">
+                            <span class="w-20 shrink-0 text-sky-400 font-semibold flex items-center gap-1">⏳ Trạng thái:</span>
+                            <span class="text-sky-300 font-medium truncate text-right">Chưa diễn ra (Sắp thi đấu)</span>
                         </div>
                         ${tz ? `
                         <div class="pt-1.5 border-t border-gray-800/80 space-y-1">
@@ -1006,14 +1159,7 @@ async function loadDashboard(refreshDropdowns = true) {
             renderCalendarCards(selectedCalendarDate);
         }
     } catch (err) {
-        console.error("Lỗi khi tải dữ liệu dashboard:", err);
-        if (!window._dashboardRetryAttempted) {
-            window._dashboardRetryAttempted = true;
-            console.log("Đang tự động kết nối lại sau 2.5 giây...");
-            setTimeout(() => {
-                loadDashboard(refreshDropdowns);
-            }, 2500);
-        }
+        console.error("Lỗi khi kết xuất giao diện dashboard:", err);
     }
 }
 
@@ -1807,73 +1953,22 @@ function openModal(player, resetFilter = true, customMatch = null) {
     switchModalMatchesTab(window.currentModalMatchesTab);
 
     // Tự động xác định nguồn báo chí cho Modal theo đúng logic:
-    // - Nếu trận đấu đã diễn ra -> Báo theo trận (D-1 đến D+1)
-    // - Nếu trận đấu chưa diễn ra -> Toàn bộ tin 24h qua
     let targetNews = [];
-    let isMatchSource = false;
-    
     if (customMatch) {
-        const isPlayed = isMatchFinishedOrPlayed(customMatch, null);
-        if (isPlayed) {
-            isMatchSource = true;
-            targetNews = (customMatch.news && customMatch.news.length > 0) 
-                ? customMatch.news 
-                : ((player.details && player.details.news) ? player.details.news : []);
-        } else {
-            isMatchSource = false;
-            targetNews = (player.details && player.details.news_24h) ? player.details.news_24h : [];
-        }
+        targetNews = (customMatch.news && customMatch.news.length > 0) ? customMatch.news : [];
     } else {
-        const isPlayed = isMatchFinishedOrPlayed(null, player);
-        if (isPlayed) {
-            isMatchSource = true;
-            targetNews = (player.details && player.details.news && player.details.news.length > 0)
-                ? player.details.news
-                : [];
-            if (targetNews.length === 0 && player.details && player.details.all_matches) {
-                const pastMatch = player.details.all_matches.slice().reverse().find(m => isMatchFinishedOrPlayed(m, null) && m.news && m.news.length > 0);
-                if (pastMatch) targetNews = pastMatch.news;
-            }
-        } else {
-            isMatchSource = false;
-            const n24h = (player.details && player.details.news_24h) ? player.details.news_24h : [];
-            targetNews = (n24h.length > 0) ? n24h : [];
-        }
-    }
-
-    // Fallback bảo vệ: Đảm bảo nếu cầu thủ có tin tức trong database thì không bao giờ bị trắng danh sách
-    if ((!targetNews || targetNews.length === 0) && player.details) {
-        if (isMatchSource && player.details.news && player.details.news.length > 0) {
-            targetNews = player.details.news;
-        } else if (player.details.news_24h && player.details.news_24h.length > 0) {
-            targetNews = player.details.news_24h;
-        } else if (player.details.news && player.details.news.length > 0) {
-            targetNews = player.details.news;
-        }
-    }
-
-    let newsSourceType = 'match';
-    if (!isMatchSource) {
-        newsSourceType = (player.details && player.details.news_24h && player.details.news_24h.length > 0 && targetNews === player.details.news_24h) ? '24h' : 'all';
+        targetNews = (player.details && player.details.news && player.details.news.length > 0) ? player.details.news : [];
     }
 
     window.currentModalNews = targetNews;
-    window.currentModalNewsSource = newsSourceType;
+    window.currentModalNewsSource = 'match';
 
-    // Tiêu đề ngắn gọn chuẩn theo yêu cầu
+    // Tiêu đề ngắn gọn chuẩn theo yêu cầu: Báo theo trận đấu (D-1 đến D+1 hoặc 1 tóm tắt nếu >30 ngày)
     const iconElem = document.getElementById('modalNewsIcon');
     const titleElem = document.getElementById('modalNewsTitleText');
     if (iconElem && titleElem) {
-        if (newsSourceType === 'match') {
-            iconElem.innerText = "⚽";
-            titleElem.innerText = "Báo liên quan (Theo trận)";
-        } else if (newsSourceType === '24h') {
-            iconElem.innerText = "⚡";
-            titleElem.innerText = "Báo liên quan (24h qua)";
-        } else {
-            iconElem.innerText = "📰";
-            titleElem.innerText = "Báo liên quan (Tổng hợp)";
-        }
+        iconElem.innerText = "⚽";
+        titleElem.innerText = "Báo liên quan (Theo trận đấu)";
     }
 
     selectedNewsCategories.clear();
@@ -2043,11 +2138,9 @@ function toggleNewsCategoryFilter(catId) {
 function renderModalNews() {
     const player = window.currentModalPlayer;
     if (!player) return;
-    const allNews = (window.currentModalNews && window.currentModalNews.length > 0)
+    const allNews = Array.isArray(window.currentModalNews)
         ? window.currentModalNews
-        : ((player.details && player.details.news && player.details.news.length > 0)
-            ? player.details.news
-            : ((player.details && player.details.news_24h) ? player.details.news_24h : []));
+        : ((player.details && player.details.news) ? player.details.news : []);
     window.currentModalNews = allNews;
 
     const normalizedNews = allNews.map(n => {
@@ -2388,6 +2481,7 @@ async function syncAllPlayersData() {
     syncSpinner.classList.remove('hidden');
     syncIcon.classList.add('hidden');
     syncBtn.disabled = true;
+    window._fullDashboardRawData = null;
     showToast("Đang đồng bộ lại câu lạc bộ, lịch thi đấu và quét tin tức 24h...", "info");
 
     try {
@@ -3124,17 +3218,12 @@ function renderNews24hTab() {
         return (a.name || '').localeCompare(b.name || '');
     });
 
-    // Tìm kiếm nhanh
+    // Tìm kiếm nhanh (đồng bộ chuẩn hóa bỏ dấu & tra cứu tên, CLB, môn, quốc gia)
     const searchInput = document.getElementById('news24hSearchInput');
-    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const query = searchInput ? searchInput.value.trim() : '';
     let filteredEntities = entities;
     if (query) {
-        filteredEntities = entities.filter(e => {
-            const name = (e.name || '').toLowerCase();
-            const team = (e.team || '').toLowerCase();
-            const sport = (e.sport || '').toLowerCase();
-            return name.includes(query) || team.includes(query) || sport.includes(query);
-        });
+        filteredEntities = entities.filter(e => entityMatchesQuery(e, query));
     }
 
     // Tự động chọn đối tượng đầu tiên nếu chưa chọn ai hoặc đối tượng hiện tại không còn tồn tại
