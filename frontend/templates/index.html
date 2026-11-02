@@ -63,29 +63,31 @@
             <button onclick="hideToast()" class="text-gray-400 hover:text-white">&times;</button>
         </div>
 
-        <!-- BỘ LỌC ĐỐI TƯỢNG (TẤT CẢ / VĐV / ĐỘI TUYỂN), MÔN, QUỐC TỊCH & TÌM KIẾM CÙNG MỘ HÀNG -->
-        <div class="mb-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 shadow-md">
-            <div class="flex items-center gap-2 flex-wrap">
+        <!-- BỘ LỌC ĐỐI TƯỢNG (TẤT CẢ / VĐV / ĐỘI TUYỂN), MÔN, QUỐC TỊCH & TÌM KIẾM CÙNG MỘ HÀNG NGANG DUY NHẤT -->
+        <div class="mb-5 bg-gray-900/80 p-2 sm:p-2.5 rounded-2xl border border-gray-800 shadow-md">
+            <div class="flex items-center gap-2 overflow-x-auto flex-nowrap pb-1 scrollbar-thin">
+                <!-- Nhóm tab đối tượng -->
                 <button id="entityFilterAllBtn" onclick="setEntityTypeFilter('all')"
-                    class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all bg-blue-600 text-white shadow-md shadow-blue-600/30">
+                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all bg-blue-600 text-white shadow-md shadow-blue-600/30 whitespace-nowrap">
                     <span>⚡</span> <span>Tất cả</span>
-                    <span id="allEntitiesTotalBadge" class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-blue-950 text-blue-200 border border-blue-800 font-mono">0</span>
+                    <span id="allEntitiesTotalBadge" class="ml-0.5 text-[11px] px-1.5 py-0.2 rounded-full bg-blue-950 text-blue-200 border border-blue-800 font-mono">0</span>
                 </button>
                 <button id="entityFilterPlayersBtn" onclick="setEntityTypeFilter('player')"
-                    class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-gray-800/80">
+                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all text-gray-400 hover:text-gray-200 hover:bg-gray-800/80 whitespace-nowrap">
                     <span>🏃</span> <span>Vận động viên</span>
-                    <span id="playersTotalBadge" class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-mono">0</span>
+                    <span id="playersTotalBadge" class="ml-0.5 text-[11px] px-1.5 py-0.2 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-mono">0</span>
                 </button>
                 <button id="entityFilterNationalBtn" onclick="setEntityTypeFilter('national_team')"
-                    class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-gray-800/80">
+                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all text-gray-400 hover:text-gray-200 hover:bg-gray-800/80 whitespace-nowrap">
                     <span>🏛️</span> <span>Đội tuyển & Đội trẻ</span>
-                    <span id="nationalTotalBadge" class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-mono">0</span>
+                    <span id="nationalTotalBadge" class="ml-0.5 text-[11px] px-1.5 py-0.2 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-mono">0</span>
                 </button>
-            </div>
 
-            <!-- TẤT CẢ MÔN, TẤT CẢ QUỐC TỊCH & THANH TÌM KIẾM ĐƯA VÀO CÙNG THANH BỘ LỌC -->
-            <div class="flex items-center gap-2 flex-wrap">
-                <select id="sportFilter" onchange="onDashboardFilterChange()" class="bg-gray-950 border border-gray-800 hover:border-gray-700 text-gray-200 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                <!-- Phân cách nhẹ -->
+                <div class="h-5 w-px bg-gray-800 shrink-0 mx-0.5"></div>
+
+                <!-- Dropdown môn & quốc tịch -->
+                <select id="sportFilter" onchange="onDashboardFilterChange()" class="shrink-0 bg-gray-950 border border-gray-800 hover:border-gray-700 text-gray-200 text-xs sm:text-sm rounded-xl px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition whitespace-nowrap">
                     <option value="">Tất cả môn</option>
                     {% if sports %}
                     {% for s in sports %}
@@ -94,7 +96,7 @@
                     {% endif %}
                 </select>
 
-                <select id="countryFilter" onchange="onDashboardFilterChange()" class="bg-gray-950 border border-gray-800 hover:border-gray-700 text-gray-200 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                <select id="countryFilter" onchange="onDashboardFilterChange()" class="shrink-0 bg-gray-950 border border-gray-800 hover:border-gray-700 text-gray-200 text-xs sm:text-sm rounded-xl px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition whitespace-nowrap">
                     <option value="">Tất cả quốc tịch</option>
                     {% if countries %}
                     {% for c in countries %}
@@ -103,13 +105,13 @@
                     {% endif %}
                 </select>
 
-                <!-- THANH TÌM KIẾM VĐV / ĐỘI TUYỂN / CLB -->
-                <div class="relative min-w-[200px] sm:min-w-[240px] flex-1 sm:flex-initial">
+                <!-- Thanh tìm kiếm co giãn chiếm phần còn lại trên cùng hàng -->
+                <div class="relative min-w-[180px] flex-1 shrink-0 sm:shrink">
                     <input type="text" id="dashboardSearchInput" oninput="onDashboardSearchInput(this.value)"
                         placeholder="🔍 Tìm VĐV, CLB, Đội..." 
-                        class="w-full bg-gray-950 border border-gray-800 rounded-xl pl-3 pr-8 py-1.5 text-xs sm:text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition shadow-inner">
+                        class="w-full bg-gray-950 border border-gray-800 rounded-xl pl-3 pr-7 py-1.5 text-xs sm:text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition shadow-inner">
                     <button type="button" id="dashboardSearchClearBtn" onclick="clearDashboardSearch()" 
-                        class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-xs w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center">✕</button>
+                        class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-xs w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center">✕</button>
                 </div>
             </div>
         </div>
