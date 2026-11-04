@@ -226,6 +226,8 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
             fun_facts.append(f"Rê bóng nhiều nhất trận ({val} lần)")
         elif "shots" in fb_text.lower():
             fun_facts.append(f"Dứt điểm nhiều nhất trận ({val} cú sút)")
+        elif "scored an own goal" in fb_text.lower() or "own goal" in fb_text.lower():
+            fun_facts.append("Phản lưới")
         elif fb_text:
             fun_facts.append(fb_text.replace("%1$s", str(val)))
 

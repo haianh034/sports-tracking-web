@@ -149,7 +149,8 @@
                             title="Nhập ngày dạng ngày/tháng/năm (dd/mm/yyyy)">
                         <input type="date" id="topDatePicker" onchange="onCustomDateSelected(this.value)" 
                             class="absolute right-1 w-6 h-6 opacity-0 cursor-pointer">
-                        <span class="pointer-events-none absolute right-2 text-gray-400 text-xs">📅</span>
+                        <button type="button" onclick="const p = document.getElementById('topDatePicker'); if (p && p.showPicker) { try { p.showPicker(); } catch(e) { p.click(); } } else if (p) { p.click(); }" 
+                            class="absolute right-2 text-gray-400 hover:text-white text-xs cursor-pointer" title="Chọn ngày từ lịch">📅</button>
                     </div>
                     <button onclick="clearDateFilter()" id="clearDateFilterBtn" class="hidden px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
                         ✕ Đóng lọc
@@ -291,13 +292,23 @@
                     </h3>
                     <p class="text-xs text-gray-400 mt-0.5">Kiểm tra ngay mọi tin tức mới nhất của bất kỳ ai trong danh sách theo dõi, độc lập với lịch thi đấu.</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="relative w-48 sm:w-64">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="relative w-44 sm:w-56">
                         <input type="text" id="news24hSearchInput" oninput="onNews24hSearchInput(this.value)" placeholder="🔍 Tìm nhanh VĐV, Đội..." 
                             class="w-full bg-gray-950 border border-gray-700 rounded-xl pl-3 pr-8 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500 shadow-inner" />
                         <button type="button" id="news24hSearchClearBtn" onclick="clearNews24hSearch()" 
                             class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-xs w-4 h-4 rounded-full bg-gray-800 flex items-center justify-center">✕</button>
                     </div>
+                    <button type="button" id="btnToggleMultiNews24h" onclick="toggleMultiNews24hMode()" 
+                        class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 bg-gray-900 border-gray-700 text-gray-300 hover:border-blue-500 hover:text-white"
+                        title="Bật/Tắt chế độ chọn nhiều VĐV để gộp và copy link không trùng lặp">
+                        <span id="multiNews24hIcon">☑️</span> <span id="multiNews24hLabel">Chọn nhiều</span>
+                    </button>
+                    <button type="button" id="btnClearMultiNews24h" onclick="clearNews24hSelectedPlayers()" 
+                        class="hidden px-2.5 py-1.5 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 hover:text-red-400 text-xs transition cursor-pointer"
+                        title="Bỏ chọn tất cả">
+                        ✕ Bỏ chọn
+                    </button>
                 </div>
             </div>
             
@@ -308,23 +319,26 @@
             <!-- Header cầu thủ đang chọn + Bộ lọc phân loại + Nút copy NotebookLM -->
             <div id="news24hSelectedHeader" class="p-4 rounded-2xl bg-gray-900/80 border border-gray-800 mb-4 hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-gray-800">
-                    <div class="flex items-center gap-3">
-                        <span id="news24hPlayerFlag" class="text-3xl"></span>
-                        <div>
-                            <h4 id="news24hPlayerName" class="text-base font-bold text-white"></h4>
-                            <div class="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span id="news24hPlayerFlag" class="text-3xl shrink-0"></span>
+                        <div class="min-w-0">
+                            <h4 id="news24hPlayerName" class="text-base font-bold text-white truncate"></h4>
+                            <div class="text-xs text-gray-400 flex items-center gap-2 mt-0.5 flex-wrap">
                                 <span id="news24hPlayerMeta"></span>
                                 <span id="news24hPlayerCountBadge" class="bg-blue-900/60 text-blue-300 border border-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full"></span>
+                                <span id="news24hDedupBadge" class="hidden bg-emerald-950/80 text-emerald-300 border border-emerald-700 text-[11px] font-bold px-2 py-0.5 rounded-full"></span>
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="shrink-0 flex items-center gap-2">
                         <button onclick="copyCurrentNews24hLinks()" id="btnCopyNews24hLinks" 
                             class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95 shadow-sm">
                             <span id="copyIcon24h">📋</span> <span id="copyBtnLabel24h">Copy link báo 24h cho NotebookLM</span>
                         </button>
                     </div>
                 </div>
+                <!-- Danh sách chips các cầu thủ được chọn khi ở chế độ multi-select -->
+                <div id="news24hSelectedChips" class="flex flex-wrap gap-1.5 mb-3 hidden"></div>
                 <!-- Filter categories for 24h news tab -->
                 <div id="news24hFilterTabs" class="flex flex-wrap gap-1.5"></div>
             </div>
@@ -498,16 +512,97 @@
             </div>
 
             <!-- TAB 2: THÊM ĐỘI TUYỂN / TUYỂN TRẺ -->
-            <div id="addNationalTabSection" class="hidden flex-1 overflow-y-auto pr-1 space-y-4">
+            <div id="addNationalTabSection" class="hidden flex-1 overflow-y-auto pr-1 space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-gray-300 mb-1">Tìm kiếm đội tuyển chính thức:</label>
                     <div class="relative">
                         <input type="text" id="nationalSearchInput" oninput="onSearchNationalCatalog(this.value)"
-                            placeholder="Nhập tên: ĐTQG Nam Nhật Bản, ĐT U23 Hàn Quốc, Bóng rổ, Nữ..."
+                            placeholder="Nhập tên: ĐTQG Nam Nhật Bản, ĐT U17 Nam Nhật Bản, U23 Hàn Quốc, Bóng rổ, Nữ..."
                             class="w-full bg-gray-950 border border-gray-700 focus:border-blue-500 rounded-lg pl-9 pr-3 py-2 text-xs sm:text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none">
                         <span class="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
                     </div>
                 </div>
+
+                <!-- NÚT BẬT FORM THÊM TÙY CHỈNH / TỰ NHẬP -->
+                <div class="bg-gray-950/60 p-2.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+                            <span>✨</span> <span>Không có trong danh mục? Tự thêm đội tuyển / đội trẻ</span>
+                        </div>
+                        <div class="text-[11px] text-gray-400">Thêm bất kỳ lứa tuổi nào: U15, U16, U17, U18, U19, U20, U21, U23, ĐTQG...</div>
+                    </div>
+                    <button type="button" onclick="toggleCustomNationalTeamForm()" id="toggleCustomNtBtn"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-blue-400 border border-gray-700 transition">
+                        + Nhập mới
+                    </button>
+                </div>
+
+                <!-- FORM NHẬP ĐỘI TUYỂN / ĐỘI TRẺ TÙY CHỈNH (ẨN/HIỆN) -->
+                <form id="customNationalTeamForm" onsubmit="submitCustomNationalTeam(event)" class="hidden bg-gray-950 p-3.5 rounded-xl border border-blue-900/50 space-y-2.5">
+                    <div class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1">
+                        <span>📝</span> Thêm Đội Tuyển / Tuyển Trẻ Mới
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-300 mb-1">Tên đội tuyển / đội trẻ *</label>
+                        <input type="text" id="customNtName" required placeholder="Ví dụ: ĐT U17 Nam Nhật Bản, ĐT U16 Nam Hàn Quốc..."
+                            class="w-full bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-300 mb-1">Môn thể thao *</label>
+                            <select id="customNtSport" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                                <option value="Bóng đá">Bóng đá</option>
+                                <option value="Bóng chày">Bóng chày</option>
+                                <option value="Bóng rổ">Bóng rổ</option>
+                                <option value="Bóng chuyền">Bóng chuyền</option>
+                                <option value="Bóng bàn">Bóng bàn</option>
+                                <option value="Cầu lông">Cầu lông</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-300 mb-1">Quốc gia *</label>
+                            <select id="customNtCountry" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                                <option value="Nhật Bản">Nhật Bản 🇯🇵</option>
+                                <option value="Hàn Quốc">Hàn Quốc 🇰🇷</option>
+                                <option value="Việt Nam">Việt Nam 🇻🇳</option>
+                                <option value="Khác">Khác 🌐</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-300 mb-1">Lứa tuổi / Cấp độ *</label>
+                            <select id="customNtTier" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                                <option value="Senior">ĐTQG (Senior)</option>
+                                <option value="U23">U23</option>
+                                <option value="U21">U21</option>
+                                <option value="U20">U20</option>
+                                <option value="U19">U19</option>
+                                <option value="U18">U18</option>
+                                <option value="U17">U17</option>
+                                <option value="U16">U16</option>
+                                <option value="U15">U15</option>
+                                <option value="Youth">Khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-300 mb-1">Giới tính *</label>
+                            <select id="customNtGender" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                                <option value="Men">Nam</option>
+                                <option value="Women">Nữ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-1">
+                        <button type="button" onclick="toggleCustomNationalTeamForm(false)"
+                            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium rounded-lg transition">Hủy</button>
+                        <button type="submit" id="customNtSubmitBtn"
+                            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm flex items-center gap-1.5 transition">
+                            <span>➕</span> Thêm Đội Này
+                        </button>
+                    </div>
+                </form>
 
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -516,7 +611,7 @@
                         </span>
                         <span id="catalogCountBadge" class="text-[11px] text-gray-400 font-mono">0 đội</span>
                     </div>
-                    <div id="nationalCatalogList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    <div id="nationalCatalogList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
                         <!-- Rendered dynamically -->
                     </div>
                 </div>

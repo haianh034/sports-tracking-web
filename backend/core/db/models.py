@@ -99,7 +99,7 @@ class PlayerNews(Base):
     source_url = Column(String, nullable=False)
     news_type = Column(String, nullable=True)
     region = Column(String, default="US")
-    published_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None))
+    published_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None), index=True)
 
     player = relationship("Player", back_populates="news")
 

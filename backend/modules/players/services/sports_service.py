@@ -98,6 +98,9 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
     m_lower = (match_name or "").lower()
     t_lower = (team_name or "").lower()
     s_lower = (sport_name or "").lower()
+
+    if any(k in c_lower or k in m_lower for k in ["friendly", "giao hữu", "club friendly", "international friendly", "exhibition"]):
+        return "Giao hữu"
     
     # Helper for Continental context detection
     asian_club_indicators = [
@@ -351,6 +354,8 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         final_tags.append(tourn_tag)
 
     ALL_TOURNAMENT_TAGS = {
+        # Friendly
+        "Giao hữu",
         # Football - European & Continental Cups
         "UEFA Champions League", "Champions League", 
         "UEFA Europa League", "Europa League", 
@@ -446,15 +451,44 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         t = t.strip()
         t_low = t.lower()
         if t_low in ["thủ môn", "hậu vệ"]: continue
-        if "cứu thua" in t_low and "xuất sắc" not in t_low: continue
         if "vào sân từ ghế dự bị" in t_low: t = "Vào sân"
         if t_low == "bàn quyết định": t = "Bàn mở tỉ số"
+        if "scored an own goal" in t_low or t_low == "own goal": t = "Phản lưới"
+        # Chuẩn hóa gọn gàng các tag cứu thua của thủ môn: ví dụ "5 pha cứu thua xuất sắc" -> "5 cứu thua"
+        m_save = re.match(r'^(\d+)\s+pha\s+cứu\s+thua(\s+xuất\s+sắc)?$', t_low)
+        if m_save:
+            t = f"{m_save.group(1)} cứu thua"
         if t_low in ["chưa thi đấu", "sắp thi đấu", "chờ lịch/hết mùa", "chờ lịch", "hết mùa", "đã thi đấu"]: continue
         if "tin tức" in t_low: continue
         if len(t) > 40: t = t[:40].strip()
         if t and t not in seen:
             seen.add(t)
             cleaned_tags.append(t)
+
+    # ƯU TIÊN THỨ TỰ HIỂN THỊ TAGS:
+    # 0. Giải đấu (Tournament)
+    # 1. Bàn thắng / Kiến tạo / Cứu thua / Phản lưới (Chỉ số cơ bản luôn ở trước)
+    # 2. Đá chính / Xuất phát / Vào sân / Số phút thi đấu
+    # 3. MVP, Cầu thủ xuất sắc nhất, Kỷ lục
+    # 4. Các điểm nhấn khác (Tạo cơ hội, rê bóng...)
+    def _tag_priority_score(tag: str) -> tuple:
+        tl = tag.lower()
+        # Nhóm 0: Giải đấu
+        if tag in ALL_TOURNAMENT_TAGS:
+            return (0, 0)
+        # Nhóm 1: Bàn thắng, Hattrick, Cú đúp, Bàn mở tỉ số, Bàn ấn định, Kiến tạo, Cứu thua, Phản lưới
+        if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist"]):
+            return (1, 0)
+        # Nhóm 2: Vai trò xuất phát & số phút
+        if any(w in tl for w in ["đá chính", "xuất phát", "vào sân", "phút", "starting", "lineup"]):
+            return (2, 0)
+        # Nhóm 3: MVP, Cầu thủ xuất sắc nhất
+        if "mvp" in tl or "xuất sắc nhất" in tl or "kỷ lục" in tl or "game winner" in tl:
+            return (3, 0)
+        # Nhóm 4: Các thông số khác (tạo cơ hội, rê bóng...)
+        return (4, 0)
+
+    cleaned_tags.sort(key=_tag_priority_score)
 
     return "", cleaned_tags
 

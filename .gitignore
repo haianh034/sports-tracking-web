@@ -31,6 +31,8 @@ Desktop.ini
 
 # Temporary / logs
 *.log
+*cache.json
+*_cache.json
 
 node_modules
 package.json

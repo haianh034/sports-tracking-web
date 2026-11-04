@@ -102,6 +102,96 @@ NATIONAL_TEAMS_CATALOG = [
         "description": "Đội tuyển U20 quốc gia Nhật Bản - FIFA U-20 World Cup & U20 Asian Cup"
     },
     {
+        "id_code": "jp_soccer_u20_w",
+        "name": "ĐT U20 Nữ Nhật Bản",
+        "short_name": "ĐT U20 Nữ Nhật Bản",
+        "nickname": "Young Nadeshiko",
+        "sport": "Bóng đá",
+        "country": "Nhật Bản",
+        "tier": "U20",
+        "gender": "Women",
+        "api_team_id": "10086",
+        "flag": "🇯🇵",
+        "query_native": "ヤングなでしこ U-20日本女子代表",
+        "query_en": "Young Nadeshiko Japan U20 women",
+        "description": "Đội tuyển U20 bóng đá nữ Nhật Bản - FIFA U-20 Women's World Cup"
+    },
+    {
+        "id_code": "jp_soccer_u19_m",
+        "name": "ĐT U19 Nam Nhật Bản",
+        "short_name": "ĐT U19 Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Nhật Bản",
+        "tier": "U19",
+        "gender": "Men",
+        "api_team_id": "9252",
+        "flag": "🇯🇵",
+        "query_native": "U-19 サッカー日本代表",
+        "query_en": "Japan U19 national football team",
+        "description": "Đội tuyển U19 quốc gia Nhật Bản"
+    },
+    {
+        "id_code": "jp_soccer_u18_m",
+        "name": "ĐT U18 Nam Nhật Bản",
+        "short_name": "ĐT U18 Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Nhật Bản",
+        "tier": "U18",
+        "gender": "Men",
+        "api_team_id": "8420",
+        "flag": "🇯🇵",
+        "query_native": "U-18 サッカー日本代表",
+        "query_en": "Japan U18 national football team",
+        "description": "Đội tuyển U18 quốc gia Nhật Bản"
+    },
+    {
+        "id_code": "jp_soccer_u17_m",
+        "name": "ĐT U17 Nam Nhật Bản",
+        "short_name": "ĐT U17 Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Nhật Bản",
+        "tier": "U17",
+        "gender": "Men",
+        "api_team_id": "8420",
+        "flag": "🇯🇵",
+        "query_native": "U-17 サッカー日本代表",
+        "query_en": "Japan U17 national football team",
+        "description": "Đội tuyển U17 bóng đá nam Nhật Bản - FIFA U-17 World Cup & U17 Asian Cup"
+    },
+    {
+        "id_code": "jp_soccer_u17_w",
+        "name": "ĐT U17 Nữ Nhật Bản",
+        "short_name": "ĐT U17 Nữ Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Nhật Bản",
+        "tier": "U17",
+        "gender": "Women",
+        "api_team_id": "21570",
+        "flag": "🇯🇵",
+        "query_native": "U-17 日本女子代表 サッカー",
+        "query_en": "Japan U17 women national football team",
+        "description": "Đội tuyển U17 bóng đá nữ Nhật Bản - FIFA U-17 Women's World Cup"
+    },
+    {
+        "id_code": "jp_soccer_u16_m",
+        "name": "ĐT U16 Nam Nhật Bản",
+        "short_name": "ĐT U16 Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Nhật Bản",
+        "tier": "U16",
+        "gender": "Men",
+        "api_team_id": "8420",
+        "flag": "🇯🇵",
+        "query_native": "U-16 サッカー日本代表",
+        "query_en": "Japan U16 national football team",
+        "description": "Đội tuyển U16 bóng đá nam Nhật Bản - Vòng loại U17 Asian Cup"
+    },
+    {
         "id_code": "kr_soccer_senior_m",
         "name": "ĐTQG Nam Hàn Quốc",
         "short_name": "ĐTQG Nam Hàn Quốc",
@@ -162,6 +252,51 @@ NATIONAL_TEAMS_CATALOG = [
         "description": "Đội tuyển U20 quốc gia Hàn Quốc - FIFA U-20 World Cup"
     },
     {
+        "id_code": "kr_soccer_u20_w",
+        "name": "ĐT U20 Nữ Hàn Quốc",
+        "short_name": "ĐT U20 Nữ Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Hàn Quốc",
+        "tier": "U20",
+        "gender": "Women",
+        "api_team_id": "18090",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-20 여자 축구 국가대표팀",
+        "query_en": "South Korea U20 women national football team",
+        "description": "Đội tuyển U20 bóng đá nữ Hàn Quốc - FIFA U-20 Women's World Cup"
+    },
+    {
+        "id_code": "kr_soccer_u19_m",
+        "name": "ĐT U19 Nam Hàn Quốc",
+        "short_name": "ĐT U19 Nam Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Hàn Quốc",
+        "tier": "U19",
+        "gender": "Men",
+        "api_team_id": "2836",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-19 축구 국가대표팀",
+        "query_en": "South Korea U19 national football team",
+        "description": "Đội tuyển U19 quốc gia Hàn Quốc"
+    },
+    {
+        "id_code": "kr_soccer_u18_m",
+        "name": "ĐT U18 Nam Hàn Quốc",
+        "short_name": "ĐT U18 Nam Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Hàn Quốc",
+        "tier": "U18",
+        "gender": "Men",
+        "api_team_id": "8414",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-18 축구 국가대표팀",
+        "query_en": "South Korea U18 national football team",
+        "description": "Đội tuyển U18 quốc gia Hàn Quốc"
+    },
+    {
         "id_code": "kr_soccer_u17_m",
         "name": "ĐT U17 Nam Hàn Quốc",
         "short_name": "ĐT U17 Nam Hàn Quốc",
@@ -175,6 +310,36 @@ NATIONAL_TEAMS_CATALOG = [
         "query_native": "대한민국 U-17 축구 국가대표팀",
         "query_en": "South Korea U17 national football team",
         "description": "Đội tuyển U17 quốc gia Hàn Quốc - FIFA U-17 World Cup"
+    },
+    {
+        "id_code": "kr_soccer_u17_w",
+        "name": "ĐT U17 Nữ Hàn Quốc",
+        "short_name": "ĐT U17 Nữ Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Hàn Quốc",
+        "tier": "U17",
+        "gender": "Women",
+        "api_team_id": "22302",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-17 여자 축구 국가대표팀",
+        "query_en": "South Korea U17 women national football team",
+        "description": "Đội tuyển U17 bóng đá nữ Hàn Quốc - FIFA U-17 Women's World Cup"
+    },
+    {
+        "id_code": "kr_soccer_u16_m",
+        "name": "ĐT U16 Nam Hàn Quốc",
+        "short_name": "ĐT U16 Nam Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng đá",
+        "country": "Hàn Quốc",
+        "tier": "U16",
+        "gender": "Men",
+        "api_team_id": "8414",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-16 축구 국가대표팀",
+        "query_en": "South Korea U16 national football team",
+        "description": "Đội tuyển U16 bóng đá nam Hàn Quốc - Vòng loại U17 Asian Cup"
     },
 
     # 2. BÓNG CHÀY (BASEBALL)
@@ -209,6 +374,21 @@ NATIONAL_TEAMS_CATALOG = [
         "description": "Đội tuyển U23 bóng chày quốc gia Nhật Bản - WBSC U-23 Baseball World Cup"
     },
     {
+        "id_code": "jp_baseball_u18_m",
+        "name": "ĐT U18 Nam Nhật Bản",
+        "short_name": "ĐT U18 Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng chày",
+        "country": "Nhật Bản",
+        "tier": "U18",
+        "gender": "Men",
+        "api_team_id": "samurai_japan_u18",
+        "flag": "🇯🇵",
+        "query_native": "U-18 侍ジャパン 高校野球日本代表",
+        "query_en": "Japan U18 baseball WBSC",
+        "description": "Đội tuyển U18 bóng chày quốc gia Nhật Bản - WBSC U-18 Baseball World Cup"
+    },
+    {
         "id_code": "kr_baseball_senior_m",
         "name": "ĐTQG Nam Hàn Quốc",
         "short_name": "ĐTQG Nam Hàn Quốc",
@@ -237,6 +417,21 @@ NATIONAL_TEAMS_CATALOG = [
         "query_native": "대한민국 U-23 야구 대표팀",
         "query_en": "South Korea U23 baseball team WBSC",
         "description": "Đội tuyển U23 bóng chày quốc gia Hàn Quốc - WBSC U-23 Baseball World Cup"
+    },
+    {
+        "id_code": "kr_baseball_u18_m",
+        "name": "ĐT U18 Nam Hàn Quốc",
+        "short_name": "ĐT U18 Nam Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng chày",
+        "country": "Hàn Quốc",
+        "tier": "U18",
+        "gender": "Men",
+        "api_team_id": "korea_baseball_u18",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-18 야구 대표팀",
+        "query_en": "South Korea U18 baseball team WBSC",
+        "description": "Đội tuyển U18 bóng chày quốc gia Hàn Quốc - WBSC U-18 Baseball World Cup"
     },
 
     # 3. BÓNG RỔ (BASKETBALL)
@@ -286,6 +481,21 @@ NATIONAL_TEAMS_CATALOG = [
         "description": "Đội tuyển U19 bóng rổ Nhật Bản - FIBA U19 Basketball World Cup"
     },
     {
+        "id_code": "jp_basketball_u17_m",
+        "name": "ĐT U17 Nam Nhật Bản",
+        "short_name": "ĐT U17 Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Bóng rổ",
+        "country": "Nhật Bản",
+        "tier": "U17",
+        "gender": "Men",
+        "api_team_id": "akatsuki_japan_u17",
+        "flag": "🇯🇵",
+        "query_native": "U17 バスケ男子日本代表",
+        "query_en": "Japan U17 basketball FIBA",
+        "description": "Đội tuyển U17 bóng rổ nam Nhật Bản - FIBA U17 Basketball World Cup"
+    },
+    {
         "id_code": "kr_basketball_senior_m",
         "name": "ĐTQG Nam Hàn Quốc",
         "short_name": "ĐTQG Nam Hàn Quốc",
@@ -314,6 +524,21 @@ NATIONAL_TEAMS_CATALOG = [
         "query_native": "대한민국 U-19 농구 대표팀",
         "query_en": "South Korea U19 basketball FIBA",
         "description": "Đội tuyển U19 bóng rổ Hàn Quốc - FIBA U19 World Cup"
+    },
+    {
+        "id_code": "kr_basketball_u17_m",
+        "name": "ĐT U17 Nam Hàn Quốc",
+        "short_name": "ĐT U17 Nam Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng rổ",
+        "country": "Hàn Quốc",
+        "tier": "U17",
+        "gender": "Men",
+        "api_team_id": "korea_basketball_u17",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 U-17 농구 대표팀",
+        "query_en": "South Korea U17 basketball FIBA",
+        "description": "Đội tuyển U17 bóng rổ nam Hàn Quốc - FIBA U17 World Cup"
     },
 
     # 4. BÓNG CHUYỀN (VOLLEYBALL)
@@ -614,6 +839,238 @@ def _extract_score_display(c):
         return sc.strip()
     return None
 
+def get_national_team_tournament_tag(comp_name: str, match_name: str = "", sport_name: str = "", tier: str = "") -> str:
+    """
+    Standardizes tournament tag for National Teams & Youth Teams.
+    Returns official tournament name (e.g. 'FIFA U-17 World Cup', 'VNL', 'WBC', 'AFC Asian Cup')
+    or 'Giao hữu' if it is a friendly or unspecified international match.
+    """
+    c = (comp_name or "").strip()
+    m = (match_name or "").strip().lower()
+    c_low = c.lower()
+    s_low = (sport_name or "").lower()
+    
+    # 1. Friendly match detection -> 'Giao hữu'
+    friendly_keywords = [
+        "friendly", "giao hữu", "club friendly", "international friendly", 
+        "giao huu", "exhibition", "practice match", "giải giao hữu", "test match"
+    ]
+    if any(k in c_low or k in m for k in friendly_keywords):
+        return "Giao hữu"
+    
+    # 2. FIFA World Cup & Age-group World Cups
+    if any(k in c_low for k in ["under-17 world cup", "u-17 world cup", "u17 world cup"]):
+        return "FIFA U-17 World Cup"
+    if any(k in c_low for k in ["under-20 world cup", "u-20 world cup", "u20 world cup"]):
+        return "FIFA U-20 World Cup"
+    if any(k in c_low for k in ["women's world cup", "fifa women", "world cup nữ"]):
+        return "FIFA Women's World Cup"
+    if any(k in c_low for k in ["qualifying", "qualification", "vòng loại world cup", "world cup qualifiers", "wcq"]):
+        return "Vòng loại World Cup"
+    if any(k in c_low for k in ["fifa world cup", "world cup"]):
+        return "FIFA World Cup"
+    
+    # 3. Olympic Games & Qualifiers
+    if any(k in c_low for k in ["olympic qualifying", "vòng loại olympic"]):
+        return "Vòng loại Olympic"
+    if any(k in c_low for k in ["olympic", "olympics", "thế vận hội"]):
+        return "Thế vận hội Olympic"
+
+    # 4. Continental Tournaments (AFC, UEFA, etc.)
+    if any(k in c_low for k in ["u23 asian cup", "u-23 asian cup", "afc u-23", "afc u23"]):
+        return "AFC U23 Asian Cup"
+    if any(k in c_low for k in ["u20 asian cup", "u-20 asian cup", "afc u-20", "afc u20"]):
+        return "AFC U20 Asian Cup"
+    if any(k in c_low for k in ["u17 asian cup", "u-17 asian cup", "afc u-17", "afc u17"]):
+        return "AFC U17 Asian Cup"
+    if any(k in c_low for k in ["afc asian cup", "asian cup", "cúp châu á"]):
+        return "AFC Asian Cup"
+    if any(k in c_low for k in ["asian games", "asiad", "á vận hội"]):
+        return "ASIAD"
+    if any(k in c_low for k in ["uefa nations league", "nations league"]) and "volleyball" not in s_low:
+        return "UEFA Nations League"
+    if any(k in c_low for k in ["euro", "uefa european"]):
+        return "EURO"
+    if any(k in c_low for k in ["copa america", "copa américa"]):
+        return "Copa América"
+
+    # 5. Baseball Tournaments
+    if any(k in c_low for k in ["wbc", "world baseball classic"]):
+        return "WBC"
+    if any(k in c_low for k in ["premier12", "premier 12"]):
+        return "WBSC Premier12"
+    if any(k in c_low for k in ["u-23 baseball world cup", "u23 baseball world cup"]):
+        return "WBSC U-23 World Cup"
+    if any(k in c_low for k in ["u-18 baseball world cup", "u18 baseball world cup", "u18 baseball"]):
+        return "WBSC U-18 World Cup"
+
+    # 6. Basketball Tournaments
+    if any(k in c_low for k in ["fiba u19", "fiba u-19", "u19 world cup"]):
+        return "FIBA U19 World Cup"
+    if any(k in c_low for k in ["fiba u17", "fiba u-17", "u17 world cup"]):
+        return "FIBA U17 World Cup"
+    if any(k in c_low for k in ["fiba world cup", "basketball world cup"]):
+        return "FIBA World Cup"
+    if any(k in c_low for k in ["fiba asia cup", "asia cup basketball"]):
+        return "FIBA Asia Cup"
+
+    # 7. Volleyball Tournaments
+    if any(k in c_low for k in ["vnl", "volleyball nations league"]):
+        return "VNL"
+    if any(k in c_low for k in ["fivb world championship", "world championship"]) and ("volleyball" in s_low or "chuyền" in s_low):
+        return "FIVB World Championship"
+    if any(k in c_low for k in ["u21 asian", "asian championship"]) and ("volleyball" in s_low or "chuyền" in s_low):
+        return "U21 Asian Championship"
+    if "avc" in c_low:
+        return "AVC Cup"
+
+    # 8. Badminton & Table Tennis
+    if any(k in c_low for k in ["thomas cup", "uber cup", "thomas & uber"]):
+        return "Thomas & Uber Cup"
+    if any(k in c_low for k in ["sudirman cup", "sudirman"]):
+        return "Sudirman Cup"
+    if any(k in c_low for k in ["ittf world team", "ittf"]):
+        return "ITTF World Championship"
+
+    # 9. Clean any specific real tournament name if provided
+    if c and len(c) >= 3 and not any(k in c_low for k in ["giải quốc tế", "unknown", "thể thao"]):
+        clean_ret = re.sub(r'^(20\d\d[-/]\d\d|20\d\d)\s+', '', c)
+        return clean_ret
+
+    # 10. Default fallback is "Giao hữu"
+    return "Giao hữu"
+
+def extract_stage_tag(comp_name: str, match_name: str = "") -> str:
+    text = f"{comp_name} {match_name}".lower()
+    if any(k in text for k in ["chung kết", "final"]) and not any(k in text for k in ["bán kết", "tứ kết", "semifinal", "quarterfinal"]):
+        return "Chung kết"
+    if any(k in text for k in ["bán kết", "semifinal", "semi-final"]):
+        return "Bán kết"
+    if any(k in text for k in ["tứ kết", "quarterfinal", "quarter-final"]):
+        return "Tứ kết"
+    if any(k in text for k in ["vòng 16", "vòng 1/8", "round of 16"]):
+        return "Vòng 1/8"
+    if any(k in text for k in ["super round"]):
+        return "Super Round"
+    if any(k in text for k in ["tranh hạng 3", "3rd place", "bronze"]):
+        return "Tranh Hạng 3"
+    if any(k in text for k in ["vòng loại", "qualification", "qualifier"]):
+        return "Vòng loại"
+    if any(k in text for k in ["vòng bảng", "group stage", "group"]):
+        return "Vòng bảng"
+    return ""
+
+def extract_national_team_result_tags(team_country: str, match_name: str, match_result: str, match_state: str, sport: str = "") -> list:
+    tags = []
+    if not match_result or match_state not in ["post", "in"]:
+        if match_state == "in":
+            tags.append("Đang thi đấu")
+        return tags
+
+    score_match = re.search(r'(\d+)\s*[-–:]\s*(\d+)', match_result)
+    is_home = match_name.strip().startswith("vs")
+
+    if score_match:
+        s1 = int(score_match.group(1))
+        s2 = int(score_match.group(2))
+        
+        res_before_dash = match_result[:score_match.start()]
+        res_after_dash = match_result[score_match.end():]
+        
+        c_low = team_country.lower()
+        jp_words = ["japan", "nhật"]
+        kr_words = ["korea", "hàn"]
+        check_words = jp_words if any(w in c_low for w in jp_words) else (kr_words if any(w in c_low for w in kr_words) else [c_low])
+        
+        if any(w in res_before_dash.lower() for w in check_words):
+            our_score, opp_score = s1, s2
+        elif any(w in res_after_dash.lower() for w in check_words):
+            our_score, opp_score = s2, s1
+        else:
+            our_score = s1 if is_home else s2
+            opp_score = s2 if is_home else s1
+
+        if match_state == "in":
+            tags.append("Đang thi đấu")
+            tags.append(f"Tỉ số {our_score}-{opp_score}")
+        else:
+            diff = our_score - opp_score
+            if diff > 0:
+                tags.append(f"Thắng {our_score}-{opp_score}")
+                if opp_score == 0 and any(k in sport.lower() for k in ["bóng đá", "soccer", "football"]):
+                    tags.append("Giữ sạch lưới")
+                if diff >= 3 and any(k in sport.lower() for k in ["bóng đá", "soccer", "football"]):
+                    tags.append("Thắng đậm")
+            elif diff == 0:
+                tags.append(f"Hòa {our_score}-{opp_score}")
+            else:
+                tags.append(f"Thua {our_score}-{opp_score}")
+    else:
+        if match_state == "post":
+            tags.append("Đã kết thúc")
+            
+    return tags
+
+def extract_venue_tag(match_name: str) -> str:
+    m = match_name.strip()
+    if m.startswith("vs ") or m.startswith("vs."):
+        return "Sân nhà"
+    elif m.startswith("@ "):
+        return "Sân khách"
+    return ""
+
+def format_national_team_match_tags(team_country: str, sport_name: str, tier: str, match: dict, recent_news_titles: list = None) -> list:
+    tags = []
+    comp = match.get("competition") or ""
+    m_name = match.get("match_name") or ""
+    res = match.get("match_result") or ""
+    st = match.get("match_state", "pre")
+
+    # 1. Tournament Tag (ALWAYS first, defaulting to 'Giao hữu' if no official tournament)
+    tourn_tag = get_national_team_tournament_tag(comp, m_name, sport_name, tier)
+    if tourn_tag:
+        tags.append(tourn_tag)
+
+    # 2. Stage Tag (Vòng bảng, Vòng loại, Tứ kết, Bán kết, Chung kết...)
+    stage_tag = extract_stage_tag(comp, m_name)
+    if not stage_tag and tourn_tag not in ["Giao hữu", ""]:
+        if any(k in tourn_tag.lower() for k in ["world cup", "asian cup", "olympic", "vnl", "wbc", "championship"]):
+            stage_tag = "Vòng bảng"
+    if stage_tag and stage_tag not in tags:
+        tags.append(stage_tag)
+
+    # 3. Match Outcome / Result Tags (Thắng 2-0, Hòa 1-1, Thua 0-1, Giữ sạch lưới, Thắng đậm...)
+    res_tags = extract_national_team_result_tags(team_country, m_name, res, st, sport=sport_name)
+    for rt in res_tags:
+        if rt not in tags:
+            tags.append(rt)
+
+    # 4. Venue Tag (Sân nhà / Sân khách)
+    venue = extract_venue_tag(m_name)
+    if venue and venue not in tags:
+        tags.append(venue)
+
+    # 5. Pre-match status if upcoming
+    if st == "pre" and not res_tags:
+        diff_d = match.get("diff_days", 999.0)
+        if 0 <= diff_d <= 2:
+            tags.append("Sắp thi đấu")
+
+    # 6. Highlights from news (Triệu tập đội hình, Vào bán kết, Vô địch...)
+    if recent_news_titles:
+        all_news_text = " ".join(recent_news_titles).lower()
+        if any(k in all_news_text for k in ["triệu tập", "danh sách triệu tập", "chốt danh sách", "tập trung"]):
+            if "Triệu tập đội hình" not in tags:
+                tags.append("Triệu tập đội hình")
+        if any(k in all_news_text for k in ["vô địch", "champion", "thắng chung kết"]):
+            if "Vô địch" not in tags:
+                tags.append("Vô địch 🏆")
+        elif any(k in all_news_text for k in ["vé đi tiếp", "vào bán kết", "vào tứ kết", "giành vé"]):
+            if "Giành vé đi tiếp" not in tags:
+                tags.append("Giành vé đi tiếp")
+
+    return tags
+
 def fetch_national_team_schedule(team) -> list:
     """
     Fetches 100% REAL match schedule & complete match results for national & youth teams.
@@ -685,9 +1142,45 @@ def fetch_national_team_schedule(team) -> list:
                     away = next((c for c in competitors if c.get('homeAway') == 'away'), None)
                     h_name = home.get('team', {}).get('displayName', '') if home else ''
                     a_name = away.get('team', {}).get('displayName', '') if away else ''
+                    h_id = str(home.get('team', {}).get('id', '')) if home else ''
+                    a_id = str(away.get('team', {}).get('id', '')) if away else ''
 
-                    is_home = (t_country.lower() in h_name.lower() or "japan" in h_name.lower() or "korea" in h_name.lower())
-                    opp_name = f"vs {a_name}" if is_home else f"@ {h_name}"
+                    # Robustly determine home/away to avoid matching self as opponent
+                    is_home = False
+                    if t_api_id and h_id and str(t_api_id) == str(h_id):
+                        is_home = True
+                    elif t_api_id and a_id and str(t_api_id) == str(a_id):
+                        is_home = False
+                    else:
+                        t_c = t_country.lower()
+                        if "nhật" in t_c or "japan" in t_c:
+                            h_is_us = "japan" in h_name.lower() or "nhật" in h_name.lower()
+                            a_is_us = "japan" in a_name.lower() or "nhật" in a_name.lower()
+                        elif "hàn" in t_c or "korea" in t_c:
+                            h_is_us = ("korea" in h_name.lower() and "north" not in h_name.lower() and "dpr" not in h_name.lower()) or "hàn" in h_name.lower()
+                            a_is_us = ("korea" in a_name.lower() and "north" not in a_name.lower() and "dpr" not in a_name.lower()) or "hàn" in a_name.lower()
+                        else:
+                            h_is_us = t_c in h_name.lower() if t_c else False
+                            a_is_us = t_c in a_name.lower() if t_c else False
+
+                        if h_is_us and not a_is_us:
+                            is_home = True
+                        elif a_is_us and not h_is_us:
+                            is_home = False
+                        else:
+                            is_home = True
+
+                    opp_display = a_name if is_home else h_name
+                    # Guard: If opp_display happens to be our own team name, flip it
+                    if opp_display:
+                        if ("nhật" in t_country.lower() or "japan" in t_country.lower()) and "japan" in opp_display.lower() and a_name and h_name:
+                            opp_display = h_name if is_home else a_name
+                            is_home = not is_home
+                        elif ("hàn" in t_country.lower() or "korea" in t_country.lower()) and "korea" in opp_display.lower() and "north" not in opp_display.lower() and a_name and h_name:
+                            opp_display = h_name if is_home else a_name
+                            is_home = not is_home
+
+                    opp_name = f"vs {opp_display}" if is_home else f"@ {opp_display}"
                     if not a_name or not h_name:
                         opp_name = f"vs {name}"
 
@@ -710,20 +1203,24 @@ def fetch_national_team_schedule(team) -> list:
                     m_key = (dt_vn.strftime("%Y-%m-%d"), opp_name.lower())
                     if m_key not in seen_keys:
                         seen_keys.add(m_key)
-                        matches.append({
+                        clean_tourn = get_national_team_tournament_tag(comp_name, opp_name, t_sport, t_tier)
+                        m_item = {
                             "match_name": opp_name,
                             "raw_match_name": f"{t_short} {opp_name}",
                             "match_date_utc": dt.isoformat(),
                             "date_vn": dt_vn.strftime("%d/%m %H:%M"),
                             "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
                             "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
-                            "competition": comp_name,
+                            "competition": clean_tourn,
+                            "raw_competition": comp_name,
                             "match_state": state,
                             "match_result": res_str,
                             "is_past": (state == "post" or diff < -0.1),
                             "event_id": f"espn_nt_{ev.get('id', '')}",
                             "diff_days": diff
-                        })
+                        }
+                        m_item["tags"] = format_national_team_match_tags(t_country, t_sport, t_tier, m_item)
+                        matches.append(m_item)
         except Exception:
             pass
 
@@ -823,20 +1320,24 @@ def fetch_national_team_schedule(team) -> list:
             m_key = (dt_vn.strftime("%Y-%m-%d"), fix["opp"].lower())
             if m_key not in seen_keys:
                 seen_keys.add(m_key)
-                matches.append({
+                clean_tourn = get_national_team_tournament_tag(fix["comp"], fix["opp"], t_sport, t_tier)
+                m_item = {
                     "match_name": fix["opp"],
                     "raw_match_name": f"{t_short} {fix['opp']}",
                     "match_date_utc": dt.isoformat(),
                     "date_vn": dt_vn.strftime("%d/%m %H:%M"),
                     "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
                     "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
-                    "competition": fix["comp"],
+                    "competition": clean_tourn,
+                    "raw_competition": fix["comp"],
                     "match_state": st,
                     "match_result": res,
                     "is_past": is_past,
                     "event_id": f"struct_nt_{hashlib.md5((t_short + fix['opp'] + fix['d']).encode()).hexdigest()[:8]}",
                     "diff_days": diff
-                })
+                }
+                m_item["tags"] = format_national_team_match_tags(t_country, t_sport, t_tier, m_item)
+                matches.append(m_item)
 
     matches.sort(key=lambda x: x["match_date_utc"])
     NATIONAL_TEAM_SCHED_CACHE[cache_key] = (now_ts, matches)
@@ -856,11 +1357,27 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
     cat_match = next((c for c in NATIONAL_TEAMS_CATALOG if c["name"].lower() == team.name.lower() or c["short_name"].lower() == team.short_name.lower()), None)
     
     query_configs = []
-    is_japan = (team.country_name == "Nhật Bản")
-    is_korea = (team.country_name == "Hàn Quốc")
+    is_japan = ("nhật" in (team.country_name or "").lower() or "japan" in (team.country_name or "").lower())
+    is_korea = ("hàn" in (team.country_name or "").lower() or "korea" in (team.country_name or "").lower())
+    tier_label = team.tier if team.tier and team.tier != "Senior" else ""
+    sport_name = team.sport_name or ""
 
     if is_japan:
-        native_q = cat_match.get("query_native") if cat_match else f"{team.nickname or team.name}"
+        if cat_match and cat_match.get("query_native"):
+            native_q = cat_match["query_native"]
+        elif getattr(team, "search_query", None) and any(ord(c) > 127 for c in team.search_query):
+            native_q = team.search_query
+        else:
+            if any(k in sport_name.lower() for k in ["bóng đá", "soccer", "football"]):
+                native_q = f"{tier_label} サッカー日本代表".strip()
+            elif any(k in sport_name.lower() for k in ["bóng chày", "baseball"]):
+                native_q = f"{tier_label} 侍ジャパン 野球".strip()
+            elif any(k in sport_name.lower() for k in ["bóng rổ", "basketball"]):
+                native_q = f"{tier_label} バスケ日本代表".strip()
+            elif any(k in sport_name.lower() for k in ["bóng chuyền", "volleyball"]):
+                native_q = f"{tier_label} バレーボール日本代表".strip()
+            else:
+                native_q = f"{team.name} 日本代表"
         query_configs.append({
             "query": native_q,
             "hl": "ja",
@@ -869,7 +1386,21 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
             "region": "JP"
         })
     elif is_korea:
-        native_q = cat_match.get("query_native") if cat_match else f"{team.nickname or team.name}"
+        if cat_match and cat_match.get("query_native"):
+            native_q = cat_match["query_native"]
+        elif getattr(team, "search_query", None) and any(ord(c) > 127 for c in team.search_query):
+            native_q = team.search_query
+        else:
+            if any(k in sport_name.lower() for k in ["bóng đá", "soccer", "football"]):
+                native_q = f"대한민국 {tier_label} 축구 국가대표팀".strip()
+            elif any(k in sport_name.lower() for k in ["bóng chày", "baseball"]):
+                native_q = f"대한민국 {tier_label} 야구 대표팀".strip()
+            elif any(k in sport_name.lower() for k in ["bóng rổ", "basketball"]):
+                native_q = f"대한민국 {tier_label} 농구 국가대표팀".strip()
+            elif any(k in sport_name.lower() for k in ["bóng chuyền", "volleyball"]):
+                native_q = f"대한민국 {tier_label} 배구 국가대표팀".strip()
+            else:
+                native_q = f"{team.name} 대한민국 대표팀"
         query_configs.append({
             "query": native_q,
             "hl": "ko",
@@ -879,7 +1410,7 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
         })
 
     # International English query fallback
-    en_q = cat_match.get("query_en") if cat_match else f"{team.name} {team.sport_name}"
+    en_q = cat_match.get("query_en") if cat_match else f"{team.country_name} {tier_label} {team.sport_name} national team".strip()
     query_configs.append({
         "query": en_q,
         "hl": "en-US",
@@ -994,6 +1525,8 @@ def get_national_teams_dashboard_data(db: Session, country: str = None, sport: s
         else:
             tier_badge = "Tuyển trẻ"
 
+        nt_tags = (next_match.get("tags") if next_match else None) or ["Chờ lịch thi đấu", "Nghỉ đợt tập trung"]
+
         team_item = {
             "id": t.id,
             "entity_type": "national_team",
@@ -1007,6 +1540,7 @@ def get_national_teams_dashboard_data(db: Session, country: str = None, sport: s
             "tier_badge": tier_badge,
             "gender": t.gender,
             "description": t.description,
+            "tags": nt_tags,
             "next_match": next_match.get("match_name") if next_match else "Chưa có lịch sắp tới",
             "next_match_date": next_match.get("date_vn") if next_match else "N/A",
             "next_match_competition": next_match.get("competition") if next_match else "",

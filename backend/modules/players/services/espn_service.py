@@ -352,7 +352,7 @@ def is_same_team(team_a: str, team_b: str) -> bool:
         {"internazionale", "inter milan", "inter"},
         {"ac milan", "milan"},
         {"atlético madrid", "atletico madrid", "atlético", "atletico"},
-        {"real madrid", "real"},
+        {"real madrid", "r. madrid", "rma", "real madrid cf"},
         {"new york knicks", "ny knicks", "knicks"},
         {"golden state warriors", "gs warriors", "warriors"},
         {"portland trail blazers", "portland", "trail blazers", "blazers"},
@@ -373,18 +373,24 @@ def is_same_team(team_a: str, team_b: str) -> bool:
         ({"lafc", "los angeles fc"}, {"la galaxy", "galaxy"}),
         ({"city", "manchester city"}, {"united", "manchester united"}),
         ({"ac milan", "milan"}, {"inter", "internazionale"}),
-        ({"real"}, {"atletico", "atlético"}),
+        ({"real madrid", "real madrid cf"}, {"atletico", "atlético", "atlético madrid"}),
         ({"white sox"}, {"cubs"}),
         ({"yankees"}, {"mets"}),
+        ({"feyenoord"}, {"sparta rotterdam", "sparta"}),
+        ({"eintracht", "eintracht frankfurt"}, {"fsv", "fsv frankfurt"}),
+        ({"psv", "psv eindhoven"}, {"fc eindhoven"}),
+        ({"real sociedad", "sociedad"}, {"real madrid", "real betis", "real oviedo", "real valladolid"}),
+        ({"real betis", "betis"}, {"sevilla"}),
     ]
     for g1, g2 in city_rivals:
         if (any(k in a for k in g1) and any(k in b for k in g2)) or (any(k in a for k in g2) and any(k in b for k in g1)):
             return False
 
     STOP_WORDS = {
-        'fc', 'cf', 'sc', 'the', 'de', 'la', 'los', 'san', 'st',
+        'fc', 'cf', 'sc', 'the', 'de', 'la', 'los', 'san', 'st', 'jong',
         'angeles', 'city', 'york', 'town', 'club', 'united', 'real', 'madrid', 'milan',
-        'athletic', 'atletico', 'borussia', 'inter', 'hotspur', 'wanderers'
+        'athletic', 'atletico', 'borussia', 'inter', 'hotspur', 'wanderers',
+        'rotterdam', 'frankfurt', 'eindhoven'
     }
 
     if a in b or b in a:
@@ -397,6 +403,62 @@ def is_same_team(team_a: str, team_b: str) -> bool:
     if any(w in words_b for w in words_a if len(w) >= 4):
         return True
     return False
+
+def extract_opponent_name(team_name: str, home_name: str, away_name: str, event_title: str = "") -> str:
+    """
+    Xác định chính xác đối thủ thi đấu:
+    - 'vs {away_name}' nếu team_name là chủ nhà (home)
+    - '@ {home_name}' nếu team_name là đội khách (away)
+    - Đảm bảo TUYỆT ĐỐI đối thủ không bao giờ trùng với chính đội bóng của cầu thủ.
+    """
+    h_clean = (home_name or "").strip()
+    a_clean = (away_name or "").strip()
+    t_clean = (team_name or "").strip()
+
+    is_home = is_same_team(t_clean, h_clean) or (h_clean and t_clean and (t_clean.lower() in h_clean.lower() or h_clean.lower() in t_clean.lower()))
+    is_away = is_same_team(t_clean, a_clean) or (a_clean and t_clean and (t_clean.lower() in a_clean.lower() or a_clean.lower() in t_clean.lower()))
+
+    if is_home and not is_away and a_clean:
+        opp_name = f"vs {a_clean}"
+    elif is_away and not is_home and h_clean:
+        opp_name = f"@ {h_clean}"
+    elif is_away and h_clean:
+        opp_name = f"@ {h_clean}"
+    else:
+        ev = event_title or f"{h_clean} vs {a_clean}"
+        if ' at ' in ev:
+            p = ev.split(' at ')
+            p0, p1 = p[0].strip(), p[1].strip()
+            is_p0 = is_same_team(t_clean, p0) or (p0.lower() in t_clean.lower())
+            opp_name = f"@ {p1}" if is_p0 else f"vs {p0}"
+        elif ' vs ' in ev or ' vs. ' in ev:
+            delim = ' vs. ' if ' vs. ' in ev else ' vs '
+            p = ev.split(delim)
+            p0, p1 = p[0].strip(), p[1].strip()
+            is_p0 = is_same_team(t_clean, p0) or (p0.lower() in t_clean.lower())
+            opp_name = f"vs {p1}" if is_p0 else f"@ {p0}"
+        else:
+            opp_name = f"vs {a_clean}" if a_clean else f"vs {ev}"
+
+    # Strict safety check: opponent must NEVER be player's own team
+    clean_opp = re.sub(r'^(@ |vs |vs\. )', '', opp_name).strip()
+    if is_same_team(t_clean, clean_opp) or (clean_opp and t_clean and clean_opp.lower() == t_clean.lower()):
+        if a_clean and not is_same_team(t_clean, a_clean):
+            opp_name = f"vs {a_clean}"
+        elif h_clean and not is_same_team(t_clean, h_clean):
+            opp_name = f"@ {h_clean}"
+        elif ' at ' in event_title:
+            parts = event_title.split(' at ')
+            other = parts[1].strip() if is_same_team(t_clean, parts[0]) else parts[0].strip()
+            opp_name = f"@ {other}" if is_same_team(t_clean, parts[0]) else f"vs {other}"
+        elif ' vs ' in event_title or ' vs. ' in event_title:
+            delim = ' vs. ' if ' vs. ' in event_title else ' vs '
+            parts = event_title.split(delim)
+            other = parts[1].strip() if is_same_team(t_clean, parts[0]) else parts[0].strip()
+            opp_name = f"vs {other}" if is_same_team(t_clean, parts[0]) else f"@ {other}"
+
+    return opp_name
+
 
 def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
     if not team_name or team_name in ["Tự do", "Chưa rõ Đội"]: 
@@ -472,24 +534,8 @@ def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
                     elif status_state == 'post':
                         match_result = f"{event.get('name')} ({detail})"
 
-                    is_home = is_same_team(team_name, home_name) or (home and is_same_team(team_name, home.get('team', {}).get('name', '')))
-                    is_away = is_same_team(team_name, away_name) or (away and is_same_team(team_name, away.get('team', {}).get('name', '')))
                     ev_n = event.get('name', '')
-                    if is_home and away_name:
-                        opp_name = f"vs {away_name}"
-                    elif is_away and home_name:
-                        opp_name = f"@ {home_name}"
-                    else:
-                        if ' at ' in ev_n:
-                            p = ev_n.split(' at ')
-                            is_p0 = is_same_team(team_name, p[0])
-                            opp_name = f"@ {p[1].strip()}" if is_p0 else f"vs {p[0].strip()}"
-                        elif ' vs ' in ev_n:
-                            p = ev_n.split(' vs ')
-                            is_p0 = is_same_team(team_name, p[0])
-                            opp_name = f"vs {p[1].strip()}" if is_p0 else f"@ {p[0].strip()}"
-                        else:
-                            opp_name = f"vs {ev_n}"
+                    opp_name = extract_opponent_name(team_name, home_name, away_name, ev_n)
                             
                     raw_comp = (
                         event.get('league', {}).get('name') or
@@ -690,9 +736,52 @@ PLAYER_TRANSFER_HISTORY = {
 def get_player_transfer_history(player_name: str, current_team: str = None, sport_name: str = None) -> list:
     if not player_name:
         return None
+    # 1. Từ điển ghi đè thủ công ưu tiên cao nhất
     for k, v in PLAYER_TRANSFER_HISTORY.items():
         if k.lower() in player_name.lower() or player_name.lower() in k.lower():
             return v
+
+    # 2. Tự động khám phá lịch sử chuyển nhượng qua FotMob cho bóng đá
+    if sport_name in ["Bóng đá", "soccer", None]:
+        try:
+            from backend.core.services.fotmob_service import get_fotmob_player
+            p_info = get_fotmob_player(player_name, current_team or "")
+            if p_info and p_info.get("id"):
+                url = f"https://www.fotmob.com/api/data/playerData?id={p_info['id']}"
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                    'Referer': 'https://www.fotmob.com/',
+                    'Accept': 'application/json, text/plain, */*'
+                }
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, timeout=4) as r:
+                    d = json.loads(r.read().decode())
+                team_entries = d.get('careerHistory', {}).get('careerItems', {}).get('senior', {}).get('teamEntries', [])
+                if team_entries:
+                    periods = []
+                    for te in team_entries:
+                        t_name = te.get('team')
+                        if not t_name: continue
+                        if t_name.endswith(' B') or t_name.endswith(' II') or t_name.endswith(' U21') or t_name.endswith(' U23'):
+                            continue
+                        lower_t = t_name.lower()
+                        if any(k in lower_t for k in ["all-star", "all star", "allstar", "world xi", "mls all-stars"]):
+                            continue
+                        start_d = te.get('startDate', '')[:10] if te.get('startDate') else None
+                        end_d = te.get('endDate', '')[:10] if te.get('endDate') else None
+                        if end_d and end_d < "2023-01-01":
+                            continue
+                        item = {"team": t_name, "sport": "Bóng đá"}
+                        if start_d and start_d >= "2023-01-01":
+                            item["from"] = start_d
+                        if end_d:
+                            item["until"] = end_d
+                        periods.append(item)
+                    if periods:
+                        return periods
+        except Exception:
+            pass
+
     return None
 
 def fetch_fotmob_team_schedule(team_name: str, player_name: str = None) -> list:
@@ -760,11 +849,11 @@ def fetch_fotmob_team_schedule(team_name: str, player_name: str = None) -> list:
             clean_d = d_raw.replace('Z', '').split('.')[0]
             dt = datetime.datetime.fromisoformat(clean_d)
             diff = (dt - now_utc).total_seconds() / 86400.0
-            if -300 <= diff <= 300:
+            # Giữ lại toàn bộ các trận đấu từ 2024, 2025 đến 2026 (~1100 ngày trong quá khứ)
+            if -1100 <= diff <= 300:
                 home_name = f.get('home', {}).get('name', '')
                 away_name = f.get('away', {}).get('name', '')
-                is_home = (q.lower() in home_name.lower() or home_name.lower() in q.lower())
-                opp_name = f"vs {away_name}" if is_home else f"@ {home_name}"
+                opp_name = extract_opponent_name(team_name, home_name, away_name, f"{home_name} vs {away_name}")
                 dt_vn = dt + datetime.timedelta(hours=7)
                 is_finished = status.get('finished', False)
                 score_str = status.get('scoreStr') or ''
@@ -867,25 +956,49 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
         _save_team_sched_cache()
         return non_espn_list
 
+    # 1. Tách và giữ lại các trận lịch sử bất biến (> 14 ngày trước hoặc thuộc các năm cũ)
+    archived_historical_matches = []
+    if cache_key in SCHEDULE_30D_CACHE:
+        _, existing_list = SCHEDULE_30D_CACHE[cache_key]
+        archived_historical_matches = [
+            m for m in existing_list 
+            if (m.get("diff_days") is not None and m["diff_days"] < -14) or (m.get("date_only_vn") and m["date_only_vn"] < "2026-10-01")
+        ]
+
+    # Kiểm tra xem đội bóng này đã có sẵn dữ liệu lịch sử năm 2024 và 2025 chưa
+    has_archived_2024_2025 = any(m.get("date_only_vn", "") < "2026-01-01" for m in archived_historical_matches)
+
     sport = team_info.get("sport")
     league = team_info.get("league")
     team_id = team_info.get("id")
 
     urls = []
     if sport == "soccer":
+        # Chỉ truy vấn các mùa giải cũ 2024, 2025 nếu chưa từng có trong kho lưu trữ
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?fixture=true",
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?fixture=true",
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule",
-            f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2025",
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2026",
+            f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2026",
         ]
+        if not has_archived_2024_2025:
+            urls.extend([
+                f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2024",
+                f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2025",
+                f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2024",
+                f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2025",
+            ])
     else:
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule",
-            f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025",
             f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026",
         ]
+        if not has_archived_2024_2025:
+            urls.extend([
+                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2024",
+                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025",
+            ])
 
     seen_match_keys = set()
     for u in urls:
@@ -905,7 +1018,8 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
                 if clean_d.count(":") == 1: clean_d += ":00"
                 dt = datetime.datetime.strptime(clean_d[:19], "%Y-%m-%dT%H:%M:%S")
                 diff = (dt - now_utc).total_seconds() / 86400.0
-                if -300 <= diff <= 300:
+                # Giữ lại toàn bộ các trận đấu từ 2024, 2025 đến 2026 (~1100 ngày)
+                if -1100 <= diff <= 300:
                     name = ev.get("name") or ""
                     comp_obj = ev.get("competitions", [{}])[0]
                     competitors = comp_obj.get("competitors", [])
@@ -1007,10 +1121,24 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
             _save_team_sched_cache()
             return fm_matches
 
-    matches.sort(key=lambda x: x["match_date_utc"])
-    SCHEDULE_30D_CACHE[cache_key] = (now_ts, matches)
+    # Hợp nhất dữ liệu lịch sử bất biến đã lưu với các trận mới được cào về
+    all_final_matches = list(archived_historical_matches)
+    seen_match_ids = {m.get("event_id") for m in all_final_matches if m.get("event_id")}
+    seen_match_dates = {(m.get("date_only_vn"), m.get("match_name")) for m in all_final_matches}
+
+    for m in matches:
+        ev = m.get("event_id")
+        dn = (m.get("date_only_vn"), m.get("match_name"))
+        if (ev and ev in seen_match_ids) or (dn in seen_match_dates):
+            continue
+        if ev: seen_match_ids.add(ev)
+        seen_match_dates.add(dn)
+        all_final_matches.append(m)
+
+    all_final_matches.sort(key=lambda x: x["match_date_utc"])
+    SCHEDULE_30D_CACHE[cache_key] = (now_ts, all_final_matches)
     _save_team_sched_cache()
-    return matches
+    return all_final_matches
 
 INJURY_KEYWORDS = [
     # Tiếng Việt
@@ -1242,6 +1370,140 @@ def fetch_player_match_stats(player_name: str, sport_name: str, team_name: str, 
             MATCH_STATS_CACHE[cache_key] = res
     return res
 
+def _fetch_fotmob_match_summary(player_name: str, team_name: str, event_id: str, match_state: str = "post", news_titles: list = None) -> dict:
+    try:
+        from backend.core.services.fotmob_service import get_fotmob_player, HEADERS
+        match_id = str(event_id).replace("fm_", "").strip()
+        url = f"https://www.fotmob.com/api/data/matchDetails?matchId={match_id}"
+        req = urllib.request.Request(url, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode())
+
+        teams = data.get("header", {}).get("teams", [])
+        h_t = teams[0] if len(teams) > 0 else {}
+        a_t = teams[1] if len(teams) > 1 else {}
+        h_name = h_t.get("name", "")
+        a_name = a_t.get("name", "")
+        h_score = h_t.get("score")
+        a_score = a_t.get("score")
+        formatted_result = f"{h_name} {h_score} - {a_score} {a_name} (FT)" if (h_score is not None and a_score is not None) else None
+
+        player_info = get_fotmob_player(player_name, team_name)
+        p_id = str(player_info.get("id")) if player_info else None
+
+        norm_p = normalize_player_name(player_name)
+        lineup = data.get("content", {}).get("lineup", {})
+        matched_in_lineup = None
+        is_starter = False
+        is_subbed = False
+        is_bench = False
+
+        for side in ["homeTeam", "awayTeam"]:
+            team_lineup = lineup.get(side, {})
+            for p in team_lineup.get("starters", []):
+                if (p_id and str(p.get("id")) == p_id) or normalize_player_name(p.get("name", "")) == norm_p:
+                    matched_in_lineup = p
+                    is_starter = True
+                    break
+            if matched_in_lineup: break
+            for p in team_lineup.get("subs", []):
+                if (p_id and str(p.get("id")) == p_id) or normalize_player_name(p.get("name", "")) == norm_p:
+                    matched_in_lineup = p
+                    if p.get("timeSubbedIn") or p.get("minutesPlayed", 0) > 0:
+                        is_subbed = True
+                    else:
+                        is_bench = True
+                    break
+            if matched_in_lineup: break
+
+        player_stats_map = data.get("content", {}).get("playerStats", {})
+        p_stat_obj = None
+        if p_id and p_id in player_stats_map:
+            p_stat_obj = player_stats_map[p_id]
+        elif matched_in_lineup and str(matched_in_lineup.get("id")) in player_stats_map:
+            p_stat_obj = player_stats_map[str(matched_in_lineup.get("id"))]
+
+        stats_dict = {}
+        if p_stat_obj:
+            for grp in p_stat_obj.get("stats", []):
+                for k, v in grp.get("stats", {}).items():
+                    stats_dict[k] = v.get("stat", {})
+
+        raw_rating = stats_dict.get("FotMob rating", {}).get("value")
+        rating = round(float(raw_rating), 1) if raw_rating is not None else None
+        minutes_played = stats_dict.get("Minutes played", {}).get("value") or (90 if is_starter else (25 if is_subbed else 0))
+        goals = int(stats_dict.get("Goals", {}).get("value", 0) or 0)
+        assists = int(stats_dict.get("Assists", {}).get("value", 0) or 0)
+        chances_created = int(stats_dict.get("Chances created", {}).get("value", 0) or 0)
+        total_shots = int(stats_dict.get("Total shots", {}).get("value", 0) or 0)
+
+        has_played = is_starter or is_subbed or (minutes_played and minutes_played > 0) or (rating is not None)
+
+        if not has_played:
+            if is_bench:
+                tag_name = "Dự bị (Không vào sân)"
+            else:
+                reason = detect_player_absence_reason(player_name, news_titles=news_titles)
+                if reason == 'injury':
+                    tag_name = "Không đăng ký (Chấn thương)"
+                elif reason == 'rest':
+                    tag_name = "Không đăng ký (Xoay tua / Nghỉ ngơi)"
+                else:
+                    tag_name = "Không đăng ký thi đấu"
+            return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": formatted_result}
+
+        tags = []
+        if match_state == "in":
+            tags.append("Đang thi đấu")
+        if is_starter:
+            tags.append("Đá chính")
+        elif is_subbed:
+            tags.append("Vào sân")
+        if minutes_played and minutes_played > 0:
+            tags.append(f"{minutes_played} phút")
+
+        if goals == 1: tags.append("1 bàn")
+        elif goals == 2: tags.append("Cú đúp")
+        elif goals >= 3: tags.append("Hattrick")
+
+        if assists == 1: tags.append("1 kiến tạo")
+        elif assists >= 2: tags.append(f"{assists} kiến tạo")
+
+        if chances_created >= 4:
+            tags.append(f"Tạo cơ hội nhiều nhất trận ({chances_created} lần)")
+        elif chances_created >= 2:
+            tags.append(f"{chances_created} tạo cơ hội")
+
+        summary_parts = []
+        if chances_created > 0: summary_parts.append(f"{chances_created} tạo cơ hội")
+        if total_shots > 0: summary_parts.append(f"{total_shots} sút")
+        if goals > 0: summary_parts.insert(0, f"{goals} bàn")
+        if assists > 0: summary_parts.insert(1, f"{assists} kiến tạo")
+        st_text = ", ".join(summary_parts)
+
+        detailed_stats = {
+            "source": "FotMob",
+            "fotmob_rating": rating or 7.0,
+            "rating": rating or 7.0,
+            "summary": st_text,
+            "minutes_played": minutes_played,
+            "goals": goals,
+            "assists": assists,
+            "fun_facts": [t for t in tags if "Tạo cơ hội" in t or "bàn" in t]
+        }
+        stats_storage = json.dumps({"summary": st_text, "details": detailed_stats}, ensure_ascii=False)
+
+        return {
+            "stats_text": stats_storage,
+            "rating": rating,
+            "tags": tags,
+            "has_played": True,
+            "detailed_stats": detailed_stats,
+            "match_result": formatted_result
+        }
+    except Exception:
+        return None
+
 def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None) -> dict:
     espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball", "soccer": "soccer", "basketball": "basketball", "baseball": "baseball", "volleyball": "volleyball", "bóng chuyền": "volleyball", "badminton": "badminton", "cầu lông": "badminton", "table tennis": "table tennis", "bóng bàn": "table tennis"}.get(sport_name, (sport_name or "").lower())
 
@@ -1249,6 +1511,17 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
     target_tokens = [t for t in norm_target.split() if len(t) >= 2]
     target_last_name = target_tokens[-1] if target_tokens else norm_target
     p_parts = [p.lower() for p in (player_name or "").split() if len(p) >= 2]
+
+    # Bổ sung tên bản địa (tiếng Nhật / tiếng Hàn...) vào p_parts để nhận diện tin tức
+    try:
+        from backend.modules.players.services.news_service import PLAYER_NATIVE_NAMES
+        p_name_low = (player_name or "").strip().lower()
+        if p_name_low in PLAYER_NATIVE_NAMES:
+            for nn in PLAYER_NATIVE_NAMES[p_name_low]:
+                if nn.lower() not in p_parts:
+                    p_parts.append(nn.lower())
+    except Exception:
+        pass
 
     def _matches_athlete(ath_display_name: str) -> bool:
         if not ath_display_name:
@@ -1281,6 +1554,11 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
         try:
             # 1. SOCCER SUMMARY
             if espn_sport == "soccer":
+                if str(event_id).startswith("fm_"):
+                    fm_res = _fetch_fotmob_match_summary(player_name, team_name, event_id, match_state, news_titles)
+                    if fm_res:
+                        return fm_res
+
                 sum_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event={event_id}"
                 data = fetch_espn_summary(sum_url, event_id)
                 
@@ -1537,13 +1815,28 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                     if not news_titles:
                         news_titles = get_player_recent_news_titles(player_name)
                     if news_titles:
-                        for nt in news_titles[:10]:
+                        for nt in news_titles[:15]:
                             nt_low = nt.lower()
                             if any(part in nt_low for part in p_parts):
                                 if any(kw in nt_low for kw in ["siêu phẩm", "wonder goal", "screamer"]):
                                     if "Siêu phẩm" not in tags: tags.append("Siêu phẩm")
                                 if any(kw in nt_low for kw in ["phá kỷ lục", "kỷ lục mới", "new record", "record-breaking", "career-high", "career high", "breaks record", "broke record", "sets record", "신기록", "대기록", "기록 경신", "新記録", "記録更新"]):
                                     if "Phá kỷ lục" not in tags: tags.append("Phá kỷ lục")
+                                if a == 0 and any(kw in nt_low for kw in ["kiến tạo", "assist", "assists", "assisted", "アシスト", "도움", "어시스트"]):
+                                    if "1 kiến tạo" not in tags and not any("kiến tạo" in t for t in tags):
+                                        tags.append("1 kiến tạo")
+                                        a = 1
+                                if is_gk:
+                                    m_sv = re.search(r'(\d+)\s*(?:セーブ|cứu thua|saves)', nt_low)
+                                    if m_sv:
+                                        n_sv = int(m_sv.group(1))
+                                        if n_sv > saves:
+                                            for idx, t in enumerate(tags):
+                                                if "cứu thua xuất sắc" in t:
+                                                    tags[idx] = f"{n_sv} pha cứu thua xuất sắc"
+                                            if not any("cứu thua xuất sắc" in t for t in tags) and n_sv >= 5:
+                                                tags.append(f"{n_sv} pha cứu thua xuất sắc")
+                                            saves = n_sv
 
                     # Generate stats text for soccer
                     if is_gk:
@@ -1551,7 +1844,12 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         if goals_conceded > 0:
                             st_text += f", {goals_conceded} bàn thua"
                     elif fotmob_stats and fotmob_stats.get("summary"):
-                        st_text = fotmob_stats["summary"]
+                        fm_sum = fotmob_stats["summary"]
+                        if a > 0 and "kiến tạo" not in fm_sum:
+                            fm_sum = f"{a} kiến tạo, " + fm_sum
+                        if g > 0 and "bàn" not in fm_sum:
+                            fm_sum = f"{g} bàn, " + fm_sum
+                        st_text = fm_sum
                     else:
                         st_parts = []
                         if g > 0: st_parts.append(f"{g} bàn")
@@ -1563,6 +1861,22 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
 
                     return {"stats_text": stats_storage, "rating": rating, "tags": tags, "has_played": True, "detailed_stats": fotmob_stats}
                 else:
+                    # Fallback check: Before declaring player absent, verify with FotMob detailed stats
+                    try:
+                        from backend.core.services.fotmob_service import fetch_fotmob_detailed_stats
+                        fm_check = fetch_fotmob_detailed_stats(player_name, team_name=team_name)
+                        if fm_check and fm_check.get("rating") and fm_check.get("minutes_played", 0) > 0:
+                            m_min = fm_check.get("minutes_played", 90)
+                            m_rating = fm_check.get("rating")
+                            fm_tags = ["Đá chính" if m_min >= 60 else "Vào sân", f"{m_min} phút"]
+                            for ff in fm_check.get("fun_facts", []):
+                                if ff not in fm_tags: fm_tags.append(ff)
+                            fm_summary = fm_check.get("summary", "")
+                            fm_storage = json.dumps({"summary": fm_summary, "details": fm_check}, ensure_ascii=False)
+                            return {"stats_text": fm_storage, "rating": m_rating, "tags": fm_tags, "has_played": True, "detailed_stats": fm_check, "match_result": official_header_res}
+                    except Exception:
+                        pass
+
                     reason = detect_player_absence_reason(player_name, news_titles=news_titles)
                     if reason == 'injury':
                         tag_name = "Không đăng ký (Chấn thương)"
@@ -1647,7 +1961,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             tags.append("Game Winner")
                         elif any(kw in article_text for kw in ["clutch", "clutch 3"]):
                             tags.append("Clutch 3")
-                        if any(kw in article_text for kw in ["record", "career high", "career-high"]):
+                        if any(kw in article_text for kw in ["career-high", "career high", "franchise record", "nba record", "kỷ lục mới", "phá kỷ lục"]):
                             tags.append("Phá kỷ lục")
 
                         # Realistic NBA performance rating calibration (Hollinger Game Score proportional):

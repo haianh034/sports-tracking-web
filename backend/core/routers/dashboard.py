@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import text
+from dataclasses import dataclass
 import os
 import datetime
 import json
@@ -12,6 +14,15 @@ import time
 import logging
 
 logger = logging.getLogger("uvicorn.error")
+
+@dataclass(slots=True)
+class FastNewsItem:
+    title: str
+    source_url: str
+    news_type: str
+    region: str
+    published_at: datetime.datetime
+    published_at_iso: str
 
 def get_starting_role_tag(player_name: str, sport_name: str) -> str:
     s_lower = (sport_name or "").lower()
@@ -42,13 +53,71 @@ from backend.modules.players.services.espn_service import (
 )
 from backend.modules.players.services.sports_service import format_player_stats_and_tags, get_tournament_tag
 from backend.core.services.live_score_service import get_live_scores_map
-from backend.modules.national_teams.services.national_teams_service import fetch_national_team_schedule, fetch_national_team_news_feed
+from backend.modules.national_teams.services.national_teams_service import (
+    fetch_national_team_schedule, fetch_national_team_news_feed,
+    format_national_team_match_tags, get_national_team_tournament_tag
+)
 
 router = APIRouter(tags=["dashboard"])
 templates = Jinja2Templates(directory="frontend/templates")
 
 _DASHBOARD_CACHE = {}
-_DASHBOARD_CACHE_TTL = 600.0  # 10 minutes (600s) for lightning fast reloads
+_DASHBOARD_CACHE_TTL = 900.0  # 15 minutes (900s) for lightning fast reloads
+
+def _filter_cached_dashboard(base_data: dict, entity_type: str = None) -> dict:
+    if not entity_type or entity_type == "all":
+        return base_data
+
+    target_type = "player" if entity_type == "player" else "national_team"
+    
+    # Lọc danh sách vận động viên / đội tuyển theo đúng entity_type
+    filtered_active = [p for p in base_data.get("active_players", []) if p.get("entity_type") == target_type]
+    filtered_upcoming = [p for p in base_data.get("upcoming_players", []) if p.get("entity_type") == target_type]
+    filtered_no_match = [p for p in base_data.get("no_match_players", []) if p.get("entity_type") == target_type]
+    filtered_schedule = [p for p in base_data.get("schedule_players", []) if p.get("entity_type") == target_type]
+
+    # Tính toán lại môn và quốc tịch active
+    active_sports_set = {p.get("sport") for p in filtered_schedule if p.get("sport") and p.get("sport") != "Không rõ"}
+    active_countries_set = {p.get("country") for p in filtered_schedule if p.get("country") and p.get("country") != "Không rõ"}
+
+    # Tính toán lại calendar_counts cho đối tượng tương ứng
+    calendar_counts = {}
+    for p_item in (filtered_active + filtered_upcoming + filtered_no_match):
+        p_matches = p_item.get("all_matches") or p_item.get("details", {}).get("all_matches", [])
+        seen_dates = set()
+        for m in p_matches:
+            d_key = m.get("date_only_vn")
+            if not d_key and m.get("match_date_utc"):
+                try:
+                    dt_utc = datetime.datetime.fromisoformat(m["match_date_utc"].replace("Z", ""))
+                    d_key = (dt_utc + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
+                except Exception:
+                    pass
+            if d_key and d_key not in seen_dates:
+                seen_dates.add(d_key)
+                calendar_counts[d_key] = calendar_counts.get(d_key, 0) + 1
+
+    # Giữ nguyên đầy đủ dải ngày từ base_data
+    for k in base_data.get("calendar_counts", {}):
+        if k not in calendar_counts:
+            calendar_counts[k] = 0
+
+    return {
+        "today_date_vn": base_data.get("today_date_vn"),
+        "server_time_vn": base_data.get("server_time_vn"),
+        "server_timestamp": base_data.get("server_timestamp"),
+        "server_time_utc": base_data.get("server_time_utc"),
+        "active_players": filtered_active,
+        "upcoming_players": filtered_upcoming,
+        "no_match_players": filtered_no_match,
+        "schedule_players": filtered_schedule,
+        "calendar_counts": calendar_counts,
+        "sports_list": [{"name": s} for s in sorted(active_sports_set)],
+        "countries_list": [{"name": c} for c in sorted(active_countries_set)],
+        "total_players": base_data.get("total_players", 0),
+        "total_national_teams": base_data.get("total_national_teams", 0),
+        "total_all": base_data.get("total_all", 0)
+    }
 
 def unpack_stats(stats_val):
     if not stats_val:
@@ -148,6 +217,23 @@ def get_dashboard_data(
         c_ts, c_data = _DASHBOARD_CACHE[cache_key]
         if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
             return c_data
+
+    # Tối ưu hóa chuyển tab siêu tốc (0.01s): Nếu đã có cache của 'all' (hoặc None), trích xuất nhanh
+    base_all_cache_key = (
+        (clean_sport or "").strip().lower(),
+        (clean_country or "").strip().lower(),
+        clean_sport_id,
+        clean_country_id,
+        "all"
+    )
+    if clean_entity_type in ["player", "national_team"]:
+        for potential_key in [base_all_cache_key, ((clean_sport or "").strip().lower(), (clean_country or "").strip().lower(), clean_sport_id, clean_country_id, "")]:
+            if potential_key in _DASHBOARD_CACHE:
+                base_ts, base_data = _DASHBOARD_CACHE[potential_key]
+                if now_ts - base_ts < _DASHBOARD_CACHE_TTL:
+                    derived_data = _filter_cached_dashboard(base_data, clean_entity_type)
+                    _DASHBOARD_CACHE[cache_key] = (base_ts, derived_data)
+                    return derived_data
 
     total_filtered_players = sum(1 for p in all_db_players if matches_dropdown_filters(p))
     total_filtered_national_teams = sum(1 for t in all_db_national_teams if matches_dropdown_filters(t))
@@ -270,15 +356,23 @@ def get_dashboard_data(
         if p_d_str in [today_str_vn, yesterday_ict.strftime("%Y-%m-%d")]:
             today_perf_by_player[perf.player_id] = perf
 
-    # Tải đầy đủ tin tức từ database để không bỏ sót bài báo nào của vận động viên
-    all_db_player_news = (
-        db.query(PlayerNews)
-        .order_by(PlayerNews.published_at.desc())
-        .all()
-    )
+    # Tải đầy đủ tin tức từ database qua SQL nhẹ và map vào FastNewsItem
+    cutoff_45d = now_utc - datetime.timedelta(days=45)
+    raw_news_rows = db.execute(
+        text("SELECT player_id, title, source_url, news_type, region, published_at FROM player_news WHERE published_at >= :c ORDER BY published_at DESC"),
+        {"c": cutoff_45d}
+    ).fetchall()
+
     news_by_player = {}
-    for n in all_db_player_news:
-        news_by_player.setdefault(n.player_id, []).append(n)
+    for r in raw_news_rows:
+        p_dt = r[5]
+        if isinstance(p_dt, str):
+            try:
+                p_dt = datetime.datetime.fromisoformat(p_dt)
+            except Exception:
+                p_dt = None
+        iso_str = p_dt.isoformat() if p_dt else None
+        news_by_player.setdefault(r[0], []).append(FastNewsItem(r[1], r[2], r[3], r[4] or "US", p_dt, iso_str))
 
     yesterday_str_vn = yesterday_ict.strftime("%Y-%m-%d")
 
@@ -414,10 +508,38 @@ def get_dashboard_data(
                                 pass
                         
                         has_p = fresh_stats.get("has_played", False)
+                        if match_today and match_today.has_played and not has_p:
+                            if match_today.performance_rating or (match_today.player_stats and "minutes_played" in str(match_today.player_stats)):
+                                has_p = True
+
+                        m_name = sched_today_match.get("match_name") or next_match_text
+                        clean_opp = re.sub(r'^(@ |vs |vs\. )', '', m_name or '').strip()
+                        if team_name and clean_opp and (is_same_team(team_name, clean_opp) or clean_opp.lower() == team_name.lower()):
+                            if match_result and " - " in match_result:
+                                res_parts = re.sub(r'\s*\([^)]*\)', '', match_result).split(' - ')
+                                if len(res_parts) == 2:
+                                    left_t = re.sub(r'\s+\d+$', '', res_parts[0]).strip()
+                                    right_t = re.sub(r'^\d+\s+', '', res_parts[1]).strip()
+                                    other_t = right_t if is_same_team(team_name, left_t) else left_t
+                                    m_name = f"vs {other_t}" if is_same_team(team_name, left_t) else f"@ {other_t}"
+
+                        if not match_today:
+                            # Tránh tạo trùng lặp row nếu đã tồn tại bản ghi trong ngày hoặc event_id
+                            if sched_today_match.get("date_only_vn"):
+                                match_today = db.query(MatchPerformance).filter(
+                                    MatchPerformance.player_id == p.id,
+                                    MatchPerformance.date_str == str(sched_today_match.get("date_only_vn"))
+                                ).first()
+                            if not match_today and ev_id:
+                                match_today = db.query(MatchPerformance).filter(
+                                    MatchPerformance.player_id == p.id,
+                                    MatchPerformance.event_id == str(ev_id)
+                                ).first()
+
                         if not match_today:
                             match_today = MatchPerformance(
                                 player_id=p.id,
-                                match_name=sched_today_match.get("match_name") or next_match_text,
+                                match_name=m_name,
                                 match_date=m_perf_date or now_utc,
                                 match_state=match_state,
                                 match_result=match_result,
@@ -432,7 +554,7 @@ def get_dashboard_data(
                             db.add(match_today)
                             db.commit()
                         else:
-                            match_today.match_name = sched_today_match.get("match_name") or next_match_text
+                            match_today.match_name = m_name
                             if m_perf_date:
                                 match_today.match_date = m_perf_date
                             match_today.match_state = match_state
@@ -445,6 +567,8 @@ def get_dashboard_data(
                                 match_today.impression_tags = ", ".join(raw_tags)
                             if comp_name:
                                 match_today.competition = comp_name
+                            if ev_id and not match_today.event_id:
+                                match_today.event_id = str(ev_id)
                             db.commit()
                 except Exception:
                     pass
@@ -568,6 +692,9 @@ def get_dashboard_data(
                 if stats_info.get("tags"):
                     raw_tags = stats_info.get("tags", [])
                 has_p = stats_info.get("has_played", False)
+                if match_today and match_today.has_played and not has_p:
+                    if match_today.performance_rating or (match_today.player_stats and "minutes_played" in str(match_today.player_stats)):
+                        has_p = True
                 if has_p:
                     rating = stats_info.get("rating")
                     raw_stats = stats_info.get("stats_text")
@@ -655,10 +782,22 @@ def get_dashboard_data(
                         if t_low == "bàn quyết định":
                             t = "Bàn mở tỉ số"
                             t_low = t.lower()
-                        if "cứu thua" in t_low and "xuất sắc" not in t_low:
-                            continue
+                        if "scored an own goal" in t_low or t_low == "own goal":
+                            t = "Phản lưới"
+                            t_low = t.lower()
+                        m_save = re.match(r'^(\d+)\s+pha\s+cứu\s+thua(\s+xuất\s+sắc)?$', t_low)
+                        if m_save:
+                            t = f"{m_save.group(1)} cứu thua"
                         if t not in m_tags:
                             m_tags.append(t)
+                def _m_tag_sort_key(tag_str):
+                    tl = tag_str.lower()
+                    if tag_str == clean_comp: return (0, 0)
+                    if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist"]): return (1, 0)
+                    if any(w in tl for w in ["đá chính", "xuất phát", "vào sân", "phút"]): return (2, 0)
+                    if any(w in tl for w in ["mvp", "xuất sắc nhất", "kỷ lục"]): return (3, 0)
+                    return (4, 0)
+                m_tags.sort(key=_m_tag_sort_key)
                 m["tags"] = m_tags
                 m["has_played"] = False if is_no_play else h_played
                 is_fb = False
@@ -733,10 +872,23 @@ def get_dashboard_data(
                             if t_low == "bàn quyết định":
                                 t = "Bàn mở tỉ số"
                                 t_low = t.lower()
-                            if "cứu thua" in t_low and "xuất sắc" not in t_low:
-                                continue
+                            if "scored an own goal" in t_low or t_low == "own goal":
+                                t = "Phản lưới"
+                                t_low = t.lower()
+                            m_save = re.match(r'^(\d+)\s+pha\s+cứu\s+thua(\s+xuất\s+sắc)?$', t_low)
+                            if m_save:
+                                t = f"{m_save.group(1)} cứu thua"
                             if t not in m_tags:
                                 m_tags.append(t)
+                    # Ưu tiên thứ tự: Bàn thắng/Kiến tạo/Cứu thua/Phản lưới trước, số phút/đá chính sau
+                    def _m_tag_sort_key(tag_str):
+                        tl = tag_str.lower()
+                        if tag_str == clean_comp: return (0, 0)
+                        if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist"]): return (1, 0)
+                        if any(w in tl for w in ["đá chính", "xuất phát", "vào sân", "phút"]): return (2, 0)
+                        if any(w in tl for w in ["mvp", "xuất sắc nhất", "kỷ lục"]): return (3, 0)
+                        return (4, 0)
+                    m_tags.sort(key=_m_tag_sort_key)
                     m["tags"] = m_tags
                 else:
                     real_stats = None
@@ -847,11 +999,11 @@ def get_dashboard_data(
                             "title": n.title,
                             "url": n.source_url,
                             "news_type": n.news_type,
-                            "region": getattr(n, "region", "US") or "US",
-                            "published_at": n.published_at.isoformat() if n.published_at else None
+                            "region": n.region or "US",
+                            "published_at": n.published_at_iso
                         }
                         for n in all_player_news
-                        if win_start <= n.published_at <= win_end
+                        if n.published_at and win_start <= n.published_at <= win_end
                     ]
                 except Exception:
                     m_news = []
@@ -1043,8 +1195,8 @@ def get_dashboard_data(
                 "title": n.title,
                 "url": n.source_url,
                 "news_type": n.news_type,
-                "region": getattr(n, "region", "US") or "US",
-                "published_at": n.published_at.isoformat() if n.published_at else None
+                "region": n.region or "US",
+                "published_at": n.published_at_iso
             }
             for n in player_news_list
             if n.published_at and n.published_at >= cutoff_24h_utc
@@ -1114,8 +1266,8 @@ def get_dashboard_data(
                         "title": n.title,
                         "url": n.source_url,
                         "news_type": n.news_type,
-                        "region": getattr(n, "region", "US") or "US",
-                        "published_at": n.published_at.isoformat() if n.published_at else None
+                        "region": n.region or "US",
+                        "published_at": n.published_at_iso
                     }
                     for n in player_news_list
                 ]
@@ -1182,15 +1334,20 @@ def get_dashboard_data(
         for tid, s_list in ex.map(_fetch_nt_sched, filtered_nts):
             nt_sched_map[tid] = s_list
 
-    # Batch load national team news from DB
-    all_nt_news = (
-        db.query(NationalTeamNews)
-        .order_by(NationalTeamNews.published_at.desc())
-        .all()
-    )
+    # Batch load national team news from DB qua FastNewsItem
+    raw_nt_rows = db.execute(
+        text("SELECT team_id, title, source_url, news_type, region, published_at FROM national_team_news ORDER BY published_at DESC")
+    ).fetchall()
     nt_news_by_team = {}
-    for n in all_nt_news:
-        nt_news_by_team.setdefault(n.team_id, []).append(n)
+    for r in raw_nt_rows:
+        p_dt = r[5]
+        if isinstance(p_dt, str):
+            try:
+                p_dt = datetime.datetime.fromisoformat(p_dt)
+            except Exception:
+                p_dt = None
+        iso_str = p_dt.isoformat() if p_dt else None
+        nt_news_by_team.setdefault(r[0], []).append(FastNewsItem(r[1], r[2], r[3], r[4] or "US", p_dt, iso_str))
 
     for nt in filtered_nts:
         nt_id = nt["id"]
@@ -1220,10 +1377,10 @@ def get_dashboard_data(
                             "title": n.title,
                             "url": n.source_url,
                             "news_type": n.news_type,
-                            "region": getattr(n, "region", "US") or "US",
-                            "published_at": n.published_at.isoformat() if n.published_at else None
+                            "region": n.region or "US",
+                            "published_at": n.published_at_iso
                         }
-                        for n in nt_news if w_start <= n.published_at <= w_end
+                        for n in nt_news if n.published_at and w_start <= n.published_at <= w_end
                     ]
                 except Exception:
                     m_news = []
@@ -1354,6 +1511,20 @@ def get_dashboard_data(
             nt_curr_match_obj = next((m for m in nt_matches if m.get("match_name") == curr_match_name), None)
         nt_curr_news = list(nt_curr_match_obj.get("news", [])) if nt_curr_match_obj else []
 
+        nt_news_titles = [n.title for n in nt_news[:12]]
+        nt_tags = []
+        if nt_curr_match_obj:
+            nt_tags = nt_curr_match_obj.get("tags") or []
+            if not nt_tags:
+                nt_tags = format_national_team_match_tags(nt["country_name"], nt["sport_name"], nt.get("tier"), nt_curr_match_obj, recent_news_titles=nt_news_titles)
+        elif nt_upcoming_30d:
+            first_up = nt_upcoming_30d[0]
+            nt_tags = first_up.get("tags") or []
+            if not nt_tags:
+                nt_tags = format_national_team_match_tags(nt["country_name"], nt["sport_name"], nt.get("tier"), first_up, recent_news_titles=nt_news_titles)
+        else:
+            nt_tags = ["Chờ lịch thi đấu", "Nghỉ đợt tập trung"]
+
         nt_item = {
             "id": f"nt_{nt_id}",
             "db_id": nt_id,
@@ -1375,7 +1546,7 @@ def get_dashboard_data(
             "match_result": curr_match_result,
             "player_stats": None,
             "rating": None,
-            "tags": [],
+            "tags": nt_tags,
             "injury": {"has_injury": False, "status": "Fit", "severity": "Sẵn sàng", "tag_label": "Sẵn sàng", "tooltip": "Đội hình đầy đủ", "return_date": "Hiện tại", "injury_desc": ""},
             "is_within_month": len(nt_upcoming_30d) > 0,
             "match_date_utc": curr_match_date_utc,
@@ -1401,8 +1572,8 @@ def get_dashboard_data(
                         "title": n.title,
                         "url": n.source_url,
                         "news_type": n.news_type,
-                        "region": getattr(n, "region", "US") or "US",
-                        "published_at": n.published_at.isoformat() if n.published_at else None
+                        "region": n.region or "US",
+                        "published_at": n.published_at_iso
                     }
                     for n in nt_news
                     if n.published_at and n.published_at >= (now_utc - datetime.timedelta(hours=24))
@@ -1413,8 +1584,8 @@ def get_dashboard_data(
                         "title": n.title,
                         "url": n.source_url,
                         "news_type": n.news_type,
-                        "region": getattr(n, "region", "US") or "US",
-                        "published_at": n.published_at.isoformat() if n.published_at else None
+                        "region": n.region or "US",
+                        "published_at": n.published_at_iso
                     }
                     for n in nt_news
                 ]

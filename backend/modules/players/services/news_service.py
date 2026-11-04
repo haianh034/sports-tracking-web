@@ -103,7 +103,12 @@ PLAYER_NATIVE_NAMES = {
     "hwang hee-chan": ["황희찬"],
     "hwang in-beom": ["황인범"],
     "oh hyeon-gyu": ["오현규"],
-    "lee kang-in": ["이강in", "이강인"],
+    "lee kang-in": ["이강인"],
+    "song min-kyu": ["송민규"],
+    "kim ji-soo": ["김지수"],
+    "yohei takaoka": ["高丘陽平", "高丘 陽平"],
+    "satoshi tanaka": ["田中聡", "田中 聡"],
+    "kodai naraoka": ["奈良岡功大", "奈良岡 功大"],
     "lee jae-sung": ["이재성"],
     "kim min-su": ["김민수"],
     "bae jun-ho": ["배준호"],
@@ -173,12 +178,23 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
                     native_names.append(item)
 
     for a in clean_aliases:
-        if nat == "Nhật Bản" and any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in a):
-            if a not in native_names:
-                native_names.append(a)
-        elif nat == "Hàn Quốc" and any('\uac00' <= c <= '\ud7af' for c in a):
-            if a not in native_names:
-                native_names.append(a)
+        if nat == "Nhật Bản":
+            pure_jp = re.findall(r'[\u4e00-\u9fff\u3040-\u30ff\s]{2,}', a)
+            for pj in pure_jp:
+                pj_clean = pj.strip()
+                if pj_clean and pj_clean not in native_names:
+                    native_names.append(pj_clean)
+            if any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in a):
+                if a not in native_names and not any(k in a.lower() for k in ["born", "japanese:", "kanji:"]):
+                    native_names.append(a)
+        elif nat == "Hàn Quốc":
+            pure_kr = re.findall(r'[\uac00-\ud7af]{2,4}', a)
+            for pk in pure_kr:
+                if pk not in native_names:
+                    native_names.append(pk)
+            if any('\uac00' <= c <= '\ud7af' for c in a):
+                if a not in native_names and not any(k in a.lower() for k in ["born", "korean:", "hanja:"]):
+                    native_names.append(a)
         elif a.lower() != player_name.lower():
             if a not in latin_aliases:
                 latin_aliases.append(a)

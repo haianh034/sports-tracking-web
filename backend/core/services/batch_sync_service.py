@@ -117,6 +117,54 @@ def prefetch_unique_team_schedules(unique_teams: list):
 from backend.core.services.live_score_service import get_live_scores_map
 import threading
 
+def is_same_club_alias(team_a: str, team_b: str) -> bool:
+    if not team_a or not team_b: return False
+    a = team_a.lower().strip()
+    b = team_b.lower().strip()
+    if a == b or a in b or b in a:
+        return True
+    COMMON_ALIASES = [
+        {"lafc", "los angeles fc"},
+        {"bayern munich", "bayern münchen", "fc bayern münchen"},
+        {"atletico madrid", "atlético madrid", "atletico de madrid"},
+        {"psg", "paris saint-germain", "paris saint germain"},
+        {"man united", "manchester united", "man utd"},
+        {"man city", "manchester city"},
+        {"spurs", "tottenham", "tottenham hotspur"},
+        {"wolves", "wolverhampton", "wolverhampton wanderers"}
+    ]
+    for grp in COMMON_ALIASES:
+        if a in grp and b in grp:
+            return True
+    return False
+
+def auto_detect_player_transfers(db: Session, players: list):
+    """
+    Tự động phát hiện khi cầu thủ chuyển nhượng sang CLB mới trong tương lai
+    (ví dụ Son Heung-min rời LAFC sang CLB khác vào mùa hè tới).
+    Hệ thống sẽ tự động cập nhật CLB trong DB và kéo theo lịch thi đấu mới.
+    """
+    from backend.core.services.fotmob_service import get_fotmob_player
+    from backend.core.db.models import Club
+    for p in players:
+        if p.sport_name != "Bóng đá":
+            continue
+        try:
+            curr_team = (p.club.name if p.club else "").strip()
+            p_info = get_fotmob_player(p.name, curr_team)
+            if p_info and p_info.get("teamName"):
+                new_team = p_info["teamName"].strip()
+                if new_team and curr_team and not is_same_club_alias(curr_team, new_team):
+                    new_club = db.query(Club).filter(Club.name.ilike(new_team), Club.sport_id == p.sport_id).first()
+                    if not new_club:
+                        new_club = Club(name=new_team, sport_id=p.sport_id, country_id=p.country_id)
+                        db.add(new_club)
+                        db.flush()
+                    p.club_id = new_club.id
+                    db.commit()
+        except Exception:
+            pass
+
 _SYNC_LOCK = threading.Lock()
 
 def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
@@ -134,6 +182,9 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         players = db.query(Player).all()
         if not players:
             return {"count": 0, "status": "no_players"}
+
+        # Tự động kiểm tra và cập nhật CLB nếu cầu thủ chuyển nhượng trong tương lai
+        auto_detect_player_transfers(db, players)
 
         player_data = [
             (p.id, p.name, p.team_name, p.country_name, p.sport_name, p.name_aliases or "")

@@ -52,20 +52,61 @@ def fetch_free_player_info(player_name: str) -> dict:
                 if k in p_low or p_low in k:
                     aliases.extend(v)
 
+            # 1. Trích xuất tên bản địa (Hàn, Nhật, Trung...) từ langlinks (loại bỏ ngoặc định danh như "(축구 선수)")
             if 'langlinks' in page:
                 for ll in page['langlinks']:
-                    if ll.get('lang') in ['ja', 'ko', 'zh', 'ar', 'es', 'pt', 'fr', 'de', 'vi']:
-                        aliases.append(ll.get('*', ''))
-            
-            # Extract East Asian characters or alternative names inside parenthesis
+                    l_code = ll.get('lang')
+                    raw_val = ll.get('*', '')
+                    if l_code in ['ja', 'ko', 'zh', 'ar', 'es', 'pt', 'fr', 'de', 'vi']:
+                        clean_val = re.sub(r'\(.*?\)', '', raw_val).strip()
+                        if clean_val and len(clean_val) >= 2:
+                            aliases.append(clean_val)
+                            # Cầu thủ Nhật thường viết liền không dấu cách trong tiếng Nhật (ví dụ: 奈良岡功大, 高丘陽平)
+                            # Bổ sung thêm biến thể có khoảng trắng họ - tên để công cụ tìm kiếm dễ nhận diện
+                            if l_code == 'ja' and ' ' not in clean_val and 3 <= len(clean_val) <= 5:
+                                if len(clean_val) == 4:
+                                    aliases.append(f"{clean_val[:2]} {clean_val[2:]}")
+                                elif len(clean_val) == 5:
+                                    aliases.append(f"{clean_val[:3]} {clean_val[3:]}")
+                                    aliases.append(f"{clean_val[:2]} {clean_val[2:]}")
+
+            # 2. Bóc tách chữ Hangul, Kanji, Hanja, Katakana/Hiragana từ phần giới thiệu đầu bài (e.g. "(Korean: 송민규; born...)")
             first_paren = re.search(r'\((.*?)\)', summary_raw)
             if first_paren:
-                parts = [p.strip() for p in first_paren.group(1).split(',') if p.strip()]
-                for p in parts:
-                    if any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u309f' or '\u30a0' <= c <= '\u30ff' or '\uac00' <= c <= '\ud7af' for c in p):
-                        aliases.append(p)
+                pc = first_paren.group(1)
+                # Bóc tách tên tiếng Hàn Hangul thuần túy (2 - 4 ký tự)
+                for km in re.findall(r'[\uac00-\ud7af]{2,4}', pc):
+                    if km not in aliases:
+                        aliases.append(km)
+                # Bóc tách tên chữ Hán / Kanji thuần túy (2 - 5 ký tự)
+                for jm in re.findall(r'[\u4e00-\u9fff]{2,5}', pc):
+                    if jm not in aliases:
+                        aliases.append(jm)
+                        if len(jm) == 4 and f"{jm[:2]} {jm[2:]}" not in aliases:
+                            aliases.append(f"{jm[:2]} {jm[2:]}")
+                # Bóc tách tên Katakana / Hiragana (2 - 8 ký tự)
+                for knm in re.findall(r'[\u3040-\u309f\u30a0-\u30ff]{2,8}', pc):
+                    if knm not in aliases:
+                        aliases.append(knm)
 
-            aliases_str = ", ".join(list(dict.fromkeys([a for a in aliases if a and '(' not in a and ')' not in a])))
+            # 3. Bóc tách từ Infobox wikitext nếu có (hangul, hanja, kanji, native_name)
+            if wikitext:
+                for pat in [r'\|\s*hangul\s*=\s*([^\n\|\}]+)', r'\|\s*hanja\s*=\s*([^\n\|\}]+)', r'\|\s*kanji\s*=\s*([^\n\|\}]+)', r'\|\s*native_name\s*=\s*([^\n\|\}]+)']:
+                    for m in re.finditer(pat, wikitext, re.IGNORECASE):
+                        val = re.sub(r'\(.*?\)|<[^>]+>|\[\[|\]\]', '', m.group(1)).strip()
+                        for pn in re.findall(r'[\u4e00-\u9fff\uac00-\ud7af\u3040-\u30ff\s]{2,}', val):
+                            pn_clean = pn.strip()
+                            if len(pn_clean) >= 2 and pn_clean not in aliases:
+                                aliases.append(pn_clean)
+
+            # Làm sạch aliases: loại bỏ ngoặc còn sót lại, lọc trùng lặp
+            clean_alias_list = []
+            for a in aliases:
+                a_c = re.sub(r'\(.*?\)', '', a).strip()
+                if a_c and len(a_c) >= 2 and a_c not in clean_alias_list:
+                    clean_alias_list.append(a_c)
+
+            aliases_str = ", ".join(clean_alias_list)
             
             country_name = "Quốc tế"
             tz = "UTC"

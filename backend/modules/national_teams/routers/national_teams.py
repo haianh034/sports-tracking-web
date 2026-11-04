@@ -110,18 +110,28 @@ def add_custom_national_team(payload: AddNationalTeamRequest, db: Session = Depe
         db.add(nat)
         db.flush()
 
+    matched_catalog = next(
+        (c for c in NATIONAL_TEAMS_CATALOG if c["name"].lower() == payload.name.lower() or 
+         (c["sport"].lower() == payload.sport.lower() and c["country"].lower() == payload.country.lower() and c["tier"].lower() == (payload.tier or "Senior").lower() and c.get("gender", "Men").lower() == (payload.gender or "Men").lower())),
+        None
+    )
+    api_team_id = payload.api_team_id or (matched_catalog.get("api_team_id") if matched_catalog else None)
+    flag = payload.flag or (matched_catalog.get("flag") if matched_catalog else nat.flag) or "🌐"
+    search_query = payload.search_query or (matched_catalog.get("query_native") if matched_catalog else None) or f"{payload.name} sport news"
+    description = payload.description or (matched_catalog.get("description") if matched_catalog else f"Đội tuyển {payload.name}")
+
     team = NationalTeam(
         name=payload.name,
         short_name=payload.short_name or payload.name,
-        nickname=payload.nickname,
+        nickname=payload.nickname or (matched_catalog.get("nickname") if matched_catalog else None),
         sport_id=sport.id,
         country_id=nat.id,
-        tier=payload.tier or "Senior",
-        gender=payload.gender or "Men",
-        flag=payload.flag or nat.flag or "🌐",
-        search_query=payload.search_query or f"{payload.name} sport news",
-        description=payload.description or f"Đội tuyển {payload.name}",
-        api_team_id=payload.api_team_id
+        tier=payload.tier or (matched_catalog.get("tier") if matched_catalog else "Senior"),
+        gender=payload.gender or (matched_catalog.get("gender") if matched_catalog else "Men"),
+        flag=flag,
+        search_query=search_query,
+        description=description,
+        api_team_id=api_team_id
     )
     db.add(team)
     db.commit()
