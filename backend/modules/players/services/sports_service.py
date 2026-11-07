@@ -6,16 +6,71 @@ from backend.config import LEAGUE_SLUG_MAP
 
 TEAM_LEAGUE_CACHE = {}
 
-def resolve_team_league(team_name: str, sport_name: str = "") -> str:
+def resolve_team_league(team_name: str, sport_name: str = "", gender: str = "Men") -> str:
     clean = (team_name or "").strip()
     if not clean or clean.lower() in ["tự do", "unknown", ""]:
         return ""
-    key = (clean.lower(), (sport_name or "").strip().lower())
-    if key in TEAM_LEAGUE_CACHE:
-        return TEAM_LEAGUE_CACHE[key]
     
     t_low = clean.lower()
     s_low = (sport_name or "").lower()
+    is_women = (gender or "").lower() == "women" or any(w in t_low for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies", "femme", "femeni", "femenil", "we league", "wsl", "nwsl", "wnba"])
+    
+    key = (clean.lower(), (sport_name or "").strip().lower(), "women" if is_women else "men")
+    if key in TEAM_LEAGUE_CACHE:
+        return TEAM_LEAGUE_CACHE[key]
+
+    # 0. Nếu là Thể thao Nữ (Women's Sports)
+    if is_women:
+        if "chuyền" in s_low or "volleyball" in s_low:
+            if any(c in t_low for c in ["nec", "red rockets", "jt marvelous", "marvelous", "hisamitsu", "springs", "toray", "queenseis", "denso", "airybees", "victorina", "himeji", "kurobe", "aqua fairies", "bluecats", "aranmare", "gunma"]):
+                TEAM_LEAGUE_CACHE[key] = "SV.League (Nữ)"
+                return "SV.League (Nữ)"
+            if any(c in t_low for c in ["pink spiders", "heungkuk", "hillstate", "hyundai e&c", "red sparks", "jungkwanjang", "gs caltex", "ibk altos", "altos", "hi-pass", "peppers"]):
+                TEAM_LEAGUE_CACHE[key] = "V-League Nữ (Hàn Quốc)"
+                return "V-League Nữ (Hàn Quốc)"
+            if any(c in t_low for c in ["vakifbank", "eczacibasi", "fenerbahce", "galatasaray", "thy"]):
+                TEAM_LEAGUE_CACHE[key] = "Sultanlar Ligi"
+                return "Sultanlar Ligi"
+            if any(c in t_low for c in ["conegliano", "vero volley", "milano", "scandicci", "novara", "chieri"]):
+                TEAM_LEAGUE_CACHE[key] = "Serie A1 (Nữ Ý)"
+                return "Serie A1 (Nữ Ý)"
+
+        if "rổ" in s_low or "basketball" in s_low:
+            if "wnba" in t_low or any(c in t_low for c in ["aces", "liberty", "fever", "sparks", "storm", "mercury", "lynx", "sky", "mystics", "sun", "wings", "dream"]):
+                TEAM_LEAGUE_CACHE[key] = "WNBA"
+                return "WNBA"
+            if any(c in t_low for c in ["sunflowers", "antelopes", "iris", "red wave", "v-magic", "wings", "koalas", "rabbits"]):
+                TEAM_LEAGUE_CACHE[key] = "W League (Nhật Bản)"
+                return "W League (Nhật Bản)"
+            if any(c in t_low for c in ["woori bank", "kb stars", "samsung life", "shinhan bank", "hana 1q", "bnk sum"]):
+                TEAM_LEAGUE_CACHE[key] = "WKBL"
+                return "WKBL"
+
+        if s_low in ["bóng đá", "soccer", "football", ""]:
+            # Frauen-Bundesliga (Đức)
+            if any(c in t_low for c in ["bayern", "wolfsburg", "frankfurt", "leverkusen", "freiburg", "essen", "hoffenheim", "potsdam", "leipzig", "koln", "cologne", "jena", "werder bremen"]):
+                TEAM_LEAGUE_CACHE[key] = "Frauen-Bundesliga"
+                return "Frauen-Bundesliga"
+            # Barclays WSL (Anh)
+            if any(c in t_low for c in ["chelsea", "arsenal", "manchester city", "man city", "manchester united", "man united", "liverpool", "tottenham", "spurs", "brighton", "west ham", "aston villa", "leicester", "everton", "crystal palace"]):
+                TEAM_LEAGUE_CACHE[key] = "Women's Super League"
+                return "Women's Super League"
+            # Liga F (Tây Ban Nha)
+            if any(c in t_low for c in ["barcelona", "real madrid", "atletico", "levante", "athletic club", "sevilla", "valencia", "sociedad", "madrid cff", "costa adeje"]):
+                TEAM_LEAGUE_CACHE[key] = "Liga F"
+                return "Liga F"
+            # Première Ligue (Pháp)
+            if any(c in t_low for c in ["lyon", "olympique lyonnais", "psg", "paris saint-germain", "paris fc", "montpellier", "bordeaux", "fleury"]):
+                TEAM_LEAGUE_CACHE[key] = "Première Ligue (Nữ)"
+                return "Première Ligue (Nữ)"
+            # WE League (Nhật Bản)
+            if any(c in t_low for c in ["inac", "kobe", "urawa", "reds ladies", "beleza", "verdy", "regina", "sanfrecce", "omiya", "ardija", "chiba", "ladies", "albirex", "niigata", "chifure", "elfen", "nojima", "stella", "parceiro"]):
+                TEAM_LEAGUE_CACHE[key] = "WE League"
+                return "WE League"
+            # NWSL (Mỹ)
+            if any(c in t_low for c in ["angel city", "gotham", "thorns", "spirit", "reign", "courage", "wave", "bay fc", "royals", "racing louisville", "pride", "current", "red stars"]):
+                TEAM_LEAGUE_CACHE[key] = "NWSL"
+                return "NWSL"
 
     # 1. Tra cứu giải đấu nổi tiếng theo môn (đặc biệt các môn ngoài bóng đá)
     # Asian & Global Baseball:
@@ -66,7 +121,7 @@ def resolve_team_league(team_name: str, sport_name: str = "") -> str:
     # 2. Truy vấn trực tiếp ESPN
     try:
         from backend.modules.players.services.espn_service import get_espn_team_info
-        info = get_espn_team_info(clean, sport_name)
+        info = get_espn_team_info(clean, sport_name, gender="Women" if is_women else "Men")
         if info and info.get("league"):
             slug = info["league"].lower()
             if slug in LEAGUE_SLUG_MAP:

@@ -52,10 +52,10 @@ def _save_team_sched_cache():
     except Exception:
         pass
 
-def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str = None) -> dict:
+def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str = None, gender: str = "Men") -> dict:
     if not team_name or team_name in ["Tự do", "Chưa rõ Đội", "Unknown"]:
         return None
-    cache_key = (team_name.strip().lower(), (sport_name or "").strip().lower())
+    cache_key = (team_name.strip().lower(), (sport_name or "").strip().lower(), (gender or "Men").lower())
     if cache_key in ESPN_TEAM_INFO_CACHE:
         return ESPN_TEAM_INFO_CACHE[cache_key]
 
@@ -76,7 +76,14 @@ def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str 
     if sport_name and not target_espn_sport:
         return None
 
-    search_queries = get_team_aliases_from_wiki(team_name)
+    is_women = (gender or "").lower() == "women" or any(w in team_name.lower() for w in ["(nữ)", "(women)", "(w)", "women", "ladies", "frauen", "femme", "femeni", "we league", "wsl", "nwsl", "wnba"])
+    if is_women:
+        gender = "Women"
+
+    core_team_name = re.sub(r'\s*\((?:nữ|women|w)\)', '', team_name, flags=re.I).strip()
+    search_queries = get_team_aliases_from_wiki(core_team_name)
+    if is_women:
+        search_queries = [f"{q} Women" for q in search_queries] + [f"{q} Ladies" for q in search_queries] + search_queries
     best_candidate = None
     best_score = -999999
 
@@ -162,7 +169,7 @@ def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str 
                             elif matched_tokens == len(t_tokens):
                                 score += 50
 
-                        # Heavy penalty for women's teams
+                        # Heavy penalty for women's teams when looking for men's teams, and vice versa
                         is_women = (
                             '.w.' in l_lower or 
                             'wfc' in d_lower or 
@@ -172,7 +179,10 @@ def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str 
                             'fem' in l_lower
                         )
                         if is_women:
-                            score -= 500
+                            if (gender or "Men").lower() == "women":
+                                score += 300  # Boost women's teams when searching for women's player
+                            else:
+                                score -= 500  # Penalize women's teams when searching for men's player
 
                         # Penalty for youth / reserve squads
                         is_youth = any(yk in d_lower or yk in sub_lower for yk in ['u23', 'u21', 'u19', 'u-23', 'u-21', 'u-19', 'reserves', ' b team', ' ii'])
@@ -784,12 +794,14 @@ def get_player_transfer_history(player_name: str, current_team: str = None, spor
 
     return None
 
-def fetch_fotmob_team_schedule(team_name: str, player_name: str = None) -> list:
+def fetch_fotmob_team_schedule(team_name: str, player_name: str = None, gender: str = "Men") -> list:
     if not team_name:
         return []
     try:
         now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         q = team_name.strip()
+        is_women = (gender or "Men").lower() == "women" or any(w in q.lower() for w in ["(nữ)", "(women)", "(w)", "women", "ladies", "frauen"])
+        core_q = re.sub(r'\s*\((?:nữ|women|w)\)', '', q, flags=re.I).strip()
 
         FOTMOB_TEAM_MAP = {
             "c.d. nacional": 10214,
@@ -801,35 +813,69 @@ def fetch_fotmob_team_schedule(team_name: str, player_name: str = None) -> list:
             "machida zelvia": 108398,
         }
         team_id = FOTMOB_TEAM_MAP.get(q.lower().strip())
+        if is_women and not team_id:
+            if "bayern" in q.lower():
+                team_id = 671935
+            elif "chelsea" in q.lower():
+                team_id = 258661
+            elif "arsenal" in q.lower():
+                team_id = 258657
 
         if not team_id:
-            url = f"https://www.fotmob.com/api/data/search/suggest?term={urllib.parse.quote(q)}"
-            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=4) as r:
-                data = json.loads(r.read().decode())
-            for grp in data:
-                for s in grp.get('suggestions', []):
-                    if s.get('type') == 'team':
-                        team_id = s.get('id')
-                        break
-                if team_id:
-                    break
-            
-            if not team_id:
-                short_q = re.sub(r'^(c\.?\s*d\.?|s\.?\s*c\.?|f\.?\s*c\.?)\s+', '', q, flags=re.I).strip()
-                short_q = re.sub(r'\s+alkmaar$', '', short_q, flags=re.I).strip()
-                if short_q != q:
-                    url = f"https://www.fotmob.com/api/data/search/suggest?term={urllib.parse.quote(short_q)}"
-                    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            search_queries = [core_q]
+            try:
+                for al in get_team_aliases_from_wiki(core_q):
+                    if al not in search_queries:
+                        search_queries.append(al)
+            except Exception:
+                pass
+
+            team_candidates = []
+            for sq in search_queries:
+                url = f"https://www.fotmob.com/api/data/search/suggest?term={urllib.parse.quote(sq)}"
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                try:
                     with urllib.request.urlopen(req, timeout=4) as r:
                         data = json.loads(r.read().decode())
                     for grp in data:
                         for s in grp.get('suggestions', []):
                             if s.get('type') == 'team':
-                                team_id = s.get('id')
-                                break
-                        if team_id:
-                            break
+                                t_name_fm = (s.get('name') or '').strip()
+                                t_id_fm = s.get('id')
+                                is_candidate_women = (
+                                    t_name_fm.endswith('(W)') or 
+                                    '(w)' in t_name_fm.lower() or 
+                                    'women' in t_name_fm.lower() or 
+                                    'ladies' in t_name_fm.lower() or 
+                                    'frauen' in t_name_fm.lower() or 
+                                    t_id_fm == 671935
+                                )
+                                team_candidates.append((t_id_fm, t_name_fm, is_candidate_women))
+                except Exception:
+                    continue
+                if is_women and any(c[2] for c in team_candidates):
+                    break
+
+            # Deduplicate
+            seen_ids = set()
+            unique_candidates = []
+            for c in team_candidates:
+                if c[0] not in seen_ids:
+                    seen_ids.add(c[0])
+                    unique_candidates.append(c)
+
+            # Pick the best match: women's team if gender=Women, men's team otherwise
+            best = None
+            for t_id_fm, t_name_fm, is_candidate_women in unique_candidates:
+                if is_women and is_candidate_women:
+                    best = t_id_fm
+                    break
+                elif not is_women and not is_candidate_women:
+                    best = t_id_fm
+                    break
+            if not best and unique_candidates:
+                best = unique_candidates[0][0]
+            team_id = best
 
         if not team_id:
             return []
@@ -920,7 +966,7 @@ def fetch_player_career_schedule(player_name: str, current_team: str, sport_name
     all_matches.sort(key=lambda x: x["match_date_utc"])
     return all_matches
 
-def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, player_name: str = None, force_refresh: bool = False, api_team_id: str = None) -> list:
+def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, player_name: str = None, force_refresh: bool = False, api_team_id: str = None, gender: str = "Men") -> list:
     cache_key = (str(team_name).strip().lower(), str(sport_name or "").lower(), str(player_name or "").lower())
     now_ts = datetime.datetime.now().timestamp()
     if not force_refresh and cache_key in SCHEDULE_30D_CACHE:
@@ -939,14 +985,17 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
         return non_espn_list
 
     team_info = None
+    if "(nữ)" in str(team_name).lower() or "(w)" in str(team_name).lower() or "women" in str(team_name).lower():
+        gender = "Women"
+
     if api_team_id and str(api_team_id).strip().isdigit():
-        team_info = get_espn_team_info(team_name, sport_name, api_team_id=api_team_id)
+        team_info = get_espn_team_info(team_name, sport_name, api_team_id=api_team_id, gender=gender)
     if not team_info:
-        team_info = get_espn_team_info(team_name, sport_name)
+        team_info = get_espn_team_info(team_name, sport_name, gender=gender)
 
     if not team_info:
         if sport_name in ["Bóng đá", "soccer", None]:
-            fm_matches = fetch_fotmob_team_schedule(team_name, player_name)
+            fm_matches = fetch_fotmob_team_schedule(team_name, player_name, gender=gender)
             if fm_matches:
                 SCHEDULE_30D_CACHE[cache_key] = (now_ts, fm_matches)
                 _save_team_sched_cache()
@@ -1115,7 +1164,7 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
             continue
 
     if not matches and (sport == "soccer" or sport_name in ["Bóng đá", "soccer", None]):
-        fm_matches = fetch_fotmob_team_schedule(team_name, player_name)
+        fm_matches = fetch_fotmob_team_schedule(team_name, player_name, gender=gender)
         if fm_matches:
             SCHEDULE_30D_CACHE[cache_key] = (now_ts, fm_matches)
             _save_team_sched_cache()

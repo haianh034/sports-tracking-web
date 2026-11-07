@@ -38,6 +38,7 @@ class AddConfirmedPlayerRequest(BaseModel):
     league: Optional[str] = None
     espn_team_id: Optional[str] = None
     espn_league_slug: Optional[str] = None
+    gender: Optional[str] = "Men"  # "Men" | "Women"
 
 class ChangePlayerTeamRequest(BaseModel):
     team: str
@@ -45,6 +46,7 @@ class ChangePlayerTeamRequest(BaseModel):
     league: Optional[str] = None
     espn_team_id: Optional[str] = None
     espn_league_slug: Optional[str] = None
+    gender: Optional[str] = None  # "Men" | "Women"
 
 class PlayerAddRequest(BaseModel):
     player_name: Optional[str] = None
@@ -111,13 +113,30 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         db.add(nationality)
         db.flush()
 
+    gender = (payload.gender or "Men").strip()
+    # Auto-detect women's team from Wikipedia parent_club hint (e.g. "FC Bayern Munich (women)")
+    try:
+        if gender == "Men":
+            from backend.core.services.wiki_service import fetch_free_player_info as _fpi
+            _wi = _fpi(name)
+            if _wi.get("parent_club") and "women" in (_wi.get("parent_club") or "").lower():
+                gender = "Women"
+            elif _wi.get("team_name") and any(w in (_wi.get("team_name") or "").lower() for w in ["women", "frauen", "femeni", "femenino", " w "]):
+                gender = "Women"
+    except Exception:
+        pass
+
     club = db.query(Club).filter(Club.name.ilike(team_name), Club.sport_id == sport.id).first()
     if not club:
-        club = Club(name=team_name, sport_id=sport.id, country_id=nationality.id, api_team_id=payload.espn_team_id)
+        club = Club(name=team_name, sport_id=sport.id, country_id=nationality.id, api_team_id=payload.espn_team_id, gender=gender)
         db.add(club)
         db.flush()
     elif payload.espn_team_id:
         club.api_team_id = payload.espn_team_id
+        club.gender = gender
+        db.flush()
+    else:
+        club.gender = gender
         db.flush()
 
     # Kiểm tra trùng lặp thông minh: So khớp cả tên nguyên bản lẫn tên đã chuẩn hóa loại bỏ dấu thanh/macron
@@ -134,7 +153,8 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
             country_id=nationality.id,
             club_id=club.id,
             name_aliases=payload.aliases or name,
-            api_team_id=payload.espn_team_id
+            api_team_id=payload.espn_team_id,
+            gender=gender
         )
         db.add(player)
         db.commit()
@@ -144,6 +164,7 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         player.club_id = club.id
         if payload.espn_team_id:
             player.api_team_id = payload.espn_team_id
+        player.gender = gender
         # Bổ sung alias mới nếu tên nhập vào có cách viết khác nhau (như Ko Itakura vs Kō Itakura)
         existing_aliases = [a.strip() for a in (player.name_aliases or "").split(",") if a.strip()]
         if name not in existing_aliases and name.lower() != player.name.lower():

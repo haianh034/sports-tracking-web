@@ -143,6 +143,13 @@ LEAGUE_SLUG_MAP = {
     "conmebol.sudamericana": "Copa Sudamericana",
     "eng.w.1": "Women's Super League",
     "esp.w.1": "Liga F",
+    "ger.w.1": "Frauen-Bundesliga",
+    "uefa.wchampions": "UEFA Women's Champions League",
+    "uefa.wchamp": "UEFA Women's Champions League",
+    "fra.w.1": "Première Ligue (Nữ)",
+    "ita.w.1": "Serie A Femminile",
+    "jpn.w.1": "WE League",
+    "usa.nwsl": "NWSL",
     "usa.w.1": "NWSL"
 }
 

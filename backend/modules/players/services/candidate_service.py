@@ -83,9 +83,13 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
 
                     # Exact score 100 if query matches name
                     score = 100 if q_clean.lower() == pname.lower() else (90 if q_clean.lower() in pname.lower() else 75)
+                    cand_gender = wiki_info.get("gender", "Men") if wiki_info.get("found") else "Men"
 
                     # 1. Thêm lựa chọn CLB thi đấu chính thức (nếu có từ Wiki hoặc team gốc không phải tuyển QG)
                     primary_team = club_team if (is_national_team and club_team) else team
+                    if cand_gender == "Women" and primary_team and not any(w in primary_team.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies", "(tuyển qg)"]):
+                        primary_team = f"{primary_team} (Nữ)"
+
                     cand_key = (pname.lower(), primary_team.lower())
                     if pname and cand_key not in seen:
                         seen.add(cand_key)
@@ -97,13 +101,16 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                             "country_flag": flag,
                             "aliases": aliases,
                             "source": "ESPN",
-                            "score": score
+                            "score": score,
+                            "gender": cand_gender
                         })
 
                     # 1b. Nếu cầu thủ đang được cho mượn sang CLB khác (loan), thêm CLB cho mượn ưu tiên cao nhất
                     if wiki_info.get("found") and wiki_info.get("loan_club"):
                         loan_t = wiki_info["loan_club"]
                         parent_t = wiki_info.get("parent_club") or primary_team
+                        if cand_gender == "Women" and loan_t and not any(w in loan_t.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies"]):
+                            loan_t = f"{loan_t} (Nữ)"
                         loan_key = (pname.lower(), loan_t.lower())
                         if loan_key not in seen:
                             seen.add(loan_key)
@@ -115,7 +122,8 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                                 "country_flag": flag,
                                 "aliases": aliases,
                                 "source": f"Cho mượn từ {parent_t}",
-                                "score": score + 5
+                                "score": score + 5,
+                                "gender": cand_gender
                             })
 
                     # 2. Nếu cầu thủ có cả thông tin Đội tuyển Quốc gia (như "Japan"), bổ sung thêm làm lựa chọn thứ 2
@@ -131,7 +139,8 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                                 "country_flag": flag,
                                 "aliases": aliases,
                                 "source": "ESPN",
-                                "score": score - 5
+                                "score": score - 5,
+                                "gender": cand_gender
                             })
     except Exception:
         pass
@@ -148,11 +157,18 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                     pname = sug.get("name", "").strip()
                     fm_team = (sug.get("teamName", "") or "").strip()
                     if pname and fm_team:
+                        w_info = fetch_free_player_info(pname)
+                        fm_gender = w_info.get("gender", "Men") if w_info.get("found") else "Men"
+                        team_id = sug.get("teamId")
+                        if team_id == 671935 or "(w)" in (sug.get("teamName") or "").lower() or "women" in (sug.get("teamName") or "").lower():
+                            fm_gender = "Women"
+                        if fm_gender == "Women" and not any(w in fm_team.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies"]):
+                            fm_team = f"{fm_team} (Nữ)"
+
                         k = (pname.lower(), fm_team.lower())
                         if k not in seen:
                             seen.add(k)
                             score = 100 if q_clean.lower() == pname.lower() else (90 if q_clean.lower() in pname.lower() else 75)
-                            w_info = fetch_free_player_info(pname)
                             c_name = w_info.get("country_name", "Quốc tế") if w_info.get("found") else "Quốc tế"
                             c_flag = w_info.get("country_flag", "🌐") if w_info.get("found") else "🌐"
                             c_aliases = w_info.get("aliases", pname) if w_info.get("found") else pname
@@ -164,12 +180,15 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                                 "country_flag": c_flag,
                                 "aliases": c_aliases,
                                 "source": "FotMob",
-                                "score": score
+                                "score": score,
+                                "gender": fm_gender
                             })
 
                             if w_info.get("found") and w_info.get("loan_club"):
                                 loan_t = w_info["loan_club"]
                                 parent_t = w_info.get("parent_club") or fm_team
+                                if fm_gender == "Women" and not any(w in loan_t.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies"]):
+                                    loan_t = f"{loan_t} (Nữ)"
                                 loan_key = (pname.lower(), loan_t.lower())
                                 if loan_key not in seen:
                                     seen.add(loan_key)
@@ -181,7 +200,8 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                                         "country_flag": c_flag,
                                         "aliases": c_aliases,
                                         "source": f"Cho mượn từ {parent_t}",
-                                        "score": score + 5
+                                        "score": score + 5,
+                                        "gender": fm_gender
                                     })
     except Exception:
         pass
@@ -285,8 +305,9 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
     for c in candidates:
         team_name = c.get("team", "")
         sport_name = c.get("sport", "")
+        cand_gender = c.get("gender", "Men")
         if team_name and team_name not in ["Tự do", "Chưa rõ CLB", "Unknown"]:
-            c["team_league"] = resolve_team_league(team_name, sport_name)
+            c["team_league"] = resolve_team_league(team_name, sport_name, gender=cand_gender)
         else:
             c["team_league"] = ""
 

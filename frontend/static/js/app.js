@@ -2844,6 +2844,7 @@ async function processNextPlayerInQueue() {
                             <span class="font-bold text-white text-sm truncate">${escapeHtml(c.name)}</span>
                             <span class="text-xs bg-blue-950 text-blue-300 border border-blue-800/60 px-2 py-0.5 rounded font-medium">${escapeHtml(c.sport)}</span>
                             <span class="text-xs bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">${escapeHtml(c.country_flag || '🌐')} ${escapeHtml(c.country)}</span>
+                            ${(c.gender === 'Women' || (c.team && c.team.includes('(Nữ)'))) ? '<span class="text-xs bg-pink-950/80 text-pink-300 border border-pink-700/60 px-1.5 py-0.5 rounded font-semibold">🌸 Nữ</span>' : ''}
                         </div>
                         <div class="text-xs text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
                             <span>CLB: <b class="text-emerald-400 font-semibold" id="candTeamDisplay_${i}">${escapeHtml(c.team || 'Tự do')}</b></span>
@@ -2917,7 +2918,8 @@ async function addConfirmedCandidate(cand) {
                 aliases: cand.aliases || cand.name,
                 league: cand.team_league || '',
                 espn_team_id: cand.espn_team_id || '',
-                espn_league_slug: cand.espn_league_slug || ''
+                espn_league_slug: cand.espn_league_slug || '',
+                gender: cand.gender || (cand.team && cand.team.includes('(Nữ)') ? 'Women' : 'Men')
             })
         });
         const data = await res.json();

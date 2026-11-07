@@ -239,6 +239,20 @@ def fetch_free_player_info(player_name: str) -> dict:
             if sport in ["Quần vợt", "Cầu lông", "Bóng bàn"] and (team_name == "Tự do" or any(b in team_name.lower() for b in blacklist)):
                 team_name = f"Đội tuyển {country_name}"
 
+            # 5. Nhận diện giới tính (Gender detection: Men / Women)
+            is_female = bool(re.search(r'\b(she|her|female|woman|women|women\'s|frauen|we league|wsl|nwsl|liga f|wnba|nadeshiko|ladies|dames|femeni)\b', summary_raw, re.IGNORECASE))
+            if not is_female and wikitext:
+                is_female = bool(re.search(r'\b(she|her|female|woman|women|women\'s|frauen|we league|wsl|nwsl|liga f|wnba|nadeshiko|ladies|dames|femeni)\b', wikitext, re.IGNORECASE))
+            if not is_female and parent_club and any(w in parent_club.lower() for w in ["women", "frauen", "ladies", "(w)"]):
+                is_female = True
+
+            gender = "Women" if is_female else "Men"
+
+            # Nếu là VĐV nữ, chuẩn hóa tên CLB rõ ràng để phân biệt với đội nam
+            if is_female and team_name and team_name not in ["Tự do", "Chưa rõ CLB"] and not team_name.startswith("Đội tuyển"):
+                if not any(w in team_name.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies", "femeni"]):
+                    team_name = f"{team_name} (Nữ)"
+
             return {
                 "display_name": title,
                 "api_player_id": f"wiki_p_{abs(hash(title)) % 90000}",
@@ -251,6 +265,7 @@ def fetch_free_player_info(player_name: str) -> dict:
                 "country_flag": flag,
                 "sport_name": sport,
                 "aliases": aliases_str,
+                "gender": gender,
                 "found": True
             }
     except Exception:

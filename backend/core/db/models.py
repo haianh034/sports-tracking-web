@@ -33,6 +33,7 @@ class Club(Base):
     sport_id = Column(Integer, ForeignKey("sports.id", ondelete="CASCADE"), nullable=False)
     country_id = Column(Integer, ForeignKey("nationalities.id", ondelete="SET NULL"), nullable=True)
     api_team_id = Column(String(50), nullable=True)
+    gender = Column(String(20), default="Men", nullable=True)
 
     sport = relationship("Sport", back_populates="clubs")
     country = relationship("Nationality", back_populates="clubs")
@@ -53,6 +54,7 @@ class Player(Base):
     api_player_id = Column(String(50), nullable=True)
     api_team_id = Column(String(50), nullable=True)
     name_aliases = Column(String(255), nullable=True)
+    gender = Column(String(20), default="Men", nullable=True)
 
     sport = relationship("Sport", back_populates="players")
     nationality = relationship("Nationality", back_populates="players")
@@ -155,6 +157,17 @@ def init_db():
             conn.execute(text("CREATE INDEX IF NOT EXISTS idx_national_teams_sport ON national_teams(sport_id)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS idx_national_teams_country ON national_teams(country_id)"))
             conn.execute(text("CREATE INDEX IF NOT EXISTS idx_national_news_team_id ON national_team_news(team_id)"))
+            conn.commit()
+        except Exception:
+            pass
+        # Add gender columns if not present
+        try:
+            conn.execute(text("ALTER TABLE players ADD COLUMN gender VARCHAR(20) DEFAULT 'Men'"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE clubs ADD COLUMN gender VARCHAR(20) DEFAULT 'Men'"))
             conn.commit()
         except Exception:
             pass
