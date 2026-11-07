@@ -32,8 +32,8 @@ class BackgroundSyncWorker:
         logger.info("BackgroundSyncWorker đã dừng.")
 
     async def _run_loop(self):
-        # Đợi 180 giây (3 phút) sau khi server khởi động để hệ thống và bộ nhớ container hoàn toàn ổn định
-        await asyncio.sleep(180)
+        # Đợi 15 giây sau khi server khởi động để hệ thống sẵn sàng rồi đồng bộ tin tức ngay lập tức
+        await asyncio.sleep(15)
         while self.is_running:
             try:
                 await self.sync_once()
@@ -53,7 +53,23 @@ class BackgroundSyncWorker:
         def _job():
             db = SessionLocal()
             try:
-                return execute_batched_sync(db, update_news=True)
+                res = execute_batched_sync(db, update_news=True)
+                try:
+                    from backend.core.db.models import NationalTeam
+                    from backend.modules.national_teams.services.national_teams_service import (
+                        fetch_national_team_schedule,
+                        fetch_national_team_news_feed
+                    )
+                    nts = db.query(NationalTeam).all()
+                    for nt in nts:
+                        try:
+                            fetch_national_team_schedule(nt)
+                            fetch_national_team_news_feed(nt, db)
+                        except Exception:
+                            pass
+                except Exception as e:
+                    logger.error(f"Lỗi khi đồng bộ ĐTQG trong background: {e}")
+                return res
             finally:
                 db.close()
                 import gc

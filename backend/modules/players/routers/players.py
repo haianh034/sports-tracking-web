@@ -374,21 +374,70 @@ def delete_player(player_id: int, db: Session = Depends(get_db)):
 
     return {"success": True, "message": f"Đã xóa thành công cầu thủ '{player_name}' khỏi hệ thống."}
 
+import concurrent.futures
 from backend.core.services.batch_sync_service import execute_batched_sync
+from backend.core.db.models import NationalTeam
+from backend.core.db.session import SessionLocal
 
 @router.post("/sync")
 def sync_all_players(db: Session = Depends(get_db)):
     players = db.query(Player).all()
-    count = len(players)
-    if count == 0:
-        return {"success": True, "message": "Chưa có cầu thủ nào để cập nhật.", "count": 0}
+    national_teams = db.query(NationalTeam).all()
+    players_count = len(players)
+    nt_count = len(national_teams)
+    total_count = players_count + nt_count
 
+    if total_count == 0:
+        return {"success": True, "message": "Chưa có vận động viên hoặc đội tuyển nào để cập nhật.", "count": 0}
+
+    # Xóa toàn bộ bộ nhớ đệm lịch thi đấu
     SCHEDULE_CACHE.clear()
     SCHEDULE_30D_CACHE.clear()
+    try:
+        from backend.modules.national_teams.services.national_teams_service import (
+            NATIONAL_TEAM_SCHED_CACHE,
+            fetch_national_team_schedule,
+            fetch_national_team_news_feed
+        )
+        NATIONAL_TEAM_SCHED_CACHE.clear()
+    except Exception:
+        pass
 
-    # Sử dụng tiến trình kiến trúc gom cụm (Team-Level Batching & Bulk Scoreboards)
-    res = execute_batched_sync(db, update_news=True)
-    return {"success": True, "message": f"Đã cập nhật đồng bộ tối ưu cho {count} cầu thủ!", "count": count}
+    # 1. Đồng bộ gom cụm tối ưu cho vận động viên
+    if players:
+        execute_batched_sync(db, update_news=True)
+
+    # 2. Đồng bộ lịch thi đấu và quét tin tức cho các đội tuyển & đội trẻ
+    if national_teams:
+        def _sync_single_nt(nt_id):
+            session = SessionLocal()
+            try:
+                nt = session.query(NationalTeam).filter(NationalTeam.id == nt_id).first()
+                if nt:
+                    fetch_national_team_schedule(nt)
+                    fetch_national_team_news_feed(nt, session, force_refresh=True)
+            except Exception as e:
+                print(f"[Sync NT Error] {nt_id}: {e}")
+            finally:
+                session.close()
+
+        nt_ids = [nt.id for nt in national_teams]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+            list(executor.map(_sync_single_nt, nt_ids))
+
+    try:
+        from backend.core.routers.dashboard import invalidate_dashboard_cache
+        invalidate_dashboard_cache()
+    except Exception:
+        pass
+
+    return {
+        "success": True,
+        "message": f"Đã cập nhật đồng bộ thành công {players_count} vận động viên và {nt_count} đội tuyển & đội trẻ!",
+        "count": total_count,
+        "players_count": players_count,
+        "national_teams_count": nt_count
+    }
 
 @router.get("/check-nationality")
 def check_player_nationality(name: str):

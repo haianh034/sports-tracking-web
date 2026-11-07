@@ -785,6 +785,12 @@ def get_dashboard_data(
                         if "scored an own goal" in t_low or t_low == "own goal":
                             t = "Phản lưới"
                             t_low = t.lower()
+                        if "red card" in t_low or "thẻ đỏ" in t_low or "bị thẻ đỏ" in t_low:
+                            t = "Thẻ đỏ"
+                            t_low = t.lower()
+                        if "yellow card" in t_low or "thẻ vàng" in t_low:
+                            t = "Thẻ vàng"
+                            t_low = t.lower()
                         m_save = re.match(r'^(\d+)\s+pha\s+cứu\s+thua(\s+xuất\s+sắc)?$', t_low)
                         if m_save:
                             t = f"{m_save.group(1)} cứu thua"
@@ -793,7 +799,7 @@ def get_dashboard_data(
                 def _m_tag_sort_key(tag_str):
                     tl = tag_str.lower()
                     if tag_str == clean_comp: return (0, 0)
-                    if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist"]): return (1, 0)
+                    if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist", "thẻ đỏ", "red card", "thẻ vàng", "yellow card"]): return (1, 0)
                     if any(w in tl for w in ["đá chính", "xuất phát", "vào sân", "phút"]): return (2, 0)
                     if any(w in tl for w in ["mvp", "xuất sắc nhất", "kỷ lục"]): return (3, 0)
                     return (4, 0)
@@ -875,16 +881,22 @@ def get_dashboard_data(
                             if "scored an own goal" in t_low or t_low == "own goal":
                                 t = "Phản lưới"
                                 t_low = t.lower()
+                            if "red card" in t_low or "thẻ đỏ" in t_low or "bị thẻ đỏ" in t_low:
+                                t = "Thẻ đỏ"
+                                t_low = t.lower()
+                            if "yellow card" in t_low or "thẻ vàng" in t_low:
+                                t = "Thẻ vàng"
+                                t_low = t.lower()
                             m_save = re.match(r'^(\d+)\s+pha\s+cứu\s+thua(\s+xuất\s+sắc)?$', t_low)
                             if m_save:
                                 t = f"{m_save.group(1)} cứu thua"
                             if t not in m_tags:
                                 m_tags.append(t)
-                    # Ưu tiên thứ tự: Bàn thắng/Kiến tạo/Cứu thua/Phản lưới trước, số phút/đá chính sau
+                    # Ưu tiên thứ tự: Bàn thắng/Kiến tạo/Cứu thua/Phản lưới/Thẻ đỏ/Thẻ vàng trước, số phút/đá chính sau
                     def _m_tag_sort_key(tag_str):
                         tl = tag_str.lower()
                         if tag_str == clean_comp: return (0, 0)
-                        if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist"]): return (1, 0)
+                        if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist", "thẻ đỏ", "red card", "thẻ vàng", "yellow card"]): return (1, 0)
                         if any(w in tl for w in ["đá chính", "xuất phát", "vào sân", "phút"]): return (2, 0)
                         if any(w in tl for w in ["mvp", "xuất sắc nhất", "kỷ lục"]): return (3, 0)
                         return (4, 0)

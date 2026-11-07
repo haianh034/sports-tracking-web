@@ -34,9 +34,17 @@ function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
     } else if (customMatch) {
         count = (customMatch.news || []).length;
     } else if (p) {
-        // Thẻ trên dashboard: lấy theo báo của trận đấu này trong khung D-1..D+1 (p.details.news)
         const matchNews = (p.details && p.details.news) ? p.details.news : [];
-        count = matchNews.length;
+        if (matchNews.length > 0) {
+            count = matchNews.length;
+        } else {
+            // Cơ chế fallback: Nếu trận đấu hôm nay chưa diễn ra hoặc chưa có bài viết riêng,
+            // lấy số lượng tin tức 24h qua và hiển thị chuẩn theo số bài báo (📰 X bài báo)
+            const news24h = (p.details && p.details.news_24h) ? p.details.news_24h : [];
+            if (news24h.length > 0) {
+                count = news24h.length;
+            }
+        }
     }
 
     if (count === 0) {
@@ -44,7 +52,7 @@ function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
     }
 
     const badgeClass = 'bg-blue-900/60 text-blue-300 border border-blue-700/60 font-semibold';
-    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs ${badgeClass} shadow-sm" title="Báo chí xoay quanh trận đấu (D-1 đến D+1)">
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs ${badgeClass} shadow-sm" title="Báo chí liên quan (xoay quanh trận đấu hoặc tin tức mới trong 24h)">
         <span>📰</span>
         <span>${count} bài báo</span>
     </span>`;
@@ -499,10 +507,22 @@ function renderTagBadge(tag) {
         </span>`;
     }
 
-    // 6. Chỉ số cơ bản bóng đá: Phản lưới, Cứu thua, Bàn thắng, Kiến tạo
+    // 6. Sự kiện trận đấu đặc biệt: Thẻ đỏ, Thẻ vàng, Phản lưới, Cứu thua, Bàn thắng, Kiến tạo
+    if (tLow.includes('thẻ đỏ') || tLow.includes('red card')) {
+        return `<span title="Bị phạt thẻ đỏ truất quyền thi đấu" class="inline-flex items-center gap-1 bg-rose-950/90 text-rose-300 text-[11px] px-2.5 py-1 rounded-md border border-rose-700/80 font-bold shadow-sm">
+            <span>🟥</span><span>Thẻ đỏ</span>
+        </span>`;
+    }
+
+    if (tLow.includes('thẻ vàng') || tLow.includes('yellow card')) {
+        return `<span title="Nhận thẻ vàng cảnh cáo" class="inline-flex items-center gap-1 bg-amber-950/80 text-amber-300 text-[11px] px-2.5 py-1 rounded-md border border-amber-700/70 font-semibold shadow-sm">
+            <span>🟨</span><span>Thẻ vàng</span>
+        </span>`;
+    }
+
     if (tLow.includes('phản lưới') || tLow.includes('own goal')) {
         return `<span title="Bàn phản lưới nhà (Own Goal)" class="inline-flex items-center gap-1 bg-rose-950/80 text-rose-300 text-[11px] px-2.5 py-1 rounded-md border border-rose-800/80 font-bold shadow-sm">
-            <span>⚠️</span><span>${escapeHtml(label)}</span>
+            <span>⚠️</span><span>Phản lưới</span>
         </span>`;
     }
 
@@ -519,19 +539,105 @@ function renderTagBadge(tag) {
         </span>`;
     }
 
-    // 7. In-game Stats: PTS, REB, AST, STL, BLK, phút, hit, hr, +/- (Xanh ngọc / Emerald)
+    // 7. Vai trò ra sân, Danh hiệu cá nhân & Kỷ lục
+    if (tLow.includes('mvp') || tLow.includes('xuất sắc nhất') || tLow.includes('man of the match') || tLow.includes('player of the match')) {
+        return `<span title="Cầu thủ xuất sắc nhất trận đấu" class="inline-flex items-center gap-1 bg-amber-950/90 text-amber-300 text-[11px] px-2.5 py-1 rounded-md border border-amber-600/80 font-bold shadow-sm ring-1 ring-amber-500/30">
+            <span>⭐</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('kỷ lục') || tLow.includes('cột mốc') || tLow.includes('milestone') || tLow.includes('record')) {
+        return `<span title="Thiết lập cột mốc / kỷ lục ấn tượng" class="inline-flex items-center gap-1 bg-purple-950/80 text-purple-300 text-[11px] px-2.5 py-1 rounded-md border border-purple-800/80 font-bold shadow-sm">
+            <span>🎖️</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('đá chính') || tLow.includes('xuất phát') || tLow.includes('starting')) {
+        return `<span title="Có tên trong đội hình xuất phát chính thức" class="inline-flex items-center gap-1 bg-emerald-950/80 text-emerald-300 text-[11px] px-2.5 py-1 rounded-md border border-emerald-800/70 font-semibold shadow-sm">
+            <span>🟢</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('vào sân')) {
+        return `<span title="Được tung vào sân từ ghế dự bị" class="inline-flex items-center gap-1 bg-blue-950/80 text-blue-300 text-[11px] px-2.5 py-1 rounded-md border border-blue-800/70 font-semibold shadow-sm">
+            <span>🔄</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('dự bị')) {
+        return `<span title="Dự bị" class="inline-flex items-center gap-1 bg-gray-900/80 text-gray-400 text-[11px] px-2.5 py-1 rounded-md border border-gray-700/60 font-medium shadow-sm">
+            <span>🪑</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('không đăng ký')) {
+        return `<span title="Không có tên trong danh sách đăng ký thi đấu" class="inline-flex items-center gap-1 bg-gray-900/80 text-gray-400 text-[11px] px-2.5 py-1 rounded-md border border-gray-700/60 font-medium shadow-sm">
+            <span>⛔</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('chấn thương')) {
+        return `<span title="Chấn thương / đang điều trị hồi phục" class="inline-flex items-center gap-1 bg-rose-950/80 text-rose-300 text-[11px] px-2.5 py-1 rounded-md border border-rose-800/70 font-semibold shadow-sm">
+            <span>🚑</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    // 8. In-game Stats & Kỹ thuật: Tạo cơ hội, Tắc bóng, Đánh chặn, Thu hồi bóng, Rê bóng, Chuyền bóng
+    if (tLow.includes('tạo cơ hội') || tLow.includes('key pass')) {
+        return `<span class="inline-flex items-center gap-1 bg-emerald-950/80 text-emerald-300 text-[11px] px-2.5 py-1 rounded-md border border-emerald-800/70 font-medium shadow-sm">
+            <span>🎯</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('tắc bóng') || tLow.includes('tackle')) {
+        return `<span class="inline-flex items-center gap-1 bg-teal-950/80 text-teal-300 text-[11px] px-2.5 py-1 rounded-md border border-teal-800/70 font-medium shadow-sm">
+            <span>🛑</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('đánh chặn') || tLow.includes('interception')) {
+        return `<span class="inline-flex items-center gap-1 bg-teal-950/80 text-teal-300 text-[11px] px-2.5 py-1 rounded-md border border-teal-800/70 font-medium shadow-sm">
+            <span>🛡️</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('thu hồi bóng') || tLow.includes('recoveries')) {
+        return `<span class="inline-flex items-center gap-1 bg-cyan-950/80 text-cyan-300 text-[11px] px-2.5 py-1 rounded-md border border-cyan-800/70 font-medium shadow-sm">
+            <span>🔄</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('rê bóng') || tLow.includes('dribble')) {
+        return `<span class="inline-flex items-center gap-1 bg-indigo-950/80 text-indigo-300 text-[11px] px-2.5 py-1 rounded-md border border-indigo-800/70 font-medium shadow-sm">
+            <span>⚡</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('chuyền bóng') || tLow.includes('chuyền') || tLow.includes('pass')) {
+        return `<span class="inline-flex items-center gap-1 bg-emerald-950/80 text-emerald-300 text-[11px] px-2.5 py-1 rounded-md border border-emerald-800/70 font-medium shadow-sm">
+            <span>👟</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
     if (tLow.includes('điểm') || tLow.includes('pts') || tLow.includes('reb') || tLow.includes('ast') || 
         tLow.includes('stl') || tLow.includes('blk') || tLow.includes('phút') || 
         tLow.includes('hit') || tLow.includes('home run') || tLow.includes('rbi') || 
-        tLow.includes('sạch lưới') || tLow.includes('+/-') || tLow.includes('3pt')) {
+        tLow.includes('+/-') || tLow.includes('3pt')) {
         return `<span class="inline-flex items-center gap-1 bg-emerald-950/80 text-emerald-300 text-[11px] px-2.5 py-1 rounded-md border border-emerald-800/70 font-medium shadow-sm">
             <span>${escapeHtml(label)}</span>
         </span>`;
     }
 
-    // 8. Default / Tournaments & Roles: NBA, Champions League, FIFA U-17 World Cup, WBC, VNL...
+    // 9. Giải đấu chính thức & Mặc định: NBA, Champions League, FIFA U-17 World Cup, WBC, VNL...
+    let tourneyIcon = '🏆';
+    if (tLow.includes('nba') || tLow.includes('bóng rổ')) tourneyIcon = '🏀';
+    else if (tLow.includes('mlb') || tLow.includes('bóng chày') || tLow.includes('wbc')) tourneyIcon = '⚾';
+    else if (tLow.includes('vnl') || tLow.includes('bóng chuyền') || tLow.includes('superlega') || tLow.includes('sv.league')) tourneyIcon = '🏐';
+    else if (tLow.includes('cầu lông') || tLow.includes('bwf')) tourneyIcon = '🏸';
+    else if (tLow.includes('bóng bàn') || tLow.includes('wtt')) tourneyIcon = '🏓';
+
     return `<span class="inline-flex items-center gap-1 bg-blue-950/80 text-blue-300 text-[11px] px-2.5 py-1 rounded-md border border-blue-800/60 font-semibold shadow-sm">
-        <span>🏆</span><span>${escapeHtml(label)}</span>
+        <span>${tourneyIcon}</span><span>${escapeHtml(label)}</span>
     </span>`;
 }
 
@@ -2071,38 +2177,74 @@ function openModal(player, resetFilter = true, customMatch = null) {
 
     // SECTION: LỊCH THI ĐẤU & KẾT QUẢ CÁC TRẬN ĐÃ ĐẤU (TABS SẮP TỚI / ĐÃ ĐẤU)
     window.currentModalPlayer = player;
+    window.currentModalCustomMatch = customMatch;
     window.currentModalMatchesTab = window.currentModalMatchesTab || 'upcoming';
     switchModalMatchesTab(window.currentModalMatchesTab);
 
-    // Tự động xác định nguồn báo chí cho Modal theo đúng logic:
-    let targetNews = [];
-    if (customMatch) {
-        targetNews = (customMatch.news && customMatch.news.length > 0) ? customMatch.news : [];
-    } else {
-        targetNews = (player.details && player.details.news && player.details.news.length > 0) ? player.details.news : [];
-    }
+    // Cập nhật số lượng bài trên các tab nguồn tin trong modal
+    const matchNews = customMatch ? (customMatch.news || []) : ((player.details && player.details.news) ? player.details.news : []);
+    const news24h = (player.details && player.details.news_24h) ? player.details.news_24h : [];
+    const allNews = (player.details && player.details.all_news) ? player.details.all_news : [];
 
-    window.currentModalNews = targetNews;
-    window.currentModalNewsSource = 'match';
+    const cntMatch = document.getElementById('sourceCountMatch');
+    const cnt24h = document.getElementById('sourceCount24h');
+    const cntAll = document.getElementById('sourceCountAll');
+    if (cntMatch) cntMatch.innerText = `(${matchNews.length})`;
+    if (cnt24h) cnt24h.innerText = `(${news24h.length})`;
+    if (cntAll) cntAll.innerText = `(${allNews.length})`;
 
-    // Tiêu đề ngắn gọn chuẩn theo yêu cầu: Báo theo trận đấu (D-1 đến D+1 hoặc 1 tóm tắt nếu >30 ngày)
-    const iconElem = document.getElementById('modalNewsIcon');
-    const titleElem = document.getElementById('modalNewsTitleText');
-    if (iconElem && titleElem) {
-        iconElem.innerText = "⚽";
-        titleElem.innerText = "Báo liên quan (Theo trận đấu)";
-    }
-
-    selectedNewsCategories.clear();
-    renderModalNews();
-
-    // Tự động giải mã trước URL trong nền để khi bấm nút Copy vào NotebookLM sẽ sao chép ngay lập tức
-    triggerNewsUrlsPredecode(targetNews);
+    // Luôn mặc định mở tab "Báo theo trận đấu" (match) để đồng nhất với thẻ Today's Activities và các trận đấu
+    let defaultSource = 'match';
+    switchModalNewsSource(defaultSource);
 
     const apiMeta = document.getElementById('modalApiMeta');
     if (apiMeta) apiMeta.innerText = player.api_player_id ? `API ID: ${player.api_player_id}` : '';
     document.getElementById('detailModal').classList.remove('hidden');
 }
+
+window.switchModalNewsSource = function(source) {
+    const player = window.currentModalPlayer;
+    if (!player) return;
+
+    window.currentModalNewsSource = source;
+    const tabMatch = document.getElementById('tabSourceMatch');
+    const tab24h = document.getElementById('tabSource24h');
+    const tabAll = document.getElementById('tabSourceAll');
+    const iconElem = document.getElementById('modalNewsIcon');
+    const titleElem = document.getElementById('modalNewsTitleText');
+
+    const activeClass = 'px-2.5 py-1 rounded-md font-semibold transition bg-blue-600 text-white shadow-sm cursor-pointer';
+    const inactiveClass = 'px-2.5 py-1 rounded-md font-semibold transition text-gray-400 hover:text-gray-200 hover:bg-gray-800 cursor-pointer';
+
+    if (tabMatch) tabMatch.className = (source === 'match') ? activeClass : inactiveClass;
+    if (tab24h) tab24h.className = (source === '24h') ? activeClass : inactiveClass;
+    if (tabAll) tabAll.className = (source === 'all') ? activeClass : inactiveClass;
+
+    let targetNews = [];
+    const customMatch = window.currentModalCustomMatch;
+    const matchNews = customMatch ? (customMatch.news || []) : ((player.details && player.details.news) ? player.details.news : []);
+    const news24h = (player.details && player.details.news_24h) ? player.details.news_24h : [];
+    const allNews = (player.details && player.details.all_news) ? player.details.all_news : [];
+
+    if (source === 'match') {
+        targetNews = matchNews;
+        if (iconElem) iconElem.innerText = '⚽';
+        if (titleElem) titleElem.innerText = 'Báo theo trận đấu';
+    } else if (source === '24h') {
+        targetNews = news24h;
+        if (iconElem) iconElem.innerText = '⚡';
+        if (titleElem) titleElem.innerText = 'Tin tức 24 giờ qua';
+    } else {
+        targetNews = allNews;
+        if (iconElem) iconElem.innerText = '📚';
+        if (titleElem) titleElem.innerText = 'Toàn bộ bài báo lưu trữ';
+    }
+
+    window.currentModalNews = targetNews;
+    selectedNewsCategories.clear();
+    renderModalNews();
+    triggerNewsUrlsPredecode(targetNews);
+};
 
 window.switchModalMatchesTab = function(tab) {
     window.currentModalMatchesTab = tab;

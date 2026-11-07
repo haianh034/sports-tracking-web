@@ -143,7 +143,34 @@ PLAYER_NATIVE_NAMES = {
     "takumi minamino": ["南野拓実", "南野 拓実"],
     "koki machida": ["町田浩樹", "町田 浩樹"],
     "koki ogawa": ["小川航基", "小川 航基"],
-    "yukinari sugawara": ["菅原由勢", "菅原 由勢"]
+    "yukinari sugawara": ["菅原由勢", "菅原 由勢"],
+    "jens castrop": ["옌스 카스트로프", "카스트로프"],
+    "keita kosugi": ["小杉啓太", "小杉 啓太"],
+    "keisuke goto": ["後藤啓介", "後藤 啓介"],
+    "shuto machino": ["町野修斗", "町野 修斗"],
+    "daiki hashioka": ["橋岡大樹", "橋岡 大樹"],
+    "zento uno": ["宇野禅斗", "宇野 禅斗"],
+    "shio fukuda": ["福田師王", "福田 師王"],
+    "takehiro tomiyasu": ["冨安健洋", "冨安 健洋", "富安健洋"],
+    "hidemasa morita": ["守田英正", "守田 英正"],
+    "kaishu sano": ["佐野海舟", "佐野 海舟"],
+    "yuito suzuki": ["鈴木唯人", "鈴木 唯人"],
+    "tsuyoshi watanabe": ["渡辺剛", "渡辺 剛", "渡邊剛"],
+    "maya yoshida": ["吉田麻也", "吉田 麻也"],
+    "ayase ueda": ["上田綺世", "上田 綺世"],
+    "tatsuhiro sakamoto": ["坂元達裕", "坂元 達裕"],
+    "rion ichihara": ["市原吏音", "市原 吏音"],
+    "seiya maikuma": ["毎熊晟矢", "毎熊 晟矢"],
+    "kodai sano": ["佐野航大", "佐野 航大"],
+    "shunsuke mito": ["三戸舜介", "三戸 舜介"],
+    "ryunosuke sato": ["佐藤龍之介", "佐藤 龍之介"],
+    "taichi fukui": ["福井太智", "福井 太智"],
+    "sota kawasaki": ["川﨑颯太", "川﨑 颯太", "川崎颯太"],
+    "rihito yamamoto": ["山本理仁", "山本 理仁"],
+    "ayumu seko": ["瀬古歩夢", "瀬古 歩夢"],
+    "kento shiogai": ["塩貝健人", "塩貝 健人"],
+    "yuji nishida": ["西田有志", "西田 有志"],
+    "kota takai": ["高井幸大", "高井 幸大"]
 }
 
 def fetch_player_news_entries(player_name: str, aliases: str = "", country_name: str = "") -> list:
@@ -247,7 +274,8 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
         # For native language regions (Japan, Korea), query directly with the native name (e.g. 久保建英 or 손흥민)
         # to unlock all Japanese/Korean news outlets (Yahoo Japan, Nikkan, Naver, etc.)
         if reg["code"] in ["JP", "KR"] and native_names:
-            target_q = f'"{native_names[0]}"'
+            native_parts = [f'"{nn}"' for nn in native_names[:2]]
+            target_q = " OR ".join(native_parts)
         else:
             query_parts = [f'"{player_name}"']
             for la in latin_aliases[:2]:

@@ -454,6 +454,8 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         if "vào sân từ ghế dự bị" in t_low: t = "Vào sân"
         if t_low == "bàn quyết định": t = "Bàn mở tỉ số"
         if "scored an own goal" in t_low or t_low == "own goal": t = "Phản lưới"
+        if "red card" in t_low or "thẻ đỏ" in t_low or "bị thẻ đỏ" in t_low: t = "Thẻ đỏ"
+        if "yellow card" in t_low or "thẻ vàng" in t_low: t = "Thẻ vàng"
         # Chuẩn hóa gọn gàng các tag cứu thua của thủ môn: ví dụ "5 pha cứu thua xuất sắc" -> "5 cứu thua"
         m_save = re.match(r'^(\d+)\s+pha\s+cứu\s+thua(\s+xuất\s+sắc)?$', t_low)
         if m_save:
@@ -467,7 +469,7 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
 
     # ƯU TIÊN THỨ TỰ HIỂN THỊ TAGS:
     # 0. Giải đấu (Tournament)
-    # 1. Bàn thắng / Kiến tạo / Cứu thua / Phản lưới (Chỉ số cơ bản luôn ở trước)
+    # 1. Bàn thắng / Kiến tạo / Cứu thua / Phản lưới / Thẻ đỏ / Thẻ vàng (Sự kiện chính luôn ở trước)
     # 2. Đá chính / Xuất phát / Vào sân / Số phút thi đấu
     # 3. MVP, Cầu thủ xuất sắc nhất, Kỷ lục
     # 4. Các điểm nhấn khác (Tạo cơ hội, rê bóng...)
@@ -476,8 +478,8 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
         # Nhóm 0: Giải đấu
         if tag in ALL_TOURNAMENT_TAGS:
             return (0, 0)
-        # Nhóm 1: Bàn thắng, Hattrick, Cú đúp, Bàn mở tỉ số, Bàn ấn định, Kiến tạo, Cứu thua, Phản lưới
-        if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist"]):
+        # Nhóm 1: Bàn thắng, Hattrick, Cú đúp, Bàn mở tỉ số, Bàn ấn định, Kiến tạo, Cứu thua, Phản lưới, Thẻ đỏ, Thẻ vàng
+        if any(w in tl for w in ["bàn", "hattrick", "cú đúp", "kiến tạo", "cứu thua", "save", "phản lưới", "own goal", "goal", "assist", "thẻ đỏ", "red card", "thẻ vàng", "yellow card"]):
             return (1, 0)
         # Nhóm 2: Vai trò xuất phát & số phút
         if any(w in tl for w in ["đá chính", "xuất phát", "vào sân", "phút", "starting", "lineup"]):
