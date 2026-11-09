@@ -12,8 +12,11 @@ import urllib.parse
 import re
 import time
 import logging
+import threading
 
 logger = logging.getLogger("uvicorn.error")
+
+_DASHBOARD_BUILD_LOCK = threading.Lock()
 
 @dataclass(slots=True)
 class FastNewsItem:
@@ -173,32 +176,6 @@ def get_dashboard_data(
     entity_type: Optional[str] = Query(None, description="'all', 'player', or 'national_team'"),
     db: Session = Depends(get_db)
 ):
-    t_start = time.time()
-    logger.info("==> [API] Bắt đầu nạp bảng theo dõi (get_dashboard_data)...")
-    all_db_players = db.query(Player).options(
-        joinedload(Player.sport),
-        joinedload(Player.nationality),
-        joinedload(Player.club)
-    ).all()
-
-    all_db_national_teams = db.query(NationalTeam).options(
-        joinedload(NationalTeam.sport),
-        joinedload(NationalTeam.nationality)
-    ).all()
-
-    def matches_dropdown_filters(item):
-        s_name = item.sport_name
-        c_name = item.country_name
-        if sport and isinstance(sport, str) and sport.strip() and s_name.lower() != sport.strip().lower():
-            return False
-        if country and isinstance(country, str) and country.strip() and c_name.lower() != country.strip().lower():
-            return False
-        if sport_id and isinstance(sport_id, int) and item.sport_id != sport_id:
-            return False
-        if country_id and isinstance(country_id, int) and item.country_id != country_id:
-            return False
-        return True
-
     clean_sport = sport if isinstance(sport, str) else None
     clean_country = country if isinstance(country, str) else None
     clean_sport_id = sport_id if isinstance(sport_id, int) else None
@@ -235,6 +212,78 @@ def get_dashboard_data(
                     _DASHBOARD_CACHE[cache_key] = (base_ts, derived_data)
                     return derived_data
 
+    # Chống thundering herd (stampede) trên Render: Chỉ 1 luồng build data tại 1 thời điểm
+    with _DASHBOARD_BUILD_LOCK:
+        # Double check cache sau khi acquire lock (tránh tính toán lại nếu luồng khác vừa build xong)
+        now_ts = datetime.datetime.now().timestamp()
+        if cache_key in _DASHBOARD_CACHE:
+            c_ts, c_data = _DASHBOARD_CACHE[cache_key]
+            if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
+                return c_data
+
+        if clean_entity_type in ["player", "national_team"]:
+            for potential_key in [base_all_cache_key, ((clean_sport or "").strip().lower(), (clean_country or "").strip().lower(), clean_sport_id, clean_country_id, "")]:
+                if potential_key in _DASHBOARD_CACHE:
+                    base_ts, base_data = _DASHBOARD_CACHE[potential_key]
+                    if now_ts - base_ts < _DASHBOARD_CACHE_TTL:
+                        derived_data = _filter_cached_dashboard(base_data, clean_entity_type)
+                        _DASHBOARD_CACHE[cache_key] = (base_ts, derived_data)
+                        return derived_data
+
+        return _compute_dashboard_data(
+            db=db,
+            sport=sport,
+            country=country,
+            sport_id=sport_id,
+            country_id=country_id,
+            clean_sport=clean_sport,
+            clean_country=clean_country,
+            clean_sport_id=clean_sport_id,
+            clean_country_id=clean_country_id,
+            clean_entity_type=clean_entity_type,
+            cache_key=cache_key
+        )
+
+
+def _compute_dashboard_data(
+    db: Session,
+    sport: Optional[str],
+    country: Optional[str],
+    sport_id: Optional[int],
+    country_id: Optional[int],
+    clean_sport: Optional[str],
+    clean_country: Optional[str],
+    clean_sport_id: Optional[int],
+    clean_country_id: Optional[int],
+    clean_entity_type: Optional[str],
+    cache_key: tuple
+) -> dict:
+    t_start = time.time()
+    logger.info("==> [API] Bắt đầu nạp bảng theo dõi (get_dashboard_data)...")
+    all_db_players = db.query(Player).options(
+        joinedload(Player.sport),
+        joinedload(Player.nationality),
+        joinedload(Player.club)
+    ).all()
+
+    all_db_national_teams = db.query(NationalTeam).options(
+        joinedload(NationalTeam.sport),
+        joinedload(NationalTeam.nationality)
+    ).all()
+
+    def matches_dropdown_filters(item):
+        s_name = item.sport_name
+        c_name = item.country_name
+        if sport and isinstance(sport, str) and sport.strip() and s_name.lower() != sport.strip().lower():
+            return False
+        if country and isinstance(country, str) and country.strip() and c_name.lower() != country.strip().lower():
+            return False
+        if sport_id and isinstance(sport_id, int) and item.sport_id != sport_id:
+            return False
+        if country_id and isinstance(country_id, int) and item.country_id != country_id:
+            return False
+        return True
+
     total_filtered_players = sum(1 for p in all_db_players if matches_dropdown_filters(p))
     total_filtered_national_teams = sum(1 for t in all_db_national_teams if matches_dropdown_filters(t))
 
@@ -264,6 +313,7 @@ def get_dashboard_data(
     no_match_players = []
     schedule_players = []
     
+    now_ts = datetime.datetime.now().timestamp()
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     ict_now = now_utc + datetime.timedelta(hours=7)
     today_ict = ict_now.date()
@@ -303,7 +353,7 @@ def get_dashboard_data(
         return p.id, fetch_player_career_schedule(p.name, t_name, s_name, api_team_id=team_id)
 
     sched_map = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
         for pid, s_list in ex.map(_fetch_player_career, player_data_tuples):
             sched_map[pid] = s_list
 
@@ -335,7 +385,7 @@ def get_dashboard_data(
         fetch_espn_summary(url, ev_id)
 
     if unique_past_events:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
             list(ex.map(_prefetch_summary, unique_past_events))
 
     # Khung 48 giờ chuẩn: Từ 00:00:00 ngày hôm trước đến 23:59:59 ngày hôm nay (tính theo giờ Việt Nam UTC+7)
@@ -356,11 +406,11 @@ def get_dashboard_data(
         if p_d_str in [today_str_vn, yesterday_ict.strftime("%Y-%m-%d")]:
             today_perf_by_player[perf.player_id] = perf
 
-    # Tải đầy đủ tin tức từ database qua SQL nhẹ và map vào FastNewsItem
-    cutoff_45d = now_utc - datetime.timedelta(days=45)
+    # Tải tin tức trong 30 ngày từ database qua SQL nhẹ và map vào FastNewsItem
+    cutoff_30d = now_utc - datetime.timedelta(days=30)
     raw_news_rows = db.execute(
         text("SELECT player_id, title, source_url, news_type, region, published_at FROM player_news WHERE published_at >= :c ORDER BY published_at DESC"),
-        {"c": cutoff_45d}
+        {"c": cutoff_30d}
     ).fetchall()
 
     news_by_player = {}
@@ -1070,7 +1120,7 @@ def get_dashboard_data(
             m_s, m_d = unpack_stats(m.get("player_stats"))
             m["player_stats"] = m_s
             m["detailed_stats"] = m_d
-            m["news"] = m_news
+            m["news"] = m_news[:8]
             m["news_count"] = len(m_news)
             all_matches.append(m)
 
@@ -1281,7 +1331,7 @@ def get_dashboard_data(
                         "region": n.region or "US",
                         "published_at": n.published_at_iso
                     }
-                    for n in player_news_list
+                    for n in player_news_list[:40]
                 ]
             }
         }
@@ -1412,7 +1462,7 @@ def get_dashboard_data(
                     "published_at": m.get("match_date_utc")
                 }]
 
-            m["news"] = m_news
+            m["news"] = m_news[:8]
             m["news_count"] = len(m_news)
 
             m_state = m.get("match_state", "pre")
@@ -1599,7 +1649,7 @@ def get_dashboard_data(
                         "region": n.region or "US",
                         "published_at": n.published_at_iso
                     }
-                    for n in nt_news
+                    for n in nt_news[:40]
                 ]
             }
         }

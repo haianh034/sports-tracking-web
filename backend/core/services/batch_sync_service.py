@@ -308,6 +308,12 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                 db.commit()
 
         db.commit()
+        # Tự động dọn dẹp các bài báo cũ quá 30 ngày để tối ưu kích thước DB và bộ nhớ RAM
+        try:
+            cleanup_expired_news(db, days=30)
+        except Exception:
+            pass
+
         try:
             from backend.core.routers.dashboard import invalidate_dashboard_cache
             invalidate_dashboard_cache()
@@ -323,4 +329,21 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         return {"count": len(players), "status": "completed"}
     finally:
         _SYNC_LOCK.release()
+
+
+def cleanup_expired_news(db: Session, days: int = 30) -> int:
+    """
+    Dọn dẹp tự động (Retention Policy): Xóa các bản tin cũ hơn `days` ngày (mặc định 30 ngày)
+    trong bảng PlayerNews và NationalTeamNews để tránh cồng kềnh database và giảm thiểu dung lượng RAM.
+    """
+    try:
+        from backend.core.db.models import PlayerNews, NationalTeamNews
+        cutoff_dt = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - datetime.timedelta(days=days)
+        deleted_players = db.query(PlayerNews).filter(PlayerNews.published_at < cutoff_dt).delete(synchronize_session=False)
+        deleted_nts = db.query(NationalTeamNews).filter(NationalTeamNews.published_at < cutoff_dt).delete(synchronize_session=False)
+        db.commit()
+        return deleted_players + deleted_nts
+    except Exception:
+        db.rollback()
+        return 0
 
