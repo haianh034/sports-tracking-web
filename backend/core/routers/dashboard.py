@@ -1120,10 +1120,10 @@ def _compute_dashboard_data(
             m_s, m_d = unpack_stats(m.get("player_stats"))
             m["player_stats"] = m_s
             m["detailed_stats"] = m_d
-            # Trận hôm nay / trận đang diễn ra (khung 48h): Giữ nguyên trọn vẹn toàn bộ bài báo theo trận
-            # Các trận cũ khác trong quá khứ: Giới hạn tối đa 8 bài để tiết kiệm dung lượng JSON
-            is_curr_or_today_match = is_matching_today_perf or (m_date_vn in [today_str_vn, yesterday_str_vn]) or (-1.2 <= diff_d <= 1.2)
-            m["news"] = m_news if is_curr_or_today_match else m_news[:8]
+            # Trận đấu trong vòng 7 ngày (1 tuần) hoặc trận tương lai: Giữ nguyên trọn vẹn toàn bộ bài báo theo trận
+            # Trận cũ hơn 7 ngày (quá 1 tuần): Giới hạn tối đa 8 bài để tiết kiệm dung lượng JSON
+            is_within_7d = is_matching_today_perf or (m_date_vn in [today_str_vn, yesterday_str_vn]) or (diff_d >= -7.0)
+            m["news"] = m_news if is_within_7d else m_news[:8]
             m["news_count"] = len(m_news)
             all_matches.append(m)
 
@@ -1465,8 +1465,10 @@ def _compute_dashboard_data(
                     "published_at": m.get("match_date_utc")
                 }]
 
-            is_nt_today_match = (m_date_vn in [today_str_vn, yesterday_str_vn]) or (m.get("match_state") == "in") or (-1.2 <= diff_d <= 1.2)
-            m["news"] = m_news if is_nt_today_match else m_news[:8]
+            # Trận đấu trong vòng 7 ngày (1 tuần) hoặc trận tương lai: Giữ nguyên trọn vẹn toàn bộ bài báo theo trận
+            # Trận cũ hơn 7 ngày (quá 1 tuần): Giới hạn tối đa 8 bài để tiết kiệm dung lượng JSON
+            is_nt_within_7d = (m_date_vn in [today_str_vn, yesterday_str_vn]) or (m.get("match_state") == "in") or (diff_d >= -7.0)
+            m["news"] = m_news if is_nt_within_7d else m_news[:8]
             m["news_count"] = len(m_news)
 
             m_state = m.get("match_state", "pre")
