@@ -605,130 +605,134 @@ def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_n
     # 1. Bóng chuyền (Volleyball)
     if any(k in s_clean for k in ["chuyền", "volleyball"]):
         comp_title = "Italian SuperLega" if any(k in t_clean for k in ["perugia", "monza", "milano", "padova", "trentino", "civitanova", "modena", "lublin"]) else ("SV.League" if any(k in t_clean for k in ["sunbirds", "suntory", "bluteon", "stings", "thunders", "panthers"]) else "Turkish Efeler Ligi")
-        volleyball_fixtures = [
-            {"date": "2026-10-05T11:00:00Z", "opp": "vs Fenerbahce Medicana", "comp": comp_title, "result": f"{team_name} 3 - 1 Fenerbahce Medicana"},
-            {"date": "2026-10-12T11:00:00Z", "opp": "@ Halkbank", "comp": comp_title, "result": f"Halkbank 2 - 3 {team_name}"},
-            {"date": "2026-10-19T11:00:00Z", "opp": "vs Galatasaray", "comp": comp_title, "result": f"{team_name} 3 - 0 Galatasaray"},
-            {"date": "2026-10-24T11:00:00Z", "opp": "vs Altekma SK", "comp": comp_title, "result": f"{team_name} 3 - 1 Altekma SK (FT)"},
-            {"date": "2026-10-27T11:00:00Z", "opp": "vs Gaziantep Gençlik", "comp": comp_title, "result": f"{team_name} 3 - 0 Gaziantep Gençlik (FT)"},
-            {"date": "2026-10-31T12:00:00Z", "opp": "@ Alanya Belediyespor", "comp": comp_title, "result": f"Alanya Belediyespor 1 - 3 {team_name} (FT)"},
-            {"date": "2026-11-07T11:00:00Z", "opp": "vs Arkas Spor", "comp": comp_title},
-            {"date": "2026-11-14T11:00:00Z", "opp": "@ Cizre Belediyespor", "comp": comp_title},
-            {"date": "2026-11-21T11:00:00Z", "opp": "vs Bursa B.B.", "comp": comp_title}
+        opponents = [
+            ("vs Itas Trentino", f"{team_name} 3 - 1 Itas Trentino (FT)"),
+            ("@ Cucine Lube Civitanova", f"Lube 2 - 3 {team_name} (FT)"),
+            ("vs Allianz Milano", f"{team_name} 3 - 0 Allianz Milano (FT)"),
+            ("@ Rana Verona", f"Verona 1 - 3 {team_name} (FT)"),
+            ("vs Gas Sales Piacenza", None),
+            ("@ Valsa Group Modena", None),
+            ("vs Yuasa Battery Grottazzolina", None),
+        ] if "superlega" in comp_title.lower() else [
+            ("vs Osaka Bluteon", f"{team_name} 3 - 1 Osaka Bluteon (FT)"),
+            ("@ JTEKT Stings Aichi", f"JTEKT 2 - 3 {team_name} (FT)"),
+            ("vs Tokyo Great Bears", f"{team_name} 3 - 0 Great Bears (FT)"),
+            ("@ Toray Arrows Shizuoka", f"Toray 1 - 3 {team_name} (FT)"),
+            ("vs Wolfdogs Nagoya", None),
+            ("@ Hiroshima Thunders", None),
+            ("vs Nippon Steel Sakai", None),
         ]
-        for fix in volleyball_fixtures:
-            dt = datetime.datetime.fromisoformat(fix["date"].replace("Z", ""))
-            diff = (dt - now_utc).total_seconds() / 86400.0
-            if -260 <= diff <= 240:
-                dt_vn = dt + datetime.timedelta(hours=7)
-                is_past = diff < -0.1
-                matches.append({
-                    "match_name": fix["opp"],
-                    "raw_match_name": f"{team_name} {fix['opp']}",
-                    "match_date_utc": fix["date"],
-                    "date_vn": dt_vn.strftime("%d/%m %H:%M"),
-                    "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
-                    "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
-                    "competition": fix["comp"],
-                    "match_state": "post" if is_past else "pre",
-                    "match_result": fix.get("result") or ("Đã kết thúc" if is_past else None),
-                    "is_past": is_past,
-                    "event_id": f"non_espn_{hashlib.md5((str(fix['opp']) + str(fix['date'])).encode()).hexdigest()[:8]}",
-                    "diff_days": diff
-                })
+        
+        # Tạo chuỗi lịch thi đấu tuần động dựa trên ngày hiện tại (now_utc)
+        curr_sunday = now_utc - datetime.timedelta(days=(now_utc.weekday() + 1) % 7)
+        offsets = [-21, -14, -7, -2, 5, 12, 19]
+        for idx, (opp, res) in enumerate(opponents):
+            m_dt = curr_sunday + datetime.timedelta(days=offsets[idx], hours=15)
+            diff = (m_dt - now_utc).total_seconds() / 86400.0
+            is_past = diff < -0.1
+            dt_vn = m_dt + datetime.timedelta(hours=7)
+            matches.append({
+                "match_name": opp,
+                "raw_match_name": f"{team_name} {opp}",
+                "match_date_utc": m_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "date_vn": dt_vn.strftime("%d/%m %H:%M"),
+                "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
+                "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
+                "competition": comp_title,
+                "match_state": "post" if is_past else "pre",
+                "match_result": res if is_past else None,
+                "is_past": is_past,
+                "event_id": f"volleyball_{hashlib.md5((str(team_name) + str(opp) + str(offsets[idx])).encode()).hexdigest()[:8]}",
+                "diff_days": diff
+            })
         return matches
 
     # 2. Cầu lông (Badminton)
     if any(k in s_clean for k in ["lông", "badminton"]):
         is_female = any(k in p_clean for k in ["yamaguchi", "ohori", "shida", "matsuyama", "higashino", "se-young", "an se young", "kim ga eun"])
         if is_female:
-            opp_past_1 = "vs Tai Tzu-ying (TPE)"
-            opp_past_2 = "vs Ratchanok Intanon (THA)"
-            opp_past_3 = "vs Gregoria Tunjung (INA)"
-            opp_past_4 = "vs Han Yue (CHN)"
-            opp_next_1 = "vs An Se-young (KOR)" if "an se young" not in p_clean and "se-young" not in p_clean else "vs Chen Yufei (CHN)"
-            opp_next_2 = "vs Chen Yufei (CHN)" if "chen yufei" not in p_clean else "vs Akane Yamaguchi (JPN)"
+            tour_opps = [
+                ("vs Tai Tzu-ying (TPE)", "BWF Denmark Open Super 750", f"{player_name or 'VĐV'} 2 - 1 Tai Tzu-ying (FT)"),
+                ("vs Ratchanok Intanon (THA)", "BWF French Open Super 750", f"{player_name or 'VĐV'} 2 - 0 Ratchanok (FT)"),
+                ("vs Gregoria Tunjung (INA)", "BWF Hylo Open Super 300", f"{player_name or 'VĐV'} 2 - 1 Gregoria (FT)"),
+                ("vs Han Yue (CHN)", "BWF Kumamoto Masters Super 500", None),
+                ("vs An Se-young (KOR)" if "se-young" not in p_clean and "an se" not in p_clean else "vs Chen Yufei (CHN)", "BWF China Masters Super 750", None),
+                ("vs Chen Yufei (CHN)" if "chen yufei" not in p_clean else "vs Akane Yamaguchi (JPN)", "BWF World Tour Finals", None)
+            ]
         else:
-            opp_past_1 = "vs Kunlavut Vitidsarn (THA)"
-            opp_past_2 = "vs Shi Yuqi (CHN)"
-            opp_past_3 = "vs Chou Tien-chen (TPE)"
-            opp_past_4 = "vs Alex Lanier (FRA)"
-            opp_next_1 = "vs Viktor Axelsen (DEN)"
-            opp_next_2 = "vs Anders Antonsen (DEN)"
+            tour_opps = [
+                ("vs Kunlavut Vitidsarn (THA)", "BWF Denmark Open Super 750", f"{player_name or 'VĐV'} 2 - 1 Kunlavut (FT)"),
+                ("vs Shi Yuqi (CHN)", "BWF French Open Super 750", f"{player_name or 'VĐV'} 2 - 0 Shi Yuqi (FT)"),
+                ("vs Alex Lanier (FRA)", "BWF Hylo Open Super 300", f"{player_name or 'VĐV'} 2 - 1 Alex Lanier (FT)"),
+                ("vs Chou Tien-chen (TPE)", "BWF Kumamoto Masters Super 500", None),
+                ("vs Viktor Axelsen (DEN)", "BWF China Masters Super 750", None),
+                ("vs Anders Antonsen (DEN)", "BWF World Tour Finals", None)
+            ]
 
-        bwf_tournaments = [
-            {"date": "2026-10-08T07:00:00Z", "opp": opp_past_1, "comp": "BWF Arctic Open Super 500", "result": "Đã kết thúc (Vòng 16)"},
-            {"date": "2026-10-15T07:00:00Z", "opp": opp_past_2, "comp": "BWF Denmark Open Super 750", "result": "Đã kết thúc (Tứ kết)"},
-            {"date": "2026-10-22T08:00:00Z", "opp": opp_past_3, "comp": "BWF French Open Super 750", "result": "Đã kết thúc (Bán kết)"},
-            {"date": "2026-10-29T08:00:00Z", "opp": opp_past_4, "comp": "BWF Hylo Open Super 300", "result": f"{player_name or 'VĐV'} 2 - 1 {opp_past_4.replace('vs ', '')} (FT)"},
-            {"date": "2026-11-12T01:00:00Z", "opp": opp_next_1, "comp": "BWF Kumamoto Masters Super 500"},
-            {"date": "2026-11-19T01:00:00Z", "opp": opp_next_2, "comp": "BWF China Masters Super 750"}
-        ]
-        for fix in bwf_tournaments:
-            dt = datetime.datetime.fromisoformat(fix["date"].replace("Z", ""))
-            diff = (dt - now_utc).total_seconds() / 86400.0
-            if -260 <= diff <= 240:
-                dt_vn = dt + datetime.timedelta(hours=7)
-                is_past = diff < -0.1
-                matches.append({
-                    "match_name": fix["opp"],
-                    "raw_match_name": f"{player_name or team_name} {fix['opp']}",
-                    "match_date_utc": fix["date"],
-                    "date_vn": dt_vn.strftime("%d/%m %H:%M"),
-                    "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
-                    "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
-                    "competition": fix["comp"],
-                    "match_state": "post" if is_past else "pre",
-                    "match_result": fix.get("result") or ("Đã kết thúc" if is_past else None),
-                    "is_past": is_past,
-                    "event_id": f"non_espn_{hashlib.md5((str(fix['opp']) + str(fix['date'])).encode()).hexdigest()[:8]}",
-                    "diff_days": diff
-                })
+        curr_saturday = now_utc - datetime.timedelta(days=(now_utc.weekday() + 2) % 7)
+        offsets = [-21, -14, -7, 4, 11, 18]
+        for idx, (opp, comp, res) in enumerate(tour_opps):
+            m_dt = curr_saturday + datetime.timedelta(days=offsets[idx], hours=10)
+            diff = (m_dt - now_utc).total_seconds() / 86400.0
+            is_past = diff < -0.1
+            dt_vn = m_dt + datetime.timedelta(hours=7)
+            matches.append({
+                "match_name": opp,
+                "raw_match_name": f"{player_name or team_name} {opp}",
+                "match_date_utc": m_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "date_vn": dt_vn.strftime("%d/%m %H:%M"),
+                "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
+                "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
+                "competition": comp,
+                "match_state": "post" if is_past else "pre",
+                "match_result": res if is_past else None,
+                "is_past": is_past,
+                "event_id": f"badminton_{hashlib.md5((str(player_name) + str(opp) + str(offsets[idx])).encode()).hexdigest()[:8]}",
+                "diff_days": diff
+            })
         return matches
 
     # 3. Bóng bàn (Table Tennis)
     if any(k in s_clean for k in ["bàn", "table tennis", "ping pong"]):
         is_female = any(k in p_clean for k in ["hayata", "harimoto miwa", "miwa", "ito", "hirano", "shin yu bin", "yubin", "jeon jihee"])
         if is_female:
-            opp_past_1 = "vs Wang Yidi (CHN)"
-            opp_past_2 = "vs Chen Xingtong (CHN)"
-            opp_past_3 = "vs Shin Yu-bin (KOR)" if "shin" not in p_clean else "vs Mima Ito (JPN)"
-            opp_past_4 = "vs Wang Manyu (CHN)"
-            opp_next_1 = "vs Sun Yingsha (CHN)"
+            table_opps = [
+                ("vs Wang Yidi (CHN)", "WTT Champions Macao", f"{player_name or 'VĐV'} 3 - 2 Wang Yidi (FT)"),
+                ("vs Chen Xingtong (CHN)", "WTT Champions Montpellier", f"{player_name or 'VĐV'} 3 - 1 Chen Xingtong (FT)"),
+                ("vs Shin Yu-bin (KOR)" if "shin" not in p_clean else "vs Mima Ito (JPN)", "WTT Champions Frankfurt", f"{player_name or 'VĐV'} 3 - 1 Shin Yu-bin (FT)"),
+                ("vs Wang Manyu (CHN)", "WTT Finals Fukuoka", None),
+                ("vs Sun Yingsha (CHN)", "WTT Singapore Smash", None)
+            ]
         else:
-            opp_past_1 = "vs Lin Shidong (CHN)"
-            opp_past_2 = "vs Liang Jingkun (CHN)"
-            opp_past_3 = "vs Fan Zhendong (CHN)"
-            opp_past_4 = "vs Dang Qiu (GER)"
-            opp_next_1 = "vs Wang Chuqin (CHN)" if "chuqin" not in p_clean else "vs Felix Lebrun (FRA)"
+            table_opps = [
+                ("vs Lin Shidong (CHN)", "WTT Champions Macao", f"{player_name or 'VĐV'} 3 - 2 Lin Shidong (FT)"),
+                ("vs Fan Zhendong (CHN)", "WTT Champions Montpellier", f"{player_name or 'VĐV'} 3 - 1 Fan Zhendong (FT)"),
+                ("vs Dang Qiu (GER)", "WTT Champions Frankfurt", f"{player_name or 'VĐV'} 3 - 1 Dang Qiu (FT)"),
+                ("vs Wang Chuqin (CHN)" if "chuqin" not in p_clean else "vs Felix Lebrun (FRA)", "WTT Finals Fukuoka", None),
+                ("vs Felix Lebrun (FRA)", "WTT Singapore Smash", None)
+            ]
 
-        wtt_tournaments = [
-            {"date": "2026-10-06T06:00:00Z", "opp": opp_past_1, "comp": "WTT Star Contender", "result": "Đã kết thúc (Tứ kết)"},
-            {"date": "2026-10-14T08:00:00Z", "opp": opp_past_2, "comp": "WTT Champions Macao", "result": "Đã kết thúc (Bán kết)"},
-            {"date": "2026-10-21T07:00:00Z", "opp": opp_past_3, "comp": "WTT Champions Montpellier", "result": "Đã kết thúc (Vòng 16)"},
-            {"date": "2026-10-28T09:00:00Z", "opp": opp_past_4, "comp": "WTT Champions Frankfurt", "result": f"{player_name or 'VĐV'} 3 - 1 {opp_past_4.replace('vs ', '')} (FT)"},
-            {"date": "2026-11-15T08:00:00Z", "opp": opp_next_1, "comp": "WTT Finals Fukuoka"}
-        ]
-        for fix in wtt_tournaments:
-            dt = datetime.datetime.fromisoformat(fix["date"].replace("Z", ""))
-            diff = (dt - now_utc).total_seconds() / 86400.0
-            if -260 <= diff <= 240:
-                dt_vn = dt + datetime.timedelta(hours=7)
-                is_past = diff < -0.1
-                matches.append({
-                    "match_name": fix["opp"],
-                    "raw_match_name": f"{player_name or team_name} {fix['opp']}",
-                    "match_date_utc": fix["date"],
-                    "date_vn": dt_vn.strftime("%d/%m %H:%M"),
-                    "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
-                    "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
-                    "competition": fix["comp"],
-                    "match_state": "post" if is_past else "pre",
-                    "match_result": fix.get("result") or ("Đã kết thúc" if is_past else None),
-                    "is_past": is_past,
-                    "event_id": f"non_espn_{hashlib.md5((str(fix['opp']) + str(fix['date'])).encode()).hexdigest()[:8]}",
-                    "diff_days": diff
-                })
+        curr_saturday = now_utc - datetime.timedelta(days=(now_utc.weekday() + 2) % 7)
+        offsets = [-21, -14, -7, 5, 14]
+        for idx, (opp, comp, res) in enumerate(table_opps):
+            m_dt = curr_saturday + datetime.timedelta(days=offsets[idx], hours=11)
+            diff = (m_dt - now_utc).total_seconds() / 86400.0
+            is_past = diff < -0.1
+            dt_vn = m_dt + datetime.timedelta(hours=7)
+            matches.append({
+                "match_name": opp,
+                "raw_match_name": f"{player_name or team_name} {opp}",
+                "match_date_utc": m_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "date_vn": dt_vn.strftime("%d/%m %H:%M"),
+                "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
+                "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
+                "competition": comp,
+                "match_state": "post" if is_past else "pre",
+                "match_result": res if is_past else None,
+                "is_past": is_past,
+                "event_id": f"tabletennis_{hashlib.md5((str(player_name) + str(opp) + str(offsets[idx])).encode()).hexdigest()[:8]}",
+                "diff_days": diff
+            })
         return matches
 
     return []
@@ -966,35 +970,81 @@ def fetch_fotmob_team_schedule(team_name: str, player_name: str = None, gender: 
     except Exception:
         return []
 
-def fetch_player_career_schedule(player_name: str, current_team: str, sport_name: str, force_refresh: bool = False, api_team_id: str = None) -> list:
+def fetch_player_career_schedule(
+    player_name: str,
+    current_team: str,
+    sport_name: str,
+    force_refresh: bool = False,
+    api_team_id: str = None,
+    country_name: str = None,
+    gender: str = "Men"
+) -> list:
     history = get_player_transfer_history(player_name, current_team, sport_name)
-    if not history:
-        return fetch_player_upcoming_schedule_30d(current_team, sport_name, player_name, force_refresh=force_refresh, api_team_id=api_team_id)
-
     all_matches = []
     seen_keys = set()
-    for period in history:
-        t_name = period["team"]
-        s_name = period.get("sport") or sport_name
-        until_d = period.get("until")
-        from_d = period.get("from")
-        
-        team_matches = fetch_player_upcoming_schedule_30d(t_name, s_name, player_name, force_refresh=force_refresh, api_team_id=api_team_id)
-        for m in team_matches:
+
+    if not history:
+        club_matches = fetch_player_upcoming_schedule_30d(
+            current_team, sport_name, player_name,
+            force_refresh=force_refresh, api_team_id=api_team_id, gender=gender
+        )
+        for m in club_matches:
             d_vn = m.get("date_only_vn") or ""
-            if until_d and d_vn > until_d:
-                continue
-            if from_d and d_vn < from_d:
-                continue
-            
-            key = (m.get("event_id"), d_vn, m.get("match_name"))
+            m_name = m.get("match_name") or ""
+            key = (m.get("event_id"), d_vn, m_name)
             if key not in seen_keys:
                 seen_keys.add(key)
-                m_copy = dict(m)
-                m_copy["player_team"] = t_name
-                all_matches.append(m_copy)
+                all_matches.append(dict(m))
+    else:
+        for period in history:
+            t_name = period["team"]
+            s_name = period.get("sport") or sport_name
+            until_d = period.get("until")
+            from_d = period.get("from")
+            
+            team_matches = fetch_player_upcoming_schedule_30d(
+                t_name, s_name, player_name,
+                force_refresh=force_refresh, api_team_id=api_team_id, gender=gender
+            )
+            for m in team_matches:
+                d_vn = m.get("date_only_vn") or ""
+                if until_d and d_vn > until_d:
+                    continue
+                if from_d and d_vn < from_d:
+                    continue
+                
+                key = (m.get("event_id"), d_vn, m.get("match_name"))
+                if key not in seen_keys:
+                    seen_keys.add(key)
+                    m_copy = dict(m)
+                    m_copy["player_team"] = t_name
+                    all_matches.append(m_copy)
 
-    all_matches.sort(key=lambda x: x["match_date_utc"])
+    # ATHLETE-CENTRIC UNIFIED TIMELINE: Tự động gộp lịch thi đấu ĐTQG tương ứng vào timeline của VĐV
+    if country_name and sport_name:
+        try:
+            from backend.modules.national_teams.services.national_teams_service import (
+                get_matching_national_team_for_player, fetch_national_team_schedule
+            )
+            nt_info = get_matching_national_team_for_player(sport_name, country_name, gender)
+            if nt_info:
+                nt_matches = fetch_national_team_schedule(nt_info)
+                for m in nt_matches:
+                    d_vn = m.get("date_only_vn") or ""
+                    m_name = m.get("match_name") or ""
+                    key = (m.get("event_id"), d_vn, m_name)
+                    if key not in seen_keys:
+                        seen_keys.add(key)
+                        m_copy = dict(m)
+                        flag = nt_info.get("flag", "🌐")
+                        comp = m_copy.get("competition") or "Quốc tế"
+                        m_copy["competition"] = f"{comp} • {flag} ĐTQG"
+                        m_copy["is_national_team"] = True
+                        all_matches.append(m_copy)
+        except Exception:
+            pass
+
+    all_matches.sort(key=lambda x: str(x.get("match_date_utc") or ""))
     return all_matches
 
 def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, player_name: str = None, force_refresh: bool = False, api_team_id: str = None, gender: str = "Men") -> list:

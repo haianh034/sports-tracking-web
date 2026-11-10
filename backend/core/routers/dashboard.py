@@ -346,11 +346,19 @@ def _compute_dashboard_data(
         if perf.date_str:
             perf_by_player_date[(perf.player_id, str(perf.date_str))] = perf
 
-    # Fetch player career schedules in parallel (supporting club transfer history)
+    # Fetch player career schedules in parallel (supporting club transfer history & national team unified timeline)
     def _fetch_player_career(item):
-        p, t_name, s_name, _ = item
+        p, t_name, s_name, c_name = item
         team_id = p.api_team_id or (p.club.api_team_id if p.club else None)
-        return p.id, fetch_player_career_schedule(p.name, t_name, s_name, api_team_id=team_id)
+        p_gender = getattr(p, "gender", "Men") or "Men"
+        return p.id, fetch_player_career_schedule(
+            player_name=p.name,
+            current_team=t_name,
+            sport_name=s_name,
+            api_team_id=team_id,
+            country_name=c_name,
+            gender=p_gender
+        )
 
     sched_map = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
