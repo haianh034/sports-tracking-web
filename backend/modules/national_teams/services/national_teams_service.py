@@ -27,7 +27,13 @@ if os.path.exists(NT_SCHED_CACHE_FILE):
     except Exception:
         pass
 
+import threading
+
+_NT_CACHE_LOCK = threading.Lock()
+
 def _save_nt_sched_cache():
+    if not _NT_CACHE_LOCK.acquire(blocking=False):
+        return
     try:
         serializable = {}
         for k, v in NATIONAL_TEAM_SCHED_CACHE.items():
@@ -36,6 +42,8 @@ def _save_nt_sched_cache():
             json.dump(serializable, f, ensure_ascii=False)
     except Exception:
         pass
+    finally:
+        _NT_CACHE_LOCK.release()
 
 # OFFICIAL CATALOG OF JAPAN & SOUTH KOREA NATIONAL & YOUTH TEAMS
 # Used for searching and adding official teams dynamically

@@ -2176,6 +2176,32 @@ function openModal(player, resetFilter = true, customMatch = null) {
         }
     }
 
+    // Lazy-load chi tiết thông số và rating cho trận đấu quá khứ sâu (> 7 ngày) nếu người dùng bấm xem
+    const lazySpinner = document.getElementById('modalLazyStatsSpinner');
+    if (customMatch && customMatch.needs_lazy_load && !customMatch.player_stats && !customMatch.detailed_stats && customMatch.event_id && player.id) {
+        if (lazySpinner) lazySpinner.classList.remove('hidden');
+        fetch(`/api/players/${player.id}/match-detail?event_id=${encodeURIComponent(customMatch.event_id)}&match_date=${encodeURIComponent(customMatch.date_only_vn || '')}`)
+            .then(res => res.json())
+            .then(data => {
+                if (lazySpinner) lazySpinner.classList.add('hidden');
+                if (data && data.status === 'success') {
+                    customMatch.needs_lazy_load = false;
+                    customMatch.player_stats = data.player_stats;
+                    customMatch.detailed_stats = data.detailed_stats;
+                    customMatch.rating = data.rating;
+                    if (data.tags && data.tags.length > 0) {
+                        customMatch.tags = data.tags;
+                    }
+                    updateModalStatsAfterLazyLoad(player, customMatch);
+                }
+            })
+            .catch(() => {
+                if (lazySpinner) lazySpinner.classList.add('hidden');
+            });
+    } else if (lazySpinner) {
+        lazySpinner.classList.add('hidden');
+    }
+
     // SECTION: LỊCH THI ĐẤU & KẾT QUẢ CÁC TRẬN ĐÃ ĐẤU (TABS SẮP TỚI / ĐÃ ĐẤU)
     window.currentModalPlayer = player;
     window.currentModalCustomMatch = customMatch;
@@ -2201,6 +2227,72 @@ function openModal(player, resetFilter = true, customMatch = null) {
     const apiMeta = document.getElementById('modalApiMeta');
     if (apiMeta) apiMeta.innerText = player.api_player_id ? `API ID: ${player.api_player_id}` : '';
     document.getElementById('detailModal').classList.remove('hidden');
+}
+
+function updateModalStatsAfterLazyLoad(player, customMatch) {
+    if (!customMatch) return;
+    
+    // 1. Cập nhật rating
+    const ratingContainer = document.getElementById('modalRatingContainer');
+    const displayRating = customMatch.rating;
+    if (ratingContainer) {
+        if (displayRating && Number(displayRating) > 0) {
+            const r = Number(displayRating);
+            let colorClass = 'bg-emerald-600 text-white';
+            if (r >= 7.5) colorClass = 'bg-emerald-600 text-white';
+            else if (r >= 6.5) colorClass = 'bg-amber-500 text-black';
+            else colorClass = 'bg-rose-600 text-white';
+            const labelText = `Điểm đánh giá chính thức (FotMob): ★ ${r.toFixed(1)}`;
+            ratingContainer.innerHTML = `<span class="${colorClass} font-bold px-2.5 py-0.5 rounded text-xs inline-flex items-center gap-1.5 shadow-sm">${labelText}</span>`;
+            ratingContainer.classList.remove('hidden');
+        }
+    }
+    
+    // 2. Cập nhật tags
+    const tagsContainer = document.getElementById('modalTagsContainer');
+    if (tagsContainer && customMatch.tags) {
+        let tagsList = (customMatch.tags || []).filter(t => !t.toLowerCase().includes('tin tức'));
+        tagsContainer.innerHTML = tagsList.map(t => renderTagBadge(t)).join('');
+    }
+    
+    // 3. Cập nhật detailed metrics
+    const detailedContainer = document.getElementById('modalDetailedStatsContainer');
+    const sourceBadge = document.getElementById('modalDetailedStatsSource');
+    const specialRatingsRow = document.getElementById('modalSpecialRatingsRow');
+    const metricsGrid = document.getElementById('modalMetricsGrid');
+    const dtStats = customMatch.detailed_stats;
+    
+    if (detailedContainer && dtStats && dtStats.metrics && dtStats.metrics.length > 0) {
+        detailedContainer.classList.remove('hidden');
+        if (sourceBadge) {
+            sourceBadge.innerText = dtStats.source || 'Chuyên trang thể thao';
+        }
+        if (specialRatingsRow && dtStats.fotmob_rating) {
+            const fmR = Number(dtStats.fotmob_rating);
+            let fmBg = 'bg-emerald-950/80 border-emerald-700/60 text-emerald-300';
+            if (fmR < 6.5) fmBg = 'bg-rose-950/80 border-rose-700/60 text-rose-300';
+            else if (fmR < 7.2) fmBg = 'bg-amber-950/80 border-amber-700/60 text-amber-300';
+            specialRatingsRow.innerHTML = `
+                <div class="px-3 py-1.5 rounded-lg border ${fmBg} flex items-center gap-2 text-xs font-semibold">
+                    <span>⭐ FotMob Rating:</span>
+                    <span class="font-bold text-sm font-mono">${fmR.toFixed(1)} / 10</span>
+                </div>`;
+            specialRatingsRow.classList.remove('hidden');
+        }
+        if (metricsGrid) {
+            metricsGrid.innerHTML = dtStats.metrics.map(met => {
+                const isHighlight = met.highlight;
+                const borderClass = isHighlight ? 'border-indigo-600/60 bg-indigo-950/30' : 'border-gray-800/80 bg-gray-900/60';
+                const labelColor = isHighlight ? 'text-indigo-300 font-semibold' : 'text-gray-400';
+                const valColor = isHighlight ? 'text-amber-300 font-bold' : 'text-gray-200 font-medium';
+                return `
+                    <div class="p-2.5 rounded-lg border ${borderClass} flex items-center justify-between gap-2">
+                        <span class="${labelColor} truncate">${escapeHtml(met.label)}:</span>
+                        <span class="${valColor} font-mono shrink-0 text-right">${escapeHtml(met.value)}</span>
+                    </div>`;
+            }).join('');
+        }
+    }
 }
 
 window.switchModalNewsSource = function(source) {

@@ -52,7 +52,7 @@ from backend.core.config import EN_TO_VI_MAP
 from backend.modules.players.services.espn_service import (
     fetch_player_upcoming_schedule_30d, fetch_player_career_schedule, fetch_real_schedule,
     fetch_player_match_stats, fetch_match_recap_news, fetch_espn_summary,
-    MATCH_STATS_CACHE, get_player_official_injury
+    MATCH_STATS_CACHE, get_player_official_injury, is_player_retired
 )
 from backend.modules.players.services.sports_service import format_player_stats_and_tags, get_tournament_tag
 from backend.core.services.live_score_service import get_live_scores_map
@@ -346,6 +346,9 @@ def _compute_dashboard_data(
         if perf.date_str:
             perf_by_player_date[(perf.player_id, str(perf.date_str))] = perf
 
+    # Pre-warm ĐTQG schedules memo dictionary to avoid redundant network calls across players
+    nt_sched_memo = {}
+
     # Fetch player career schedules in parallel (supporting club transfer history & national team unified timeline)
     def _fetch_player_career(item):
         p, t_name, s_name, c_name = item
@@ -357,7 +360,8 @@ def _compute_dashboard_data(
             sport_name=s_name,
             api_team_id=team_id,
             country_name=c_name,
-            gender=p_gender
+            gender=p_gender,
+            nt_sched_cache=nt_sched_memo
         )
 
     sched_map = {}
@@ -365,7 +369,7 @@ def _compute_dashboard_data(
         for pid, s_list in ex.map(_fetch_player_career, player_data_tuples):
             sched_map[pid] = s_list
 
-    # Prefetch recent past ESPN event summaries in parallel ONLY if not already locked in DB
+    # Prefetch recent past ESPN event summaries in parallel ONLY if not already locked in DB (Khung D-7 đến D)
     unique_past_events = set()
     for p, team_name, sport_name, _ in player_data_tuples:
         espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
@@ -381,7 +385,7 @@ def _compute_dashboard_data(
                 elif m_date_vn and (p.id, str(m_date_vn)) in perf_by_player_date:
                     has_in_db = True
 
-                if not has_in_db and ev_id and -30 <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
+                if not has_in_db and ev_id and -7.0 <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
                     cache_k = f"{p.name}_{ev_id}_post"
                     if cache_k not in MATCH_STATS_CACHE:
                         unique_past_events.add((espn_sport, str(ev_id)))
@@ -435,6 +439,37 @@ def _compute_dashboard_data(
     yesterday_str_vn = yesterday_ict.strftime("%Y-%m-%d")
 
     for p, team_name, sport_name, country_name in player_data_tuples:
+        # Kiểm tra VĐV đã giải nghệ (như Lee Hyun-il): Tự động xếp vào nhóm No Match với nhãn Đã giải nghệ
+        if is_player_retired(p.name, team_name):
+            all_player_news = list(news_by_player.get(p.id, []))
+            country_flag = "🌐"
+            for info in EN_TO_VI_MAP.values():
+                if isinstance(info, dict) and info.get("name") == country_name:
+                    country_flag = info.get("flag", "🌐")
+                    break
+            no_match_players.append({
+                "id": p.id,
+                "name": p.name,
+                "sport": sport_name,
+                "country": country_name,
+                "country_flag": country_flag,
+                "team": "Đã giải nghệ",
+                "next_match": "Đã giải nghệ",
+                "next_match_date": "N/A",
+                "tags": ["Đã giải nghệ 🎖️"],
+                "all_matches": [],
+                "upcoming_30d_count": 0,
+                "upcoming_30d_matches": [],
+                "news_count": len(all_player_news),
+                "recent_news": [
+                    {"title": n.title, "url": n.source_url, "news_type": n.news_type, "published_at": n.published_at_iso}
+                    for n in all_player_news[:10]
+                ],
+                "entity_type": "player",
+                "is_retired": True
+            })
+            continue
+
         espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
         all_matches_raw = sched_map.get(p.id, [])
         all_player_news = list(news_by_player.get(p.id, []))
@@ -962,13 +997,22 @@ def _compute_dashboard_data(
                     m["tags"] = m_tags
                 else:
                     real_stats = None
-                    if ev_id and -300 <= diff_d <= 0:
+                    # KHUNG ƯU TIÊN HIỆU NĂNG D-7 ĐẾN D: Chỉ cào thông số chi tiết in-game theo thời gian thực cho trận trong 7 ngày qua
+                    if ev_id and -7.0 <= diff_d <= 0:
                         try:
                             real_stats = fetch_player_match_stats(
                                 p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles
                             )
                         except Exception:
                             real_stats = None
+                    elif diff_d < -7.0:
+                        # Trận quá khứ sâu (> 7 ngày trước) chưa có trong DB:
+                        # Giữ nguyên tỷ số chung cuộc từ lịch thi đấu, đánh dấu needs_lazy_load để nạp ngầm khi người dùng bấm vào xem
+                        m["rating"] = None
+                        m["player_stats"] = None
+                        m["tags"] = [clean_comp] if clean_comp else []
+                        m["has_played"] = True
+                        m["needs_lazy_load"] = True
                     
                     if real_stats:
                         has_p = real_stats.get("has_played", False)
@@ -1097,9 +1141,9 @@ def _compute_dashboard_data(
                     "news_type": "Thi đấu",
                     "region": "Quốc tế"
                 }]
-            # 2. Trận đấu trong khoảng 30 ngày trở lại đây (-30 <= diff_d <= 0):
-            # Lưu lại báo theo khung 48h. Nếu chưa có bài báo riêng thì bổ sung recap từ ESPN vào m_news (không chèn bài giả vào DB)
-            elif is_m_past and -30 <= diff_d <= 0:
+            # 2. Trận đấu trong khoảng 7 ngày trở lại đây (-7 <= diff_d <= 0):
+            # Lưu lại báo theo khung 48h. Nếu chưa có bài báo riêng thì bổ sung recap từ ESPN vào m_news
+            elif is_m_past and -7.0 <= diff_d <= 0:
                 if len(m_news) == 0:
                     ev_id = m.get("event_id")
                     recap_items = fetch_match_recap_news(
@@ -1108,6 +1152,23 @@ def _compute_dashboard_data(
                     )
                     for r_item in recap_items:
                         m_news.append(r_item)
+            # 3. Trận đấu từ 8 đến 30 ngày trước: Điểm tin tóm tắt nhanh từ thông tin trận đấu (không gọi HTTP phụ)
+            elif is_m_past and -30.0 <= diff_d < -7.0:
+                if len(m_news) == 0:
+                    ev_id = m.get("event_id")
+                    if ev_id and not str(ev_id).startswith("non_espn_"):
+                        ev_link = f"https://www.espn.com/match?gameId={ev_id}"
+                    else:
+                        clean_q = urllib.parse.quote(f"{p.name} {team_name} {m.get('match_name', '')} {clean_comp}".strip())
+                        ev_link = f"https://www.google.com/search?q={clean_q}"
+                    res_part = f" - {m.get('match_result')}" if m.get("match_result") else ""
+                    comp_part = f" [{clean_comp}]" if clean_comp else ""
+                    m_news = [{
+                        "title": f"Điểm tin trận đấu: {p.name} ({team_name}) {m.get('match_name', '')}{res_part}{comp_part}",
+                        "url": ev_link,
+                        "news_type": "Thi đấu",
+                        "region": "Quốc tế"
+                    }]
             
             # Standardize match_result format to always include team names (e.g. 'TeamA 2 - 0 TeamB (FT)')
             cur_res = m.get("match_result")
@@ -1792,4 +1853,95 @@ def _compute_dashboard_data(
         pass
     logger.info(f"<== [API] Hoàn tất nạp bảng theo dõi trong {time.time() - t_start:.2f}s!")
     return result_data
+
+
+@router.get("/api/players/{player_id}/match-detail")
+def get_player_match_detail(
+    player_id: int,
+    event_id: Optional[str] = Query(None),
+    match_date: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Lazy-load chi tiết thông số và rating cho một trận đấu quá khứ sâu (> 7 ngày)
+    khi người dùng chủ động bấm vào xem trên giao diện.
+    """
+    player = db.query(Player).filter(Player.id == player_id).first()
+    if not player:
+        return {"status": "error", "message": "Player not found"}
+    
+    sport_name = player.sport_name
+    team_name = player.team_name
+    
+    # 1. Kiểm tra trong DB MatchPerformance
+    perf = None
+    if event_id:
+        perf = db.query(MatchPerformance).filter(
+            MatchPerformance.player_id == player_id,
+            MatchPerformance.event_id == str(event_id)
+        ).first()
+    if not perf and match_date:
+        perf = db.query(MatchPerformance).filter(
+            MatchPerformance.player_id == player_id,
+            MatchPerformance.date_str == str(match_date)
+        ).first()
+        
+    if perf and perf.player_stats:
+        p_s, p_d = unpack_stats(perf.player_stats)
+        tags = [t.strip() for t in (perf.impression_tags or "").split(",") if t.strip()]
+        return {
+            "status": "success",
+            "rating": perf.performance_rating,
+            "player_stats": p_s,
+            "detailed_stats": p_d,
+            "tags": tags,
+            "has_played": perf.has_played
+        }
+        
+    # 2. Cào dữ liệu theo nhu cầu (On-Demand Fetching)
+    real_stats = fetch_player_match_stats(
+        player.name, sport_name, team_name, event_id=event_id, match_state="post"
+    )
+    if real_stats:
+        has_p = real_stats.get("has_played", False)
+        p_r = real_stats.get("rating") if has_p else None
+        p_s = real_stats.get("stats_text") if has_p else None
+        p_d = real_stats.get("detailed_stats")
+        tags = real_stats.get("tags", [])
+        
+        # Lưu vào DB để lần sau có ngay lập tức (0ms)
+        try:
+            if not perf:
+                perf = MatchPerformance(
+                    player_id=player_id,
+                    event_id=str(event_id) if event_id else None,
+                    date_str=match_date,
+                    match_name=real_stats.get("match_name") or "Trận đấu",
+                    performance_rating=p_r,
+                    player_stats=real_stats.get("stats_text"),
+                    impression_tags=",".join(tags),
+                    has_played=has_p,
+                    match_state="post"
+                )
+                db.add(perf)
+            else:
+                perf.performance_rating = p_r
+                perf.player_stats = real_stats.get("stats_text")
+                perf.impression_tags = ",".join(tags)
+                perf.has_played = has_p
+            db.commit()
+        except Exception:
+            pass
+            
+        return {
+            "status": "success",
+            "rating": p_r,
+            "player_stats": p_s,
+            "detailed_stats": p_d,
+            "tags": tags,
+            "has_played": has_p
+        }
+        
+    return {"status": "not_found", "message": "Không có thông số chi tiết"}
+
 

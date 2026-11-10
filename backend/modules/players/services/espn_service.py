@@ -41,7 +41,13 @@ def _extract_score_str(competitor):
         return sc.strip()
     return ""
 
+import threading
+
+_TEAM_CACHE_LOCK = threading.Lock()
+
 def _save_team_sched_cache():
+    if not _TEAM_CACHE_LOCK.acquire(blocking=False):
+        return
     try:
         serializable = {}
         for k, v in SCHEDULE_30D_CACHE.items():
@@ -51,6 +57,8 @@ def _save_team_sched_cache():
             json.dump(serializable, f, ensure_ascii=False)
     except Exception:
         pass
+    finally:
+        _TEAM_CACHE_LOCK.release()
 
 def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str = None, gender: str = "Men") -> dict:
     if not team_name or team_name in ["Tự do", "Chưa rõ Đội", "Unknown"]:
@@ -594,7 +602,28 @@ def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
         pass
     return None
 
+RETIRED_PLAYERS_SET = {
+    "lee hyun-il", "lee hyun il", "lee hyunil", "kento momota"
+}
+
+def is_player_retired(player_name: str, team_name: str = "") -> bool:
+    """
+    Kiểm tra vận động viên đã chính thức giải nghệ khỏi đấu trường chuyên nghiệp / quốc tế.
+    Nếu đã giải nghệ, tuyệt đối không sinh lịch thi đấu tương lai ảo và xếp vào nhóm No Match.
+    """
+    if not player_name:
+        return False
+    p_low = player_name.strip().lower()
+    t_low = (team_name or "").strip().lower()
+    if p_low in RETIRED_PLAYERS_SET:
+        return True
+    if any(k in t_low for k in ["giải nghệ", "retired", "cựu vận động viên"]):
+        return True
+    return False
+
 def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_name: str = None) -> list:
+    if is_player_retired(player_name, team_name):
+        return []
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     t_clean = (team_name or "").strip().lower()
     s_clean = (sport_name or "").strip().lower()
@@ -977,8 +1006,12 @@ def fetch_player_career_schedule(
     force_refresh: bool = False,
     api_team_id: str = None,
     country_name: str = None,
-    gender: str = "Men"
+    gender: str = "Men",
+    nt_sched_cache: dict = None
 ) -> list:
+    if is_player_retired(player_name, current_team):
+        return []
+
     history = get_player_transfer_history(player_name, current_team, sport_name)
     all_matches = []
     seen_keys = set()
@@ -1028,7 +1061,14 @@ def fetch_player_career_schedule(
             )
             nt_info = get_matching_national_team_for_player(sport_name, country_name, gender)
             if nt_info:
-                nt_matches = fetch_national_team_schedule(nt_info)
+                nt_cache_k = (sport_name, country_name, gender)
+                if nt_sched_cache is not None and nt_cache_k in nt_sched_cache:
+                    nt_matches = nt_sched_cache[nt_cache_k]
+                else:
+                    nt_matches = fetch_national_team_schedule(nt_info)
+                    if nt_sched_cache is not None:
+                        nt_sched_cache[nt_cache_k] = nt_matches
+
                 for m in nt_matches:
                     d_vn = m.get("date_only_vn") or ""
                     m_name = m.get("match_name") or ""
@@ -1048,6 +1088,8 @@ def fetch_player_career_schedule(
     return all_matches
 
 def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, player_name: str = None, force_refresh: bool = False, api_team_id: str = None, gender: str = "Men") -> list:
+    if is_player_retired(player_name, team_name):
+        return []
     cache_key = (str(team_name).strip().lower(), str(sport_name or "").lower(), str(player_name or "").lower())
     now_ts = datetime.datetime.now().timestamp()
     if not force_refresh and cache_key in SCHEDULE_30D_CACHE:
