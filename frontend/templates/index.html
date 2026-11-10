@@ -462,7 +462,7 @@
 
     <!-- MODAL THÊM THEO DÕI: VẬN ĐỘNG VIÊN & ĐỘI TUYỂN / ĐỘI TRẺ -->
     <div id="addPlayerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-all duration-200" onclick="handleAddBackdropClick(event)">
-        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative text-gray-200 max-h-[92vh] flex flex-col">
+        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-2xl sm:max-w-3xl w-full p-6 sm:p-7 shadow-2xl relative text-gray-200 max-h-[92vh] flex flex-col">
             <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-4">
                 <div class="flex items-center gap-3">
                     <span class="text-xl">⚡</span>
@@ -486,15 +486,16 @@
 
             <!-- TAB 1: THÊM VẬN ĐỘNG VIÊN -->
             <div id="addPlayerTabSection" class="flex-1 overflow-y-auto pr-1">
-                <p class="text-xs text-gray-400 mb-3">
+                <p class="text-xs sm:text-sm text-gray-400 mb-3">
                     Nhập tên bất kỳ vận động viên nào. Hệ thống tìm kiếm theo API thể thao, tự động nhận diện CLB, môn thi đấu và gợi ý nếu có nhiều VĐV trùng tên.
                 </p>
 
                 <form id="addPlayerForm" onsubmit="submitAddPlayer(event)" class="space-y-4">
                     <div id="inputFormSection">
-                        <label for="inputPlayerName" class="block text-xs font-semibold text-gray-300 mb-1">Tên cầu thủ (1 hoặc nhiều):</label>
-                        <textarea id="inputPlayerName" rows="3" placeholder="Ví dụ: Takefusa Kubo, Shohei Ohtani, Son Heung-min..."
-                            class="w-full bg-gray-950 border border-gray-700 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none transition"></textarea>
+                        <label for="inputPlayerName" class="block text-sm font-semibold text-gray-200 mb-1.5">Tên cầu thủ / vận động viên (1 hoặc nhiều):</label>
+                        <textarea id="inputPlayerName" rows="6" placeholder="Ví dụ:&#10;Takefusa Kubo&#10;Shohei Ohtani&#10;Son Heung-min&#10;Hina Hayata&#10;Akane Yamaguchi"
+                            class="w-full bg-gray-950 border border-gray-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm sm:text-base text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none transition min-h-[160px] leading-relaxed font-sans"></textarea>
+                        <p class="text-[11px] text-gray-400 mt-1.5">💡 Mẹo: Bạn có thể dán danh sách nhiều tên VĐV cùng lúc (mỗi tên trên 1 dòng hoặc phân tách bằng dấu phẩy).</p>
                     </div>
 
                     <!-- DISAMBIGUATION BOX -->

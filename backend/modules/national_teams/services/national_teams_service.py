@@ -540,6 +540,21 @@ NATIONAL_TEAMS_CATALOG = [
         "query_en": "South Korea U17 basketball FIBA",
         "description": "Đội tuyển U17 bóng rổ nam Hàn Quốc - FIBA U17 World Cup"
     },
+    {
+        "id_code": "kr_basketball_senior_w",
+        "name": "ĐTQG Nữ Hàn Quốc",
+        "short_name": "ĐTQG Nữ Hàn Quốc",
+        "nickname": "",
+        "sport": "Bóng rổ",
+        "country": "Hàn Quốc",
+        "tier": "Senior",
+        "gender": "Women",
+        "api_team_id": "17485",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 여자 농구 국가대표팀",
+        "query_en": "South Korea women basketball team FIBA",
+        "description": "Đội tuyển bóng rổ nữ quốc gia Hàn Quốc - FIBA Women's Asia Cup & World Cup"
+    },
 
     # 4. BÓNG CHUYỀN (VOLLEYBALL)
     {
@@ -740,6 +755,68 @@ NATIONAL_TEAMS_CATALOG = [
         "query_native": "대한민국 주니어 배드민턴 대표팀",
         "query_en": "South Korea junior badminton team BWF",
         "description": "Đội tuyển trẻ cầu lông Hàn Quốc - BWF World Junior Championships"
+    },
+
+    # 7. QUẦN VỢT (TENNIS)
+    {
+        "id_code": "jp_tennis_senior_m",
+        "name": "ĐT Davis Cup Nam Nhật Bản",
+        "short_name": "ĐT Davis Cup Nam Nhật Bản",
+        "nickname": "",
+        "sport": "Quần vợt",
+        "country": "Nhật Bản",
+        "tier": "Senior",
+        "gender": "Men",
+        "api_team_id": "japan_davis_cup",
+        "flag": "🇯🇵",
+        "query_native": "テニス男子日本代表 デビスカップ",
+        "query_en": "Japan Davis Cup team tennis",
+        "description": "Đội tuyển quần vợt nam quốc gia Nhật Bản - Davis Cup"
+    },
+    {
+        "id_code": "jp_tennis_senior_w",
+        "name": "ĐT BJK Cup Nữ Nhật Bản",
+        "short_name": "ĐT BJK Cup Nữ Nhật Bản",
+        "nickname": "",
+        "sport": "Quần vợt",
+        "country": "Nhật Bản",
+        "tier": "Senior",
+        "gender": "Women",
+        "api_team_id": "japan_bjk_cup",
+        "flag": "🇯🇵",
+        "query_native": "テニス女子日本代表 ビリージーンキングカップ",
+        "query_en": "Japan Billie Jean King Cup team tennis",
+        "description": "Đội tuyển quần vợt nữ quốc gia Nhật Bản - Billie Jean King Cup"
+    },
+    {
+        "id_code": "kr_tennis_senior_m",
+        "name": "ĐT Davis Cup Nam Hàn Quốc",
+        "short_name": "ĐT Davis Cup Nam Hàn Quốc",
+        "nickname": "",
+        "sport": "Quần vợt",
+        "country": "Hàn Quốc",
+        "tier": "Senior",
+        "gender": "Men",
+        "api_team_id": "korea_davis_cup",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 데이비스컵 대표팀",
+        "query_en": "South Korea Davis Cup team tennis",
+        "description": "Đội tuyển quần vợt nam quốc gia Hàn Quốc - Davis Cup"
+    },
+    {
+        "id_code": "kr_tennis_senior_w",
+        "name": "ĐT BJK Cup Nữ Hàn Quốc",
+        "short_name": "ĐT BJK Cup Nữ Hàn Quốc",
+        "nickname": "",
+        "sport": "Quần vợt",
+        "country": "Hàn Quốc",
+        "tier": "Senior",
+        "gender": "Women",
+        "api_team_id": "korea_bjk_cup",
+        "flag": "🇰🇷",
+        "query_native": "대한민국 빌리진킹컵 대표팀",
+        "query_en": "South Korea Billie Jean King Cup team tennis",
+        "description": "Đội tuyển quần vợt nữ quốc gia Hàn Quốc - Billie Jean King Cup"
     }
 ]
 

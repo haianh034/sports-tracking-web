@@ -1351,6 +1351,15 @@ def _compute_dashboard_data(
         sched_item["tags"] = []
         sched_item["upcoming_3_matches"] = upcoming_matches_30d[:3]
         sched_item["earliest_match_utc"] = upcoming_matches_30d[0]["match_date_utc"] if upcoming_matches_30d else None
+        
+        # Nếu chưa có rating hôm nay, lấy rating của trận gần nhất đã thi đấu để hiển thị phong độ ở tab Schedule
+        if not sched_item.get("rating"):
+            for m_past in reversed(all_matches):
+                if (m_past.get("is_past") or m_past.get("match_state") == "post") and m_past.get("rating") and m_past.get("has_played", True):
+                    sched_item["rating"] = m_past.get("rating")
+                    sched_item["is_fallback_rating"] = m_past.get("is_fallback_rating", False)
+                    break
+
         sched_details = dict(sched_item.get("details", {}))
         sched_details.pop("news", None)
         sched_details.pop("all_matches", None)

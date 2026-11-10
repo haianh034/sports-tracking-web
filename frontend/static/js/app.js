@@ -232,7 +232,8 @@ function isSameTeamName(teamA, teamB) {
         [['city', 'manchester city'], ['united', 'manchester united']],
         [['ac milan'], ['inter']],
         [['real'], ['atletico']],
-        [['white sox'], ['cubs']]
+        [['white sox'], ['cubs']],
+        [['dortmund', 'bvb'], ['mönchengladbach', 'monchengladbach', 'gladbach']]
     ];
     for (const [g1, g2] of cityPairs) {
         if ((g1.some(x => a.includes(x)) && g2.some(x => b.includes(x))) ||
@@ -240,7 +241,7 @@ function isSameTeamName(teamA, teamB) {
             return false;
         }
     }
-    const stopWords = ['fc', 'cf', 'sc', 'the', 'de', 'la', 'los', 'san', 'st', 'angeles', 'city', 'york', 'town', 'club', 'united', 'real', 'madrid', 'milan'];
+    const stopWords = ['fc', 'cf', 'sc', 'the', 'de', 'la', 'los', 'san', 'st', 'angeles', 'city', 'york', 'town', 'club', 'united', 'real', 'madrid', 'milan', 'borussia'];
     const wA = a.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => !stopWords.includes(w));
     const wB = b.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => !stopWords.includes(w));
     return wA.some(w => w.length >= 4 && wB.includes(w));

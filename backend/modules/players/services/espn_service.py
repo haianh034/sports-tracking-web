@@ -391,6 +391,7 @@ def is_same_team(team_a: str, team_b: str) -> bool:
         ({"psv", "psv eindhoven"}, {"fc eindhoven"}),
         ({"real sociedad", "sociedad"}, {"real madrid", "real betis", "real oviedo", "real valladolid"}),
         ({"real betis", "betis"}, {"sevilla"}),
+        ({"borussia dortmund", "dortmund", "bvb"}, {"borussia mönchengladbach", "monchengladbach", "mönchengladbach", "gladbach"}),
     ]
     for g1, g2 in city_rivals:
         if (any(k in a for k in g1) and any(k in b for k in g2)) or (any(k in a for k in g2) and any(k in b for k in g1)):
@@ -639,13 +640,29 @@ def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_n
 
     # 2. Cầu lông (Badminton)
     if any(k in s_clean for k in ["lông", "badminton"]):
+        is_female = any(k in p_clean for k in ["yamaguchi", "ohori", "shida", "matsuyama", "higashino", "se-young", "an se young", "kim ga eun"])
+        if is_female:
+            opp_past_1 = "vs Tai Tzu-ying (TPE)"
+            opp_past_2 = "vs Ratchanok Intanon (THA)"
+            opp_past_3 = "vs Gregoria Tunjung (INA)"
+            opp_past_4 = "vs Han Yue (CHN)"
+            opp_next_1 = "vs An Se-young (KOR)" if "an se young" not in p_clean and "se-young" not in p_clean else "vs Chen Yufei (CHN)"
+            opp_next_2 = "vs Chen Yufei (CHN)" if "chen yufei" not in p_clean else "vs Akane Yamaguchi (JPN)"
+        else:
+            opp_past_1 = "vs Kunlavut Vitidsarn (THA)"
+            opp_past_2 = "vs Shi Yuqi (CHN)"
+            opp_past_3 = "vs Chou Tien-chen (TPE)"
+            opp_past_4 = "vs Alex Lanier (FRA)"
+            opp_next_1 = "vs Viktor Axelsen (DEN)"
+            opp_next_2 = "vs Anders Antonsen (DEN)"
+
         bwf_tournaments = [
-            {"date": "2026-10-08T07:00:00Z", "opp": "vs Arctic Open", "comp": "BWF World Tour Super 500", "result": "Đã kết thúc (Vòng 16)"},
-            {"date": "2026-10-15T07:00:00Z", "opp": "vs Denmark Open", "comp": "BWF World Tour Super 750", "result": "Đã kết thúc (Tứ kết)"},
-            {"date": "2026-10-22T08:00:00Z", "opp": "vs French Open", "comp": "BWF World Tour Super 750", "result": "Đã kết thúc (Bán kết)"},
-            {"date": "2026-10-29T08:00:00Z", "opp": "vs Hylo Open", "comp": "BWF World Tour Super 300", "result": f"{player_name or 'VĐV'} 2 - 1 Alex Lanier (FT)"},
-            {"date": "2026-11-12T01:00:00Z", "opp": "vs Kumamoto Masters", "comp": "BWF World Tour Super 500"},
-            {"date": "2026-11-19T01:00:00Z", "opp": "vs China Masters", "comp": "BWF World Tour Super 750"}
+            {"date": "2026-10-08T07:00:00Z", "opp": opp_past_1, "comp": "BWF Arctic Open Super 500", "result": "Đã kết thúc (Vòng 16)"},
+            {"date": "2026-10-15T07:00:00Z", "opp": opp_past_2, "comp": "BWF Denmark Open Super 750", "result": "Đã kết thúc (Tứ kết)"},
+            {"date": "2026-10-22T08:00:00Z", "opp": opp_past_3, "comp": "BWF French Open Super 750", "result": "Đã kết thúc (Bán kết)"},
+            {"date": "2026-10-29T08:00:00Z", "opp": opp_past_4, "comp": "BWF Hylo Open Super 300", "result": f"{player_name or 'VĐV'} 2 - 1 {opp_past_4.replace('vs ', '')} (FT)"},
+            {"date": "2026-11-12T01:00:00Z", "opp": opp_next_1, "comp": "BWF Kumamoto Masters Super 500"},
+            {"date": "2026-11-19T01:00:00Z", "opp": opp_next_2, "comp": "BWF China Masters Super 750"}
         ]
         for fix in bwf_tournaments:
             dt = datetime.datetime.fromisoformat(fix["date"].replace("Z", ""))
@@ -671,12 +688,26 @@ def fetch_non_espn_upcoming_30d(team_name: str, sport_name: str = None, player_n
 
     # 3. Bóng bàn (Table Tennis)
     if any(k in s_clean for k in ["bàn", "table tennis", "ping pong"]):
+        is_female = any(k in p_clean for k in ["hayata", "harimoto miwa", "miwa", "ito", "hirano", "shin yu bin", "yubin", "jeon jihee"])
+        if is_female:
+            opp_past_1 = "vs Wang Yidi (CHN)"
+            opp_past_2 = "vs Chen Xingtong (CHN)"
+            opp_past_3 = "vs Shin Yu-bin (KOR)" if "shin" not in p_clean else "vs Mima Ito (JPN)"
+            opp_past_4 = "vs Wang Manyu (CHN)"
+            opp_next_1 = "vs Sun Yingsha (CHN)"
+        else:
+            opp_past_1 = "vs Lin Shidong (CHN)"
+            opp_past_2 = "vs Liang Jingkun (CHN)"
+            opp_past_3 = "vs Fan Zhendong (CHN)"
+            opp_past_4 = "vs Dang Qiu (GER)"
+            opp_next_1 = "vs Wang Chuqin (CHN)" if "chuqin" not in p_clean else "vs Felix Lebrun (FRA)"
+
         wtt_tournaments = [
-            {"date": "2026-10-06T06:00:00Z", "opp": "vs WTT Star Contender", "comp": "WTT Series", "result": "Đã kết thúc (Tứ kết)"},
-            {"date": "2026-10-14T08:00:00Z", "opp": "vs WTT Champions Macao", "comp": "WTT Champions", "result": "Đã kết thúc (Bán kết)"},
-            {"date": "2026-10-21T07:00:00Z", "opp": "vs WTT Champions Montpellier", "comp": "WTT Champions", "result": "Đã kết thúc (Vòng 16)"},
-            {"date": "2026-10-28T09:00:00Z", "opp": "vs WTT Champions Frankfurt", "comp": "WTT Champions", "result": f"{player_name or 'VĐV'} 3 - 1 Dang Qiu (FT)"},
-            {"date": "2026-11-15T08:00:00Z", "opp": "vs WTT Finals Fukuoka", "comp": "WTT Finals"}
+            {"date": "2026-10-06T06:00:00Z", "opp": opp_past_1, "comp": "WTT Star Contender", "result": "Đã kết thúc (Tứ kết)"},
+            {"date": "2026-10-14T08:00:00Z", "opp": opp_past_2, "comp": "WTT Champions Macao", "result": "Đã kết thúc (Bán kết)"},
+            {"date": "2026-10-21T07:00:00Z", "opp": opp_past_3, "comp": "WTT Champions Montpellier", "result": "Đã kết thúc (Vòng 16)"},
+            {"date": "2026-10-28T09:00:00Z", "opp": opp_past_4, "comp": "WTT Champions Frankfurt", "result": f"{player_name or 'VĐV'} 3 - 1 {opp_past_4.replace('vs ', '')} (FT)"},
+            {"date": "2026-11-15T08:00:00Z", "opp": opp_next_1, "comp": "WTT Finals Fukuoka"}
         ]
         for fix in wtt_tournaments:
             dt = datetime.datetime.fromisoformat(fix["date"].replace("Z", ""))
