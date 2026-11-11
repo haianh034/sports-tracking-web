@@ -9,7 +9,7 @@ from backend.core.db.session import get_db
 from backend.core.db.models import Player, Sport, Nationality, Club, MatchPerformance, PlayerNews
 from backend.core.config import EN_TO_VI_MAP, normalize_player_name
 from backend.modules.players.services.candidate_service import search_athlete_candidates
-from backend.core.services.wiki_service import fetch_free_player_info
+from backend.core.services.wiki_service import fetch_free_player_info, build_clean_player_aliases
 from backend.modules.players.services.espn_service import fetch_real_schedule, fetch_player_match_stats, fetch_player_upcoming_schedule_30d, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
 from backend.modules.players.services.sports_service import get_tournament_tag
 from backend.modules.players.services.news_service import scan_player_news, fetch_player_news_entries
@@ -80,19 +80,28 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
     team_name = payload.team.strip() if payload.team else "Tự do"
     sport_name = payload.sport.strip() if payload.sport else "Môn khác"
     country_name = payload.country.strip() if payload.country else "Quốc tế"
-    
-    # Auto-resolve team if generic
-    if team_name in ["Tự do", "Chưa rõ CLB", "LALIGA", "Theo Wikipedia", "MLB", "NBA"] or len(team_name) <= 2:
+    incoming_aliases = [a.strip() for a in (payload.aliases or "").split(",") if a.strip()]
+    has_native_incoming = any(not a.isascii() for a in incoming_aliases)
+    needs_wiki_team = team_name in ["Tự do", "Chưa rõ CLB", "LALIGA", "Theo Wikipedia", "MLB", "NBA"] or len(team_name) <= 2
+    needs_wiki_aliases = len(incoming_aliases) <= 1 or not has_native_incoming
+
+    free_info = {}
+    if needs_wiki_team or needs_wiki_aliases or (payload.gender or "Men") == "Men":
         try:
             free_info = fetch_free_player_info(name)
-            if free_info.get("team_name") and free_info["team_name"] not in ["Tự do", "Chưa rõ CLB", "MLB", "NBA"]:
-                team_name = free_info["team_name"]
-            if country_name == "Quốc tế" and free_info.get("country_name"):
-                country_name = free_info["country_name"]
-            if sport_name in ["Môn khác", "Thể thao"] and free_info.get("sport_name"):
-                sport_name = free_info["sport_name"]
         except Exception:
-            pass
+            free_info = {}
+
+    if needs_wiki_team and free_info.get("found"):
+        if free_info.get("team_name") and free_info["team_name"] not in ["Tự do", "Chưa rõ CLB", "MLB", "NBA"]:
+            team_name = free_info["team_name"]
+        if country_name == "Quốc tế" and free_info.get("country_name"):
+            country_name = free_info["country_name"]
+        if sport_name in ["Môn khác", "Thể thao"] and free_info.get("sport_name"):
+            sport_name = free_info["sport_name"]
+
+    wiki_aliases = [a.strip() for a in (free_info.get("aliases") or "").split(",") if a.strip()] if free_info.get("found") else []
+    merged_clean_aliases = build_clean_player_aliases(name, incoming_aliases + wiki_aliases)
 
     sport = db.query(Sport).filter(Sport.name.ilike(sport_name)).first()
     if not sport:
@@ -114,17 +123,13 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         db.flush()
 
     gender = (payload.gender or "Men").strip()
-    # Auto-detect women's team from Wikipedia parent_club hint (e.g. "FC Bayern Munich (women)")
-    try:
-        if gender == "Men":
-            from backend.core.services.wiki_service import fetch_free_player_info as _fpi
-            _wi = _fpi(name)
-            if _wi.get("parent_club") and "women" in (_wi.get("parent_club") or "").lower():
-                gender = "Women"
-            elif _wi.get("team_name") and any(w in (_wi.get("team_name") or "").lower() for w in ["women", "frauen", "femeni", "femenino", " w "]):
-                gender = "Women"
-    except Exception:
-        pass
+    if gender == "Men" and free_info.get("found"):
+        if free_info.get("gender") == "Women":
+            gender = "Women"
+        elif free_info.get("parent_club") and "women" in (free_info.get("parent_club") or "").lower():
+            gender = "Women"
+        elif free_info.get("team_name") and any(w in (free_info.get("team_name") or "").lower() for w in ["women", "frauen", "femeni", "femenino", " w ", "(nữ)"]):
+            gender = "Women"
 
     club = db.query(Club).filter(Club.name.ilike(team_name), Club.sport_id == sport.id).first()
     if not club:
@@ -152,7 +157,7 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
             sport_id=sport.id,
             country_id=nationality.id,
             club_id=club.id,
-            name_aliases=payload.aliases or name,
+            name_aliases=merged_clean_aliases or name,
             api_team_id=payload.espn_team_id,
             gender=gender
         )
@@ -165,16 +170,8 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         if payload.espn_team_id:
             player.api_team_id = payload.espn_team_id
         player.gender = gender
-        # Bổ sung alias mới nếu tên nhập vào có cách viết khác nhau (như Ko Itakura vs Kō Itakura)
         existing_aliases = [a.strip() for a in (player.name_aliases or "").split(",") if a.strip()]
-        if name not in existing_aliases and name.lower() != player.name.lower():
-            existing_aliases.append(name)
-        if payload.aliases:
-            for al in payload.aliases.split(","):
-                al_s = al.strip()
-                if al_s and al_s not in existing_aliases:
-                    existing_aliases.append(al_s)
-        player.name_aliases = ", ".join(existing_aliases)
+        player.name_aliases = build_clean_player_aliases(player.name, existing_aliases + [name] + incoming_aliases + wiki_aliases)
         db.commit()
 
     if payload.espn_team_id:
@@ -360,19 +357,36 @@ def add_player(payload: Optional[PlayerAddRequest] = None, name: Optional[str] =
 
     results = []
     for p_name in names_to_process:
-        info = fetch_free_player_info(p_name)
-        team_name = info.get("team_name", "Tự do") if info.get("found") else "Tự do"
-        sport_name = info.get("sport_name", "Môn khác") if info.get("found") else "Môn khác"
-        country_name = info.get("country_name", "Quốc tế") if info.get("found") else "Quốc tế"
-        aliases = info.get("aliases", p_name) if info.get("found") else p_name
-        
-        req = AddConfirmedPlayerRequest(
-            name=p_name,
-            team=team_name,
-            sport=sport_name,
-            country=country_name,
-            aliases=aliases
-        )
+        _, cands = search_athlete_candidates(p_name)
+        if cands:
+            best = next((c for c in cands if "(tuyển qg)" not in (c.get("team") or "").lower()), cands[0])
+            req = AddConfirmedPlayerRequest(
+                name=best.get("name") or p_name,
+                team=best.get("team") or "Tự do",
+                sport=best.get("sport") or "Môn khác",
+                country=best.get("country") or "Quốc tế",
+                aliases=best.get("aliases") or p_name,
+                league=best.get("team_league") or None,
+                espn_team_id=best.get("espn_team_id") or None,
+                espn_league_slug=best.get("espn_league_slug") or None,
+                gender=best.get("gender") or "Men",
+            )
+        else:
+            info = fetch_free_player_info(p_name)
+            team_name = info.get("team_name", "Tự do") if info.get("found") else "Tự do"
+            sport_name = info.get("sport_name", "Môn khác") if info.get("found") else "Môn khác"
+            country_name = info.get("country_name", "Quốc tế") if info.get("found") else "Quốc tế"
+            aliases = info.get("aliases", p_name) if info.get("found") else p_name
+            gender = info.get("gender", "Men") if info.get("found") else "Men"
+
+            req = AddConfirmedPlayerRequest(
+                name=p_name,
+                team=team_name,
+                sport=sport_name,
+                country=country_name,
+                aliases=aliases,
+                gender=gender,
+            )
         res = add_confirmed_player(req, db)
         results.append(res["player"])
 

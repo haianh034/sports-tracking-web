@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, DateTime, text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, DateTime, Text, text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
 from backend.core.db.session import engine
@@ -53,7 +53,7 @@ class Player(Base):
     
     api_player_id = Column(String(50), nullable=True)
     api_team_id = Column(String(50), nullable=True)
-    name_aliases = Column(String(255), nullable=True)
+    name_aliases = Column(Text, nullable=True)
     gender = Column(String(20), default="Men", nullable=True)
 
     sport = relationship("Sport", back_populates="players")

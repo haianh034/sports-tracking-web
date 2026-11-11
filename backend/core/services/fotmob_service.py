@@ -60,10 +60,51 @@ def _parse_utc_dt(raw_str: str):
             continue
     return None
 
+def _is_fotmob_name_match(expected_name: str, candidate_name: str) -> bool:
+    """Xác minh chặt chẽ tên cầu thủ trên FotMob khớp với VĐV đang xét (chấp nhận đảo họ-tên Đông Á và bỏ dấu/macron/gạch nối)."""
+    from backend.core.config import normalize_player_name
+    exp_norm = normalize_player_name(expected_name)
+    cand_norm = normalize_player_name(candidate_name)
+    if not exp_norm or not cand_norm:
+        return False
+    if exp_norm == cand_norm:
+        return True
+
+    exp_parts = exp_norm.split()
+    cand_parts = cand_norm.split()
+    if not exp_parts or not cand_parts:
+        return False
+
+    # Khớp tập hợp từ đầy đủ theo bất kỳ thứ tự (ví dụ: "Son Heung-min" == "Heung-Min Son")
+    if len(exp_parts) == len(cand_parts) and sorted(exp_parts) == sorted(cand_parts):
+        return True
+
+    # Khớp tên dính liền bỏ dấu cách / gạch nối ở một bên (ví dụ: "Son Heungmin" == "Heung Min Son")
+    exp_compact = "".join(exp_parts)
+    cand_compact = "".join(cand_parts)
+    if exp_compact == cand_compact:
+        return True
+    if len(exp_parts) >= 2 and ("".join(exp_parts[1:]) + exp_parts[0]) == cand_compact:
+        return True
+    if len(cand_parts) >= 2 and ("".join(cand_parts[1:]) + cand_parts[0]) == exp_compact:
+        return True
+    if len(exp_parts) >= 2 and (exp_parts[-1] + "".join(exp_parts[:-1])) == cand_compact:
+        return True
+    if len(cand_parts) >= 2 and (cand_parts[-1] + "".join(cand_parts[:-1])) == exp_compact:
+        return True
+
+    # Hỗ trợ tên dài có tên đệm (chỉ khi ít nhất 2 từ và tất cả từ của bản ngắn đều có mặt)
+    short_p, long_p = (exp_parts, cand_parts) if len(exp_parts) <= len(cand_parts) else (cand_parts, exp_parts)
+    if len(short_p) >= 2 and len(long_p) > len(short_p) and all(tok in long_p for tok in short_p):
+        return True
+
+    return False
+
 def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
     """
     Tìm kiếm và ánh xạ cầu thủ bóng đá sang FotMob player ID.
-    Hỗ trợ tên tiếng Anh, tên phiên âm châu Á (Hàn Quốc, Nhật Bản, Việt Nam).
+    Hỗ trợ tên tiếng Anh, tên phiên âm châu Á (Hàn Quốc, Nhật Bản, Việt Nam)
+    và xác minh chặt chẽ tên cầu thủ để không nhận nhầm người khác trùng họ.
     """
     if not player_name:
         return None
@@ -72,13 +113,25 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
     norm_team_key = _norm_team_text(team_name or "")
     cache_key = f"{clean_name.lower()}||{norm_team_key}"
     if cache_key in FOTMOB_PLAYER_CACHE:
-        return FOTMOB_PLAYER_CACHE[cache_key]
+        cached_val = FOTMOB_PLAYER_CACHE[cache_key]
+        if cached_val and _is_fotmob_name_match(clean_name, cached_val.get("name", "")):
+            return cached_val
+        else:
+            FOTMOB_PLAYER_CACHE.pop(cache_key, None)
+            _save_player_cache()
 
     parts = clean_name.split()
     queries = [clean_name]
+    if "-" in clean_name:
+        queries.append(clean_name.replace("-", " "))
     if len(parts) >= 2:
-        queries.append(' '.join(parts[1:]) + ' ' + parts[0])
-        queries.append(parts[-1] + ' ' + ' '.join(parts[:-1]))
+        rev1 = ' '.join(parts[1:]) + ' ' + parts[0]
+        rev2 = parts[-1] + ' ' + ' '.join(parts[:-1])
+        queries.extend([rev1, rev2])
+        if "-" in rev1:
+            queries.append(rev1.replace("-", " "))
+        if "-" in rev2:
+            queries.append(rev2.replace("-", " "))
     
     seen_q = set()
     best_cand = None
@@ -98,12 +151,15 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
             for grp in data:
                 for sug in grp.get("suggestions", []):
                     if sug.get("type") == "player":
+                        sug_name = (sug.get("name") or "").strip()
+                        if not _is_fotmob_name_match(clean_name, sug_name):
+                            continue
                         cand_team = _norm_team_text(sug.get("teamName") or "")
                         if t_keywords and cand_team:
                             if any(w in cand_team for w in t_keywords):
                                 res = {
                                     "id": str(sug.get("id")),
-                                    "name": sug.get("name"),
+                                    "name": sug_name,
                                     "teamName": sug.get("teamName")
                                 }
                                 FOTMOB_PLAYER_CACHE[cache_key] = res
@@ -112,7 +168,7 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
                         if not best_cand:
                             best_cand = {
                                 "id": str(sug.get("id")),
-                                "name": sug.get("name"),
+                                "name": sug_name,
                                 "teamName": sug.get("teamName")
                             }
         except Exception:

@@ -142,10 +142,12 @@ def auto_detect_player_transfers(db: Session, players: list):
     """
     Tự động phát hiện khi cầu thủ chuyển nhượng sang CLB mới trong tương lai
     (ví dụ Son Heung-min rời LAFC sang CLB khác vào mùa hè tới).
-    Hệ thống sẽ tự động cập nhật CLB trong DB và kéo theo lịch thi đấu mới.
+    Hệ thống xác minh chặt chẽ tên cầu thủ và tránh ghi đè nhầm sang đội trẻ/đội dự bị.
     """
-    from backend.core.services.fotmob_service import get_fotmob_player
+    import re
+    from backend.core.services.fotmob_service import get_fotmob_player, _is_fotmob_name_match
     from backend.core.db.models import Club
+    _youth_rx = re.compile(r'\b(II|III|U17|U18|U19|U20|U21|U23|B|Reserves|Youth|Castilla|Atlético B)\b', re.IGNORECASE)
     for p in players:
         if p.sport_name != "Bóng đá":
             continue
@@ -153,7 +155,12 @@ def auto_detect_player_transfers(db: Session, players: list):
             curr_team = (p.club.name if p.club else "").strip()
             p_info = get_fotmob_player(p.name, curr_team)
             if p_info and p_info.get("teamName"):
+                if not _is_fotmob_name_match(p.name, p_info.get("name", "")):
+                    continue
                 new_team = p_info["teamName"].strip()
+                # Không bao giờ tự động hạ cấp CLB đội 1 hiện tại sang đội dự bị / đội II / U21
+                if curr_team and curr_team not in ["Tự do", "Chưa rõ CLB"] and not _youth_rx.search(curr_team) and _youth_rx.search(new_team):
+                    continue
                 if new_team and curr_team and not is_same_club_alias(curr_team, new_team):
                     new_club = db.query(Club).filter(Club.name.ilike(new_team), Club.sport_id == p.sport_id).first()
                     if not new_club:

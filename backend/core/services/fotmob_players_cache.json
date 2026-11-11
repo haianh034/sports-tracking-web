@@ -109,11 +109,6 @@
     "name": "Momoko Tanikawa",
     "teamName": "Bayern München"
   },
-  "son heung-min||daegu ii": {
-    "id": "1613065",
-    "name": "Son Seung-Min",
-    "teamName": "Daegu FC II"
-  },
   "kim yu-sung||gangwon": {
     "id": "1613225",
     "name": "Kim Yu-Sung",
@@ -364,16 +359,6 @@
     "name": "Sota Kawasaki",
     "teamName": "Mainz 05"
   },
-  "kim min-su||andorra": {
-    "id": "1613067",
-    "name": "Kim Min-Sub",
-    "teamName": "Kowloon City District Sports Association"
-  },
-  "kim min-su||girona": {
-    "id": "1613067",
-    "name": "Kim Min-Sub",
-    "teamName": "Kowloon City District Sports Association"
-  },
   "kim ji-soo||brentford": {
     "id": "1341538",
     "name": "Kim Ji-Soo",
@@ -418,5 +403,15 @@
     "id": "1155066",
     "name": "Satoshi Tanaka",
     "teamName": "Schalke 04"
+  },
+  "son heung-min||daegu ii": {
+    "id": "212867",
+    "name": "Heung-Min Son",
+    "teamName": "Los Angeles FC"
+  },
+  "son heung-min||los angeles": {
+    "id": "212867",
+    "name": "Heung-Min Son",
+    "teamName": "Los Angeles FC"
   }
 }

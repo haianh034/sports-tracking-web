@@ -3,7 +3,14 @@ import urllib.parse
 import json
 import re
 from backend.core.config import EN_TO_VI_MAP
-from backend.core.services.wiki_service import fetch_free_player_info
+from backend.core.services.wiki_service import (
+    fetch_free_player_info,
+    build_clean_player_aliases,
+    _EVENT_TITLE_RE,
+    _SPORT_HINT_RE,
+    _NON_ATHLETE_DESC_RE,
+)
+from backend.core.services.fotmob_service import _is_fotmob_name_match
 
 def search_athlete_candidates(query: str) -> tuple[bool, list]:
     q_clean = query.strip()
@@ -52,9 +59,9 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
 
                     country = "Quốc tế"
                     flag = "🌐"
-                    aliases = pname
+                    aliases = build_clean_player_aliases(pname)
 
-                    # Check nationality and actual club from Wikipedia
+                    # Check nationality and actual club from Wikipedia/Wikidata
                     wiki_info = fetch_free_player_info(pname)
                     if wiki_info.get("found"):
                         if wiki_info.get("country_name") and wiki_info["country_name"] != "Quốc tế":
@@ -65,7 +72,7 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                             if sport in ["Môn khác", "Thể thao"] or raw_sport not in ["soccer", "football", "baseball", "basketball"]:
                                 sport = wiki_sport
                         if wiki_info.get("aliases"):
-                            aliases = wiki_info["aliases"]
+                            aliases = build_clean_player_aliases(pname, [a.strip() for a in wiki_info["aliases"].split(",")])
 
                     # Fallback check from name
                     if country == "Quốc tế":
@@ -104,6 +111,7 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                             "country": country,
                             "country_flag": flag,
                             "aliases": aliases,
+                            "espn_league_slug": league_slug or "",
                             "source": "ESPN",
                             "score": score,
                             "gender": cand_gender
@@ -149,22 +157,40 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
     except Exception:
         pass
 
-    # 2. FotMob Player Search (Dành riêng cho bóng đá để cập nhật CLB mới nhất như Wolfsburg, Freiburg...)
+    # 2. FotMob Player Search (Tìm cả thứ tự đảo họ-tên Đông Á và bỏ gạch nối như "Heung-Min Son")
     try:
-        fm_url = f"https://www.fotmob.com/api/data/search/suggest?term={urllib.parse.quote(q_clean)}"
-        req = urllib.request.Request(fm_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=4) as r:
-            fm_data = json.loads(r.read().decode())
-        for grp in fm_data:
-            for sug in grp.get("suggestions", []):
-                if sug.get("type") == "player":
-                    pname = sug.get("name", "").strip()
-                    fm_team = (sug.get("teamName", "") or "").strip()
-                    if pname and fm_team:
+        q_parts = q_clean.split()
+        fm_queries = [q_clean]
+        if "-" in q_clean:
+            fm_queries.append(q_clean.replace("-", " "))
+        if len(q_parts) >= 2:
+            fm_queries.append(" ".join(q_parts[1:]) + " " + q_parts[0])
+            fm_queries.append((q_parts[-1] + " " + " ".join(q_parts[:-1])).replace("-", " "))
+
+        fm_seen_q = set()
+        for fmq in fm_queries:
+            if fmq.lower() in fm_seen_q:
+                continue
+            fm_seen_q.add(fmq.lower())
+            fm_url = f"https://www.fotmob.com/api/data/search/suggest?term={urllib.parse.quote(fmq)}"
+            req = urllib.request.Request(fm_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=4) as r:
+                fm_data = json.loads(r.read().decode())
+            for grp in fm_data:
+                for sug in grp.get("suggestions", []):
+                    if sug.get("type") == "player":
+                        pname = sug.get("name", "").strip()
+                        fm_team = (sug.get("teamName", "") or "").strip()
+                        if not pname or not fm_team:
+                            continue
+                        is_name_exact = _is_fotmob_name_match(q_clean, pname)
+                        if not is_name_exact and any(c.get("score", 0) >= 95 for c in candidates):
+                            continue
+
                         w_info = fetch_free_player_info(pname)
                         fm_gender = w_info.get("gender", "Men") if w_info.get("found") else "Men"
                         team_id = sug.get("teamId")
-                        if team_id == 671935 or "(w)" in (sug.get("teamName") or "").lower() or "women" in (sug.get("teamName") or "").lower():
+                        if team_id == 671935 or "(w)" in fm_team.lower() or "women" in fm_team.lower():
                             fm_gender = "Women"
                         if fm_gender == "Women" and not any(w in fm_team.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies"]):
                             fm_team = f"{fm_team} (Nữ)"
@@ -172,10 +198,11 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                         k = (pname.lower(), fm_team.lower())
                         if k not in seen:
                             seen.add(k)
-                            score = 100 if q_clean.lower() == pname.lower() else (90 if q_clean.lower() in pname.lower() else 75)
+                            score = 100 if is_name_exact else (88 if q_clean.lower() in pname.lower() else 60)
                             c_name = w_info.get("country_name", "Quốc tế") if w_info.get("found") else "Quốc tế"
                             c_flag = w_info.get("country_flag", "🌐") if w_info.get("found") else "🌐"
-                            c_aliases = w_info.get("aliases", pname) if w_info.get("found") else pname
+                            raw_al = [a.strip() for a in w_info.get("aliases", "").split(",") if a.strip()] if w_info.get("found") else []
+                            c_aliases = build_clean_player_aliases(pname, raw_al + [q_clean])
                             candidates.append({
                                 "name": pname,
                                 "sport": "Bóng đá",
@@ -210,36 +237,47 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
     except Exception:
         pass
 
-    # 3. Wikipedia Search API (only if needed or exact matches)
+    # 3. Wikipedia / Wikidata Search API
+    wiki_added = False
     try:
-        w_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(q_clean)}&utf8=&format=json&srlimit=5"
-        req = urllib.request.Request(w_url, headers={'User-Agent': 'SportsTrackingWeb/2.0 (contact: admin@sportstracker.local)'})
+        w_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(q_clean)}&utf8=&format=json&srlimit=6"
+        req = urllib.request.Request(w_url, headers={'User-Agent': 'SportsTrackingWeb/2.1 (contact@sportstracker.local)'})
         with urllib.request.urlopen(req, timeout=8) as r:
             d = json.loads(r.read().decode())
         for res in d.get("query", {}).get("search", []):
             title = res.get("title", "")
-            # MUST contain at least a major token of the searched player name (prevents random pages like "Fly ball pitcher")
+            if _EVENT_TITLE_RE.search(title):
+                continue
             q_tokens = [t.lower() for t in q_clean.split() if len(t) >= 3]
             if q_tokens and not any(t in title.lower() for t in q_tokens):
                 continue
 
             snip = re.sub(r'<[^>]+>', '', res.get("snippet", ""))
             snip_l = snip.lower()
-            if any(k in snip_l for k in ["footballer", "soccer", "baseball", "basketball", "volleyball", "badminton", "tennis", "striker", "winger", "pitcher", "infielder", "guard", "forward"]):
+            if _NON_ATHLETE_DESC_RE.search(snip_l) and not _SPORT_HINT_RE.search(snip_l):
+                continue
+            if _SPORT_HINT_RE.search(title.lower() + " " + snip_l):
                 clean_title = re.sub(r'\s*\([^)]*\)$', '', title).strip()
-                if not any(b in title.lower() for b in ["season", "list of", "league", "cup", "team", "club", "stadium", "tournament"]):
+                if len(q_clean.split()) >= 2 and len(clean_title.split()) < 2:
+                    continue
+                if not any(b in title.lower() for b in ["season", "list of", "league", "cup", "team", "club", "stadium", "tournament", "at the ", "olympics", "championship"]):
                     wiki_info = fetch_free_player_info(title)
-                    sport = wiki_info.get("sport_name", "Bóng đá") if wiki_info.get("found") else "Bóng đá"
-                    team = wiki_info.get("team_name", "Tự do") if wiki_info.get("found") else "Tự do"
-                    country = wiki_info.get("country_name", "Quốc tế") if wiki_info.get("found") else "Quốc tế"
-                    flag = wiki_info.get("country_flag", "🌐") if wiki_info.get("found") else "🌐"
-                    aliases = wiki_info.get("aliases", clean_title) if wiki_info.get("found") else clean_title
+                    if not wiki_info.get("found"):
+                        continue
+                    sport = wiki_info.get("sport_name", "Bóng đá")
+                    team = wiki_info.get("team_name", "Tự do")
+                    country = wiki_info.get("country_name", "Quốc tế")
+                    flag = wiki_info.get("country_flag", "🌐")
+                    aliases = wiki_info.get("aliases") or build_clean_player_aliases(clean_title, [q_clean])
+                    cand_gender = wiki_info.get("gender", "Men")
 
-                    score = 100 if q_clean.lower() == clean_title.lower() else (85 if q_clean.lower() in clean_title.lower() else 65)
-                    
+                    is_ex = _is_fotmob_name_match(q_clean, clean_title)
+                    score = 100 if is_ex else (85 if q_clean.lower() in clean_title.lower() else 65)
+
                     title_key = (clean_title.lower(), team.lower())
                     if title_key not in seen:
                         seen.add(title_key)
+                        wiki_added = True
                         candidates.append({
                             "name": clean_title,
                             "sport": sport,
@@ -248,10 +286,11 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                             "country_flag": flag,
                             "aliases": aliases,
                             "source": "Wikipedia",
-                            "score": score
+                            "score": score,
+                            "gender": cand_gender
                         })
 
-                    if wiki_info.get("found") and wiki_info.get("loan_club"):
+                    if wiki_info.get("loan_club"):
                         loan_t = wiki_info["loan_club"]
                         parent_t = wiki_info.get("parent_club") or team
                         loan_key = (clean_title.lower(), loan_t.lower())
@@ -265,10 +304,35 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                                 "country_flag": flag,
                                 "aliases": aliases,
                                 "source": f"Cho mượn từ {parent_t}",
-                                "score": score + 5
+                                "score": score + 5,
+                                "gender": cand_gender
                             })
     except Exception:
         pass
+
+    # 3b. Wikidata fallback nếu Wikipedia EN không có trang hoặc tên bị đảo thứ tự (ví dụ Joo Cheon-hui, Watanabe Yuzuno)
+    if not wiki_added and not any(c.get("score", 0) >= 95 for c in candidates):
+        try:
+            wiki_info = fetch_free_player_info(q_clean)
+            if wiki_info.get("found"):
+                wname = re.sub(r'\s*\([^)]*\)$', '', wiki_info.get("display_name") or q_clean).strip()
+                wteam = wiki_info.get("team_name", "Tự do")
+                wkey = (wname.lower(), wteam.lower())
+                if wkey not in seen:
+                    seen.add(wkey)
+                    candidates.append({
+                        "name": wname,
+                        "sport": wiki_info.get("sport_name", "Môn khác"),
+                        "team": wteam,
+                        "country": wiki_info.get("country_name", "Quốc tế"),
+                        "country_flag": wiki_info.get("country_flag", "🌐"),
+                        "aliases": wiki_info.get("aliases") or build_clean_player_aliases(wname, [q_clean]),
+                        "source": "Wikidata",
+                        "score": 98,
+                        "gender": wiki_info.get("gender", "Men")
+                    })
+        except Exception:
+            pass
 
     sport_order = {"Bóng đá": 1, "Bóng chày": 2, "Bóng rổ": 3, "Bóng chuyền": 4, "Cầu lông": 5, "Quần vợt": 6, "Bóng bàn": 7, "Môn khác": 8}
     candidates.sort(key=lambda x: (-x.get("score", 0), sport_order.get(x["sport"], 99)))
