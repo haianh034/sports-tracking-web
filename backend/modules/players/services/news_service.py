@@ -268,8 +268,29 @@ SPORT_EXCLUSIVE_PROFILES = {
         "全豪オープン", "全仏オープン", "全米オープン", "테니스", "quần vợt"
     },
     "Golf": {
-        "ゴルフ", "golf", "jlpga", "lpga", "pgaツアー", "birdie", "골프"
-    }
+        "ゴルフ", "golf", "jlpga", "lpga", "pgaツアー", "pga tour", "birdie", "ゴルフ", "골프"
+    },
+    "Đua xe F1": {
+        "f1", "formula 1", "formula one", "grand prix", "ferrari", "red bull racing", "verstappen", "motorsport", "đua xe f1"
+    },
+    "MMA / UFC": {
+        "ufc", "mma", "octagon", "knockout", "submission", "総合格闘技", "이종격투기"
+    },
+    "Khúc côn cầu": {
+        "nhl", "ice hockey", "hockey", "stanley cup", "アイスホッケー", "아이스하키", "khúc côn cầu"
+    },
+    "Bơi lội": {
+        "swimming", "競泳", "水泳", "수영", "freestyle", "butterfly", "backstroke", "medley", "world aquatics", "bơi lội"
+    },
+    "Điền kinh": {
+        "athletics", "track and field", "marathon", "100m", "diamond league", "陸上", "육상", "điền kinh"
+    },
+    "Trượt băng nghệ thuật": {
+        "figure skating", "フィギュアスケート", "피겨", "trượt băng"
+    },
+    "Esports": {
+        "esports", "lck", "lpl", "worlds", "valorant", "league of legends", "dota", "cs2", "t1"
+    },
 }
 
 def _extract_surname_and_given(player_name: str, native_names: list = None):
@@ -454,12 +475,20 @@ def is_article_strictly_for_player(
         return False
 
     # LỚP 3: Kiểm tra xung đột Môn Thể thao Tự động (Cross-Sport Conflict Guard)
-    if sport_name and sport_name in SPORT_EXCLUSIVE_PROFILES:
-        my_sport_kws = SPORT_EXCLUSIVE_PROFILES[sport_name]
+    if sport_name:
+        s_low_prof = sport_name.strip().lower()
+        my_sport_kws = SPORT_EXCLUSIVE_PROFILES.get(sport_name)
+        if not my_sport_kws:
+            for sp_k, sp_kws in SPORT_EXCLUSIVE_PROFILES.items():
+                if sp_k.lower() == s_low_prof or s_low_prof in sp_kws:
+                    my_sport_kws = sp_kws
+                    break
+        if not my_sport_kws:
+            my_sport_kws = {s_low_prof}
         has_my_sport_kw = _matches_any_keyword(content, list(my_sport_kws))
         if not has_my_sport_kw:
             for other_sport, other_kws in SPORT_EXCLUSIVE_PROFILES.items():
-                if other_sport == sport_name:
+                if other_sport.lower() == s_low_prof or s_low_prof in other_kws:
                     continue
                 if _matches_any_keyword(content, list(other_kws)):
                     title_low = (title or "").lower()

@@ -45,9 +45,16 @@ SPORT_VI_MAP = {
     'baseball': 'Bóng chày',
     'basketball': 'Bóng rổ',
     'hockey': 'Khúc côn cầu',
-    'football': 'Bóng bầu dục (Mỹ)',
+    'football': 'Bóng bầu dục Mỹ',
     'volleyball': 'Bóng chuyền',
-    'tennis': 'Quần vợt'
+    'tennis': 'Quần vợt',
+    'golf': 'Golf',
+    'racing': 'Đua xe',
+    'mma': 'MMA / UFC',
+    'boxing': 'Quyền anh',
+    'rugby': 'Bóng bầu dục',
+    'cricket': 'Cricket',
+    'lacrosse': 'Bóng vợt',
 }
 
 def search_team_options(query: str, sport: str = None) -> list[dict]:
@@ -63,7 +70,8 @@ def search_team_options(query: str, sport: str = None) -> list[dict]:
     results = []
     seen = set()
     clean_q_lower = clean_q.lower()
-    target_sport_code = SPORT_TO_ESPN.get(sport) if sport else None
+    from backend.core.config import resolve_espn_sport_code
+    target_sport_code = resolve_espn_sport_code(sport) if sport else None
 
     # 1. Tra cứu trực tiếp từ ESPN Search API
     try:

@@ -572,15 +572,28 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[11px] font-semibold text-gray-300 mb-1">Môn thể thao *</label>
-                            <select id="customNtSport" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
-                                <option value="Bóng đá">Bóng đá</option>
-                                <option value="Bóng chày">Bóng chày</option>
-                                <option value="Bóng rổ">Bóng rổ</option>
-                                <option value="Bóng chuyền">Bóng chuyền</option>
-                                <option value="Bóng bàn">Bóng bàn</option>
-                                <option value="Cầu lông">Cầu lông</option>
-                                <option value="Khác">Khác</option>
-                            </select>
+                            <input type="text" id="customNtSport" list="knownSportsDatalist" value="Bóng đá" required
+                                placeholder="Chọn hoặc tự nhập môn bất kỳ..."
+                                class="w-full bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none">
+                            <datalist id="knownSportsDatalist">
+                                <option value="Bóng đá"></option>
+                                <option value="Bóng chày"></option>
+                                <option value="Bóng rổ"></option>
+                                <option value="Bóng chuyền"></option>
+                                <option value="Cầu lông"></option>
+                                <option value="Bóng bàn"></option>
+                                <option value="Quần vợt"></option>
+                                <option value="Golf"></option>
+                                <option value="Bơi lội"></option>
+                                <option value="Điền kinh"></option>
+                                <option value="Đua xe F1"></option>
+                                <option value="MMA / UFC"></option>
+                                <option value="Quyền anh"></option>
+                                <option value="Khúc côn cầu"></option>
+                                <option value="Trượt băng nghệ thuật"></option>
+                                <option value="Thể dục dụng cụ"></option>
+                                <option value="Esports"></option>
+                            </datalist>
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-gray-300 mb-1">Quốc gia *</label>
@@ -671,13 +684,9 @@
                         class="w-full bg-gray-950 border border-gray-700 focus:border-blue-500 rounded-lg pl-9 pr-3 py-2 text-xs sm:text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:outline-none">
                     <span class="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
                 </div>
-                <!-- SPORT FILTER PILLS -->
+                <!-- SPORT FILTER PILLS (Dynamically populated from DB + search results) -->
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]" id="teamSportFilterPills">
                     <button type="button" onclick="filterTeamOptionsBySport('')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-blue-600 text-white font-medium shrink-0" data-sport="">Tất cả môn</button>
-                    <button type="button" onclick="filterTeamOptionsBySport('Bóng đá')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0" data-sport="Bóng đá">⚽ Bóng đá</button>
-                    <button type="button" onclick="filterTeamOptionsBySport('Bóng chày')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0" data-sport="Bóng chày">⚾ Bóng chày</button>
-                    <button type="button" onclick="filterTeamOptionsBySport('Bóng rổ')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0" data-sport="Bóng rổ">🏀 Bóng rổ</button>
-                    <button type="button" onclick="filterTeamOptionsBySport('Bóng chuyền')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0" data-sport="Bóng chuyền">🏐 Bóng chuyền</button>
                 </div>
             </div>
 
@@ -697,10 +706,14 @@
                         <span class="text-[10px] text-gray-500 group-open:rotate-180 transition">▼</span>
                     </summary>
                     <div class="mt-2.5 space-y-2 p-2.5 bg-gray-950 rounded-xl border border-gray-800">
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-[11px] text-gray-400 mb-0.5">Tên CLB:</label>
+                                <label class="block text-[11px] text-gray-400 mb-0.5">Tên CLB / Đội:</label>
                                 <input type="text" id="manualTeamName" placeholder="Ví dụ: Rangers" class="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-gray-400 mb-0.5">Môn thể thao (tự do):</label>
+                                <input type="text" id="manualSportName" list="knownSportsDatalist" placeholder="Ví dụ: Bơi lội, F1..." class="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1 text-xs text-white">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-gray-400 mb-0.5">Tên Giải đấu:</label>

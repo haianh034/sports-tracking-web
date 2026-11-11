@@ -90,7 +90,39 @@ EN_TO_VI_MAP = {
     "badminton": "Cầu lông",
     "table tennis": "Bóng bàn",
     "ping pong": "Bóng bàn",
-    "tennis": "Quần vợt"
+    "tennis": "Quần vợt",
+    "golf": "Golf",
+    "golfer": "Golf",
+    "formula 1": "Đua xe F1",
+    "formula one": "Đua xe F1",
+    "f1": "Đua xe F1",
+    "racing": "Đua xe",
+    "motorsport": "Đua xe",
+    "mma": "MMA / UFC",
+    "ufc": "MMA / UFC",
+    "mixed martial arts": "MMA / UFC",
+    "boxing": "Quyền anh",
+    "boxer": "Quyền anh",
+    "hockey": "Khúc côn cầu",
+    "ice hockey": "Khúc côn cầu",
+    "nhl": "Khúc côn cầu",
+    "american football": "Bóng bầu dục Mỹ",
+    "nfl": "Bóng bầu dục Mỹ",
+    "rugby": "Bóng bầu dục",
+    "cricket": "Cricket",
+    "swimming": "Bơi lội",
+    "swimmer": "Bơi lội",
+    "athletics": "Điền kinh",
+    "track and field": "Điền kinh",
+    "gymnastics": "Thể dục dụng cụ",
+    "gymnast": "Thể dục dụng cụ",
+    "figure skating": "Trượt băng nghệ thuật",
+    "figure skater": "Trượt băng nghệ thuật",
+    "cycling": "Đua xe đạp",
+    "cyclist": "Đua xe đạp",
+    "esports": "Esports",
+    "snooker": "Billiards / Snooker",
+    "billiards": "Billiards / Snooker",
 }
 
 SPORT_TO_ESPN = {
@@ -98,8 +130,67 @@ SPORT_TO_ESPN = {
     "Bóng rổ": "basketball",
     "Bóng chày": "baseball",
     "Khúc côn cầu": "hockey",
-    "Quần vợt": "tennis"
+    "Quần vợt": "tennis",
+    "Tennis": "tennis",
+    "Golf": "golf",
+    "Đua xe F1": "racing",
+    "Đua xe": "racing",
+    "F1": "racing",
+    "MMA / UFC": "mma",
+    "MMA": "mma",
+    "UFC": "mma",
+    "Quyền anh": "boxing",
+    "Boxing": "boxing",
+    "Bóng bầu dục Mỹ": "football",
+    "NFL": "football",
+    "Bóng bầu dục": "rugby",
+    "Cricket": "cricket",
+    "Bóng vợt": "lacrosse",
 }
+
+ESPN_INDIVIDUAL_SPORT_LEAGUES = {
+    "tennis": ["atp", "wta"],
+    "golf": ["pga", "lpga", "eur"],
+    "racing": ["f1", "irl", "nascar-premier"],
+    "mma": ["ufc"],
+}
+
+def resolve_espn_sport_code(sport_name: str) -> str | None:
+    """Resolve an arbitrary Vietnamese/English sport name to its ESPN sport slug, or None if not an ESPN sport."""
+    if not sport_name:
+        return None
+    s_clean = sport_name.strip()
+    if s_clean in SPORT_TO_ESPN:
+        return SPORT_TO_ESPN[s_clean]
+    s_low = s_clean.lower()
+    for k, v in SPORT_TO_ESPN.items():
+        if k.lower() == s_low:
+            return v
+    if any(k in s_low for k in ["bóng đá", "soccer", "football (soccer)"]):
+        return "soccer"
+    if any(k in s_low for k in ["bóng rổ", "basketball", "nba", "wnba"]):
+        return "basketball"
+    if any(k in s_low for k in ["bóng chày", "baseball", "mlb", "npb", "kbo"]):
+        return "baseball"
+    if any(k in s_low for k in ["khúc côn cầu", "hockey", "nhl"]):
+        return "hockey"
+    if any(k in s_low for k in ["quần vợt", "tennis"]):
+        return "tennis"
+    if "golf" in s_low:
+        return "golf"
+    if any(k in s_low for k in ["đua xe f1", "formula 1", "f1", "motorsport", "racing"]):
+        return "racing"
+    if any(k in s_low for k in ["mma", "ufc", "võ tổng hợp"]):
+        return "mma"
+    if any(k in s_low for k in ["boxing", "quyền anh"]):
+        return "boxing"
+    if any(k in s_low for k in ["bóng bầu dục mỹ", "american football", "nfl"]):
+        return "football"
+    if "cricket" in s_low:
+        return "cricket"
+    if "rugby" in s_low:
+        return "rugby"
+    return None
 
 LEAGUE_SLUG_MAP = {
     "eng.1": "Premier League",

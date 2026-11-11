@@ -934,6 +934,8 @@ function renderDashboardData(data, refreshDropdowns = true) {
             if (!hasSport) {
                 sportSelect.value = "";
             }
+            window._knownSportsList = data.sports_list.map(s => s.name);
+            if (typeof syncSportsDatalist === 'function') syncSportsDatalist(window._knownSportsList);
         }
         if (data.countries_list) {
             const curCountry = countrySelect.value;
@@ -2961,7 +2963,11 @@ async function processNextPlayerInQueue() {
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-bold text-white text-sm truncate">${escapeHtml(c.name)}</span>
-                            <span class="text-xs bg-blue-950 text-blue-300 border border-blue-800/60 px-2 py-0.5 rounded font-medium">${escapeHtml(c.sport)}</span>
+                            <input type="text" list="knownSportsDatalist" id="candSportInput_${i}" value="${escapeHtml(c.sport || 'Môn khác')}"
+                                onchange="if(window._currentCandidateList && window._currentCandidateList[${i}]) window._currentCandidateList[${i}].sport = this.value.trim() || 'Môn khác';"
+                                oninput="if(window._currentCandidateList && window._currentCandidateList[${i}]) window._currentCandidateList[${i}].sport = this.value.trim() || 'Môn khác';"
+                                title="Bấm để sửa hoặc nhập tên môn thể thao bất kỳ"
+                                class="text-xs bg-blue-950 text-blue-300 border border-blue-800/60 focus:border-blue-400 focus:outline-none px-2 py-0.5 rounded font-medium w-32" />
                             <span class="text-xs bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">${escapeHtml(c.country_flag || '🌐')} ${escapeHtml(c.country)}</span>
                             ${(c.gender === 'Women' || (c.team && c.team.includes('(Nữ)'))) ? '<span class="text-xs bg-pink-950/80 text-pink-300 border border-pink-700/60 px-1.5 py-0.5 rounded font-semibold">🌸 Nữ</span>' : ''}
                         </div>
@@ -3098,6 +3104,55 @@ window._currentTeamOptions = [];
 window._currentTeamSportFilter = '';
 let teamSearchDebounceTimer = null;
 
+function getSportIcon(sportName) {
+    const s = (sportName || '').toLowerCase();
+    if (s.includes('bóng đá') || s.includes('soccer') || s.includes('football')) return '⚽';
+    if (s.includes('bóng chày') || s.includes('baseball')) return '⚾';
+    if (s.includes('bóng rổ') || s.includes('basketball')) return '🏀';
+    if (s.includes('bóng chuyền') || s.includes('volleyball')) return '🏐';
+    if (s.includes('cầu lông') || s.includes('badminton')) return '🏸';
+    if (s.includes('bóng bàn') || s.includes('table tennis') || s.includes('ping pong')) return '🏓';
+    if (s.includes('quần vợt') || s.includes('tennis')) return '🎾';
+    if (s.includes('golf')) return '⛳';
+    if (s.includes('bơi') || s.includes('swim')) return '🏊';
+    if (s.includes('điền kinh') || s.includes('athletic')) return '🏃';
+    if (s.includes('đua xe') || s.includes('f1') || s.includes('racing')) return '🏎️';
+    if (s.includes('mma') || s.includes('ufc') || s.includes('quyền anh') || s.includes('boxing')) return '🥊';
+    if (s.includes('khúc côn cầu') || s.includes('hockey')) return '🏒';
+    if (s.includes('esport')) return '🎮';
+    return '🏅';
+}
+
+function syncSportsDatalist(dbSports) {
+    const dl = document.getElementById('knownSportsDatalist');
+    if (!dl) return;
+    const base = [
+        'Bóng đá', 'Bóng chày', 'Bóng rổ', 'Bóng chuyền', 'Cầu lông', 'Bóng bàn',
+        'Quần vợt', 'Golf', 'Bơi lội', 'Điền kinh', 'Đua xe F1', 'MMA / UFC',
+        'Quyền anh', 'Khúc côn cầu', 'Trượt băng nghệ thuật', 'Thể dục dụng cụ', 'Esports'
+    ];
+    const merged = [...base];
+    (dbSports || []).forEach(s => {
+        if (s && !merged.some(x => x.toLowerCase() === s.toLowerCase())) merged.push(s);
+    });
+    dl.innerHTML = merged.map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
+}
+
+function renderDynamicTeamSportPills() {
+    const container = document.getElementById('teamSportFilterPills');
+    if (!container) return;
+    const sportsSet = new Set(window._knownSportsList || ['Bóng đá', 'Bóng chày', 'Bóng rổ', 'Bóng chuyền']);
+    (window._currentTeamOptions || []).forEach(t => { if (t.sport) sportsSet.add(t.sport); });
+    if (window._currentTeamSportFilter) sportsSet.add(window._currentTeamSportFilter);
+
+    let html = `<button type="button" onclick="filterTeamOptionsBySport('')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0 cursor-pointer" data-sport="">Tất cả môn</button>`;
+    sportsSet.forEach(sp => {
+        html += `<button type="button" onclick="filterTeamOptionsBySport('${escapeHtml(sp)}')" class="team-filter-pill px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 shrink-0 cursor-pointer" data-sport="${escapeHtml(sp)}">${getSportIcon(sp)} ${escapeHtml(sp)}</button>`;
+    });
+    container.innerHTML = html;
+    updateTeamFilterPillUI();
+}
+
 function openTeamSelectForCandidate(index) {
     if (!window._currentCandidateList || !window._currentCandidateList[index]) return;
     const cand = window._currentCandidateList[index];
@@ -3108,10 +3163,12 @@ function openTeamSelectForCandidate(index) {
     window._currentTeamSportFilter = cand.sport || '';
     
     document.getElementById('manualTeamName').value = cand.team || '';
+    const manualSp = document.getElementById('manualSportName');
+    if (manualSp) manualSp.value = cand.sport || '';
     document.getElementById('manualLeagueName').value = cand.team_league || '';
     
     document.getElementById('teamSelectModal').classList.remove('hidden');
-    updateTeamFilterPillUI();
+    renderDynamicTeamSportPills();
     fetchAndRenderTeamOptions(teamInput.value, window._currentTeamSportFilter);
 }
 
@@ -3125,10 +3182,12 @@ function openTeamSelectFromDetail() {
     window._currentTeamSportFilter = player.sport || '';
     
     document.getElementById('manualTeamName').value = player.team || '';
+    const manualSp = document.getElementById('manualSportName');
+    if (manualSp) manualSp.value = player.sport || '';
     document.getElementById('manualLeagueName').value = player.competition || '';
     
     document.getElementById('teamSelectModal').classList.remove('hidden');
-    updateTeamFilterPillUI();
+    renderDynamicTeamSportPills();
     fetchAndRenderTeamOptions(teamInput.value, window._currentTeamSportFilter);
 }
 
@@ -3194,6 +3253,7 @@ async function fetchAndRenderTeamOptions(query, sport) {
             window._teamOptionsCache[cacheKey] = teams;
         }
         window._currentTeamOptions = teams;
+        renderDynamicTeamSportPills();
         renderTeamOptionsList();
     } catch (err) {
         console.error("Error fetching team options:", err);
@@ -3269,6 +3329,9 @@ async function chooseTeamOption(teamIdx) {
             const nameEl = document.getElementById(`candTeamDisplay_${target.index}`);
             if (nameEl) nameEl.innerText = teamObj.name;
 
+            const spInput = document.getElementById(`candSportInput_${target.index}`);
+            if (spInput) spInput.value = teamObj.sport || spInput.value;
+
             const leagueEl = document.getElementById(`candLeagueBadge_${target.index}`);
             if (leagueEl) {
                 leagueEl.innerText = `🏆 ${teamObj.league}`;
@@ -3308,6 +3371,8 @@ async function chooseTeamOption(teamIdx) {
 
 async function applyManualTeam() {
     const customTeam = document.getElementById('manualTeamName').value.trim();
+    const customSportEl = document.getElementById('manualSportName');
+    const customSport = customSportEl ? customSportEl.value.trim() : '';
     const customLeague = document.getElementById('manualLeagueName').value.trim();
     if (!customTeam) {
         showToast("Vui lòng nhập tên CLB", "warning");
@@ -3321,10 +3386,14 @@ async function applyManualTeam() {
         const cand = window._currentCandidateList[target.index];
         if (cand) {
             cand.team = customTeam;
+            if (customSport) cand.sport = customSport;
             if (customLeague) cand.team_league = customLeague;
 
             const nameEl = document.getElementById(`candTeamDisplay_${target.index}`);
             if (nameEl) nameEl.innerText = customTeam;
+
+            const spInput = document.getElementById(`candSportInput_${target.index}`);
+            if (spInput && customSport) spInput.value = customSport;
 
             const leagueEl = document.getElementById(`candLeagueBadge_${target.index}`);
             if (leagueEl && customLeague) {
@@ -3337,13 +3406,15 @@ async function applyManualTeam() {
     } else if (target.type === 'player') {
         showToast(`Đang cập nhật CLB cho cầu thủ...`, 'info');
         try {
+            const payload = {
+                team: customTeam,
+                league: customLeague
+            };
+            if (customSport) payload.sport = customSport;
             const res = await fetch(`/api/players/${target.playerId}/change-team`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    team: customTeam,
-                    league: customLeague
-                })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (res.ok && data.success) {
@@ -3594,7 +3665,7 @@ function openCustomNtFormWithName(name) {
             else genderSelect.value = 'Men';
         }
 
-        // Auto-detect sport
+        // Auto-detect sport (only prefill if recognizable; custom sport stays editable)
         const sportSelect = document.getElementById('customNtSport');
         if (sportSelect) {
             if (nLower.includes('bóng chày') || nLower.includes('baseball')) sportSelect.value = 'Bóng chày';
@@ -3602,7 +3673,9 @@ function openCustomNtFormWithName(name) {
             else if (nLower.includes('bóng chuyền') || nLower.includes('volleyball')) sportSelect.value = 'Bóng chuyền';
             else if (nLower.includes('bóng bàn') || nLower.includes('table tennis')) sportSelect.value = 'Bóng bàn';
             else if (nLower.includes('cầu lông') || nLower.includes('badminton')) sportSelect.value = 'Cầu lông';
-            else sportSelect.value = 'Bóng đá';
+            else if (nLower.includes('quần vợt') || nLower.includes('tennis')) sportSelect.value = 'Quần vợt';
+            else if (nLower.includes('bơi') || nLower.includes('swim')) sportSelect.value = 'Bơi lội';
+            else if (nLower.includes('bóng đá') || nLower.includes('soccer') || nLower.includes('football')) sportSelect.value = 'Bóng đá';
         }
 
         nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });

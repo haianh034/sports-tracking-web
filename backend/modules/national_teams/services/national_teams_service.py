@@ -1236,20 +1236,26 @@ def fetch_national_team_schedule(team) -> list:
     matches = []
     seen_keys = set()
 
-    # 1. ESPN APIs for official national & youth teams
+    # 1. ESPN APIs for official national & youth teams (dynamically resolved via sport code)
+    from backend.core.config import resolve_espn_sport_code
+    espn_code = resolve_espn_sport_code(t_sport)
     urls = []
-    if t_sport == "Bóng đá" and t_api_id and str(t_api_id).isdigit():
+    if espn_code == "soccer" and t_api_id and str(t_api_id).isdigit():
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule?fixture=true",
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule"
         ]
-    elif t_sport == "Bóng chày" and t_api_id and str(t_api_id).isdigit():
+    elif espn_code == "baseball" and t_api_id and str(t_api_id).isdigit():
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/baseball/world-baseball-classic/teams/{t_api_id}/schedule"
         ]
-    elif t_sport == "Bóng rổ" and t_api_id and str(t_api_id).isdigit():
+    elif espn_code == "basketball" and t_api_id and str(t_api_id).isdigit():
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/basketball/fiba/teams/{t_api_id}/schedule"
+        ]
+    elif espn_code and t_api_id and str(t_api_id).isdigit():
+        urls = [
+            f"https://site.api.espn.com/apis/site/v2/sports/{espn_code}/all/teams/{t_api_id}/schedule"
         ]
 
     for u in urls:
@@ -1365,138 +1371,6 @@ def fetch_national_team_schedule(team) -> list:
                         matches.append(m_item)
         except Exception:
             pass
-
-    # 2. Dynamic Real-World Tournaments for non-ESPN sports & youth teams
-    if not matches:
-        fixtures_catalog = []
-        is_jp = (t_country == "Nhật Bản")
-        is_kr = (t_country == "Hàn Quốc")
-        is_youth = t_tier in ["U23", "U21", "U20", "U19", "U18", "U17", "Youth"]
-
-        # Các mốc thời gian động xoay quanh thời điểm hiện tại:
-        # -28d, -14d, -4d (đã qua có tỷ số); +6d, +16d (sắp diễn ra)
-        d_m28 = (now_utc - datetime.timedelta(days=28, hours=4)).strftime("%Y-%m-%dT10:00:00Z")
-        d_m14 = (now_utc - datetime.timedelta(days=14, hours=2)).strftime("%Y-%m-%dT12:30:00Z")
-        d_m4  = (now_utc - datetime.timedelta(days=4, hours=1)).strftime("%Y-%m-%dT14:00:00Z")
-        d_p6  = (now_utc + datetime.timedelta(days=6, hours=3)).strftime("%Y-%m-%dT11:00:00Z")
-        d_p16 = (now_utc + datetime.timedelta(days=16, hours=5)).strftime("%Y-%m-%dT13:30:00Z")
-
-        # 2.1 Bóng chuyền (Volleyball)
-        if any(k in t_sport.lower() for k in ["chuyền", "volleyball"]):
-            if is_jp and not is_youth:
-                if t_gender == "Women" or "Nữ" in t_short:
-                    fixtures_catalog = [
-                        {"d": d_m28, "opp": "vs Trung Quốc", "comp": "FIVB VNL Tứ kết", "res": "Nhật Bản 3 - 0 Trung Quốc (FT)"},
-                        {"d": d_m14, "opp": "vs Brazil", "comp": "FIVB VNL Bán kết", "res": "Nhật Bản 3 - 2 Brazil (FT)"},
-                        {"d": d_m4,  "opp": "vs Ý", "comp": "FIVB VNL Chung kết", "res": "Ý 3 - 1 Nhật Bản (FT)"},
-                        {"d": d_p6,  "opp": "vs Ba Lan", "comp": "FIVB World Championship", "res": None},
-                        {"d": d_p16, "opp": "vs Thổ Nhĩ Kỳ", "comp": "FIVB World Championship", "res": None}
-                    ]
-                else:
-                    fixtures_catalog = [
-                        {"d": d_m28, "opp": "vs Canada", "comp": "FIVB VNL Tứ kết", "res": "Nhật Bản 3 - 0 Canada (FT)"},
-                        {"d": d_m14, "opp": "vs Slovenia", "comp": "FIVB VNL Bán kết", "res": "Nhật Bản 3 - 0 Slovenia (FT)"},
-                        {"d": d_m4,  "opp": "vs Pháp", "comp": "FIVB VNL Chung kết", "res": "Pháp 3 - 1 Nhật Bản (FT)"},
-                        {"d": d_p6,  "opp": "vs Ý", "comp": "Thế vận hội Olympic / FIVB", "res": None},
-                        {"d": d_p16, "opp": "vs Argentina", "comp": "Giao hữu quốc tế FIVB", "res": None}
-                    ]
-            elif is_kr and not is_youth:
-                fixtures_catalog = [
-                    {"d": d_m28, "opp": "vs Thái Lan", "comp": "FIVB VNL", "res": "Hàn Quốc 3 - 1 Thái Lan (FT)"},
-                    {"d": d_m14, "opp": "vs Pháp", "comp": "FIVB VNL", "res": "Hàn Quốc 3 - 2 Pháp (FT)"},
-                    {"d": d_m4,  "opp": "vs Đức", "comp": "FIVB VNL", "res": "Đức 3 - 1 Hàn Quốc (FT)"},
-                    {"d": d_p6,  "opp": "vs Kazakhstan", "comp": "AVC Cup", "res": None},
-                    {"d": d_p16, "opp": "vs Việt Nam", "comp": "AVC Cup Vòng bảng", "res": None}
-                ]
-            elif is_youth:
-                fixtures_catalog = [
-                    {"d": d_m28, "opp": "vs U21 Iran", "comp": "U21 Asian Championship", "res": f"{t_short} 3 - 2 U21 Iran (FT)"},
-                    {"d": d_m14, "opp": "vs U21 Trung Quốc", "comp": "U21 Asian Championship", "res": f"{t_short} 3 - 1 U21 Trung Quốc (FT)"},
-                    {"d": d_p6,  "opp": "vs U21 Hàn Quốc" if is_jp else "vs U21 Nhật Bản", "comp": "U21 Asian Bán kết", "res": None}
-                ]
-
-        # 2.2 Bóng rổ trẻ (Basketball U19)
-        elif any(k in t_sport.lower() for k in ["rổ", "basketball"]) and is_youth:
-            if is_jp:
-                fixtures_catalog = [
-                    {"d": d_m28, "opp": "vs Ai Cập U19", "comp": "FIBA U19 World Cup", "res": "Nhật Bản U19 82 - 70 Ai Cập U19 (FT)"},
-                    {"d": d_m14, "opp": "vs Hungary U19", "comp": "FIBA U19 World Cup", "res": "Hungary U19 84 - 63 Nhật Bản U19 (FT)"},
-                    {"d": d_m4,  "opp": "vs Madagascar U19", "comp": "FIBA U19 World Cup", "res": "Nhật Bản U19 77 - 71 Madagascar U19 (FT)"},
-                    {"d": d_p6,  "opp": "vs Úc U19", "comp": "FIBA U19 Vòng phân hạng", "res": None}
-                ]
-            elif is_kr:
-                fixtures_catalog = [
-                    {"d": d_m28, "opp": "vs Argentina U19", "comp": "FIBA U19 World Cup", "res": "Argentina U19 88 - 76 Hàn Quốc U19 (FT)"},
-                    {"d": d_m14, "opp": "vs Madagascar U19", "comp": "FIBA U19 World Cup", "res": "Hàn Quốc U19 72 - 60 Madagascar U19 (FT)"},
-                    {"d": d_p6,  "opp": "vs Canada U19", "comp": "FIBA U19 World Cup", "res": None}
-                ]
-
-        # 2.3 Bóng chày trẻ (Baseball U23)
-        elif any(k in t_sport.lower() for k in ["chày", "baseball"]) and is_youth:
-            if is_jp:
-                fixtures_catalog = [
-                    {"d": d_m28, "opp": "vs Colombia U23", "comp": "WBSC U-23 Baseball World Cup", "res": "Nhật Bản U23 4 - 0 Colombia U23 (FT)"},
-                    {"d": d_m14, "opp": "vs Australia U23", "comp": "WBSC U-23 Baseball World Cup", "res": "Nhật Bản U23 4 - 3 Australia U23 (FT)"},
-                    {"d": d_m4,  "opp": "vs Puerto Rico U23", "comp": "WBSC U-23 Chung kết (Vô địch)", "res": "Nhật Bản U23 3 - 1 Puerto Rico U23 (FT)"},
-                    {"d": d_p6,  "opp": "vs Mỹ U23", "comp": "WBSC U-23 Vòng đấu mới", "res": None}
-                ]
-            elif is_kr:
-                fixtures_catalog = [
-                    {"d": d_m28, "opp": "vs Chinese Taipei U23", "comp": "WBSC U-23 Baseball World Cup", "res": "Hàn Quốc U23 3 - 1 Chinese Taipei U23 (FT)"},
-                    {"d": d_m14, "opp": "vs Netherlands U23", "comp": "WBSC U-23 Baseball World Cup", "res": "Hàn Quốc U23 4 - 1 Netherlands U23 (FT)"},
-                    {"d": d_m4,  "opp": "vs Trung Quốc U23", "comp": "WBSC U-23 Tranh Hạng 3", "res": "Hàn Quốc U23 7 - 2 Trung Quốc U23 (FT)"},
-                    {"d": d_p6,  "opp": "vs Cuba U23", "comp": "WBSC U-23 Quốc tế", "res": None}
-                ]
-
-        # 2.4 Bóng bàn (Table Tennis)
-        elif any(k in t_sport.lower() for k in ["bàn", "table tennis"]):
-            fixtures_catalog = [
-                {"d": d_m28, "opp": "vs Đan Mạch", "comp": "ITTF World Team Championship", "res": f"{t_short} 3 - 1 Đan Mạch (FT)"},
-                {"d": d_m14, "opp": "vs Hồng Kông", "comp": "ITTF World Team Championship", "res": f"{t_short} 3 - 0 Hồng Kông (FT)"},
-                {"d": d_m4,  "opp": "vs Trung Quốc", "comp": "ITTF World Team Championship Chung kết", "res": f"Trung Quốc 3 - 2 {t_short} (FT)"},
-                {"d": d_p6,  "opp": "vs Đài Bắc Trung Hoa", "comp": "ITTF Asian Championships Tứ kết", "res": None},
-                {"d": d_p16, "opp": "vs Hàn Quốc" if is_jp else "vs Nhật Bản", "comp": "ITTF Asian Championships Bán kết", "res": None}
-            ]
-
-        # 2.5 Cầu lông (Badminton)
-        elif any(k in t_sport.lower() for k in ["lông", "badminton"]):
-            fixtures_catalog = [
-                {"d": d_m28, "opp": "vs Đức", "comp": "BWF Thomas & Uber Cup", "res": f"{t_short} 5 - 0 Đức (FT)"},
-                {"d": d_m14, "opp": "vs Đan Mạch", "comp": "BWF Thomas & Uber Cup Tứ kết", "res": f"{t_short} 3 - 2 Đan Mạch (FT)"},
-                {"d": d_m4,  "opp": "vs Indonesia", "comp": "BWF Thomas & Uber Cup Bán kết", "res": f"Indonesia 3 - 2 {t_short} (FT)"},
-                {"d": d_p6,  "opp": "vs Malaysia", "comp": "BWF Sudirman Cup Vòng bảng", "res": None},
-                {"d": d_p16, "opp": "vs Trung Quốc", "comp": "BWF Sudirman Cup Tứ kết", "res": None}
-            ]
-
-        for fix in fixtures_catalog:
-            dt = datetime.datetime.fromisoformat(fix["d"].replace("Z", ""))
-            diff = (dt - now_utc).total_seconds() / 86400.0
-            dt_vn = dt + datetime.timedelta(hours=7)
-            is_past = diff < -0.1
-            st = "post" if is_past else "pre"
-            res = fix.get("res") or ("Đã kết thúc (FT)" if is_past else None)
-
-            m_key = (dt_vn.strftime("%Y-%m-%d"), fix["opp"].lower())
-            if m_key not in seen_keys:
-                seen_keys.add(m_key)
-                clean_tourn = get_national_team_tournament_tag(fix["comp"], fix["opp"], t_sport, t_tier)
-                m_item = {
-                    "match_name": fix["opp"],
-                    "raw_match_name": f"{t_short} {fix['opp']}",
-                    "match_date_utc": dt.isoformat(),
-                    "date_vn": dt_vn.strftime("%d/%m %H:%M"),
-                    "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
-                    "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
-                    "competition": clean_tourn,
-                    "raw_competition": fix["comp"],
-                    "match_state": st,
-                    "match_result": res,
-                    "is_past": is_past,
-                    "event_id": f"struct_nt_{hashlib.md5((t_short + fix['opp'] + fix['d']).encode()).hexdigest()[:8]}",
-                    "diff_days": diff
-                }
-                m_item["tags"] = format_national_team_match_tags(t_country, t_sport, t_tier, m_item)
-                matches.append(m_item)
 
     matches.sort(key=lambda x: x["match_date_utc"])
     NATIONAL_TEAM_SCHED_CACHE[cache_key] = (now_ts, matches)

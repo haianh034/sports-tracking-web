@@ -36,8 +36,12 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                         sport = "Bóng rổ"
                     elif any(k in (desc.lower() + " " + raw_sport + " " + league_slug) for k in ["laliga", "premier", "soccer", "fifa", "afc", "uefa", "bundesliga", "serie a", "ligue 1", "mls", "champions", "football"]):
                         sport = "Bóng đá"
-                    elif raw_sport in ["volleyball", "badminton", "tennis", "table tennis"]:
-                        sport = EN_TO_VI_MAP.get(raw_sport, "Môn khác")
+                    elif raw_sport:
+                        mapped_sp = EN_TO_VI_MAP.get(raw_sport)
+                        if isinstance(mapped_sp, str):
+                            sport = mapped_sp
+                        else:
+                            sport = raw_sport.upper() if len(raw_sport) <= 3 else raw_sport.capitalize()
 
                     # Team resolution: subtitle has "Chicago Cubs", while description has "MLB"
                     team = subtitle or desc or "Tự do"

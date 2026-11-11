@@ -120,7 +120,7 @@ def fetch_free_player_info(player_name: str) -> dict:
                     country_name, tz, flag = trans["name"], trans["tz"], trans["flag"]
 
             if country_name == "Quốc tế":
-                nat_match = re.search(r'is a(?:n)? (?:former )?(.*?)\s*(?:professional\s+)?(?:footballer|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|guard|volleyball|badminton|tennis|player)', summary)
+                nat_match = re.search(r'is a(?:n)? (?:former )?(.*?)\s*(?:professional\s+)?(?:footballer|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|guard|volleyball|badminton|tennis|golfer|racing driver|formula one|swimmer|athlete|boxer|mixed martial artist|mma fighter|figure skater|gymnast|cyclist|hockey|cricket|player)', summary)
                 if nat_match:
                     raw_nat = nat_match.group(1).strip()
                     trans = EN_TO_VI_MAP.get(raw_nat)
@@ -134,12 +134,23 @@ def fetch_free_player_info(player_name: str) -> dict:
                         break
             
             sport = "Môn khác"
-            sport_match = re.search(r'\b(football(?:er)?|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|mlb|nba|npb|volleyball|table tennis|ping pong|badminton|tennis)\b', summary)
+            sport_match = re.search(
+                r'\b(football(?:er)?|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|mlb|nba|npb|volleyball|table tennis|ping pong|badminton|tennis|golf(?:er)?|formula one|formula 1|\bf1\b|racing|motorsport|mixed martial arts|mma|ufc|box(?:ing|er)|ice hockey|hockey|nhl|american football|nfl|rugby|cricket|swimm(?:ing|er)|athletics|track and field|gymnast(?:ics)?|figure skat(?:ing|er)|cycl(?:ing|ist)|esports|snooker|billiards)\b',
+                summary
+            )
             if sport_match:
                 raw_sport = sport_match.group(1).lower()
-                sport = EN_TO_VI_MAP.get(raw_sport, "Môn khác")
+                sport_alias_fix = {
+                    "golfer": "golf", "racing": "racing", "boxer": "boxing",
+                    "swimmer": "swimming", "gymnast": "gymnastics",
+                    "figure skater": "figure skating", "cyclist": "cycling",
+                }
+                raw_sport = sport_alias_fix.get(raw_sport, raw_sport)
+                sport = EN_TO_VI_MAP.get(raw_sport, raw_sport.capitalize())
 
             team_name = "Tự do"
+            if re.search(r'\bis a former\b|\bretired\b', summary[:180]):
+                team_name = "Đã giải nghệ"
             blacklist = ["national team", "major league baseball", "nba", "premier league", "la liga", "serie a", "bundesliga", "nippon professional baseball", "the national", "protests", "slam", "open", "cup", "world"]
             
             first_sentence = summary_raw.split('.')[0] if '.' in summary_raw else summary_raw

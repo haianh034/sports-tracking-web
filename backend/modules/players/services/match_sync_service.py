@@ -101,7 +101,8 @@ def sync_player_matches_history(
         if is_past or m_state in ["post", "in"]:
             past_count += 1
             stats_info = fetch_player_match_stats(
-                player_name, sport_name, team_name, event_id=ev_id, match_state=m_state
+                player_name, sport_name, team_name, event_id=ev_id, match_state=m_state,
+                match_date_utc=m.get("match_date_utc"), match_name=m_name
             )
             has_played = stats_info.get("has_played", False)
             rating = stats_info.get("rating") if has_played else None

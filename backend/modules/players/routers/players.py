@@ -178,15 +178,17 @@ def add_confirmed_player(payload: AddConfirmedPlayerRequest, db: Session = Depen
         db.commit()
 
     if payload.espn_team_id:
-        from backend.modules.players.services.espn_service import ESPN_TEAM_INFO_CACHE, SPORT_TO_ESPN, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
-        target_espn_sport = SPORT_TO_ESPN.get(sport_name, "soccer")
-        ESPN_TEAM_INFO_CACHE[(team_name.lower().strip(), sport_name.lower().strip())] = {
-            "id": str(payload.espn_team_id),
-            "uid": f"s:custom~t:{payload.espn_team_id}",
-            "name": team_name,
-            "sport": target_espn_sport,
-            "league": payload.espn_league_slug or ""
-        }
+        from backend.core.config import resolve_espn_sport_code
+        from backend.modules.players.services.espn_service import ESPN_TEAM_INFO_CACHE, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
+        target_espn_sport = resolve_espn_sport_code(sport_name) or ""
+        if target_espn_sport:
+            ESPN_TEAM_INFO_CACHE[(team_name.lower().strip(), sport_name.lower().strip(), gender.lower())] = {
+                "id": str(payload.espn_team_id),
+                "uid": f"s:custom~t:{payload.espn_team_id}",
+                "name": team_name,
+                "sport": target_espn_sport,
+                "league": payload.espn_league_slug or ""
+            }
         SCHEDULE_CACHE.clear()
         SCHEDULE_30D_CACHE.clear()
 
@@ -278,15 +280,18 @@ def change_player_team(player_id: int, payload: ChangePlayerTeamRequest, db: Ses
         player.api_team_id = payload.espn_team_id
 
     if payload.espn_team_id:
-        from backend.modules.players.services.espn_service import ESPN_TEAM_INFO_CACHE, SPORT_TO_ESPN, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
-        target_espn_sport = SPORT_TO_ESPN.get(new_sport_name, "soccer")
-        ESPN_TEAM_INFO_CACHE[(new_team_name.lower().strip(), new_sport_name.lower().strip())] = {
-            "id": str(payload.espn_team_id),
-            "uid": f"s:custom~t:{payload.espn_team_id}",
-            "name": new_team_name,
-            "sport": target_espn_sport,
-            "league": payload.espn_league_slug or ""
-        }
+        from backend.core.config import resolve_espn_sport_code
+        from backend.modules.players.services.espn_service import ESPN_TEAM_INFO_CACHE, SCHEDULE_CACHE, SCHEDULE_30D_CACHE
+        target_espn_sport = resolve_espn_sport_code(new_sport_name) or ""
+        eff_gender = (payload.gender or getattr(player, "gender", None) or ("Women" if "(nữ)" in new_team_name.lower() or "women" in new_team_name.lower() else "Men")).lower()
+        if target_espn_sport:
+            ESPN_TEAM_INFO_CACHE[(new_team_name.lower().strip(), new_sport_name.lower().strip(), eff_gender)] = {
+                "id": str(payload.espn_team_id),
+                "uid": f"s:custom~t:{payload.espn_team_id}",
+                "name": new_team_name,
+                "sport": target_espn_sport,
+                "league": payload.espn_league_slug or ""
+            }
         SCHEDULE_CACHE.clear()
         SCHEDULE_30D_CACHE.clear()
 

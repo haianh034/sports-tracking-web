@@ -5,8 +5,11 @@ import urllib.parse
 import re
 from datetime import datetime, timezone, timedelta
 
+import unicodedata
+
 FOTMOB_CACHE_FILE = os.path.join(os.path.dirname(__file__), "fotmob_players_cache.json")
 FOTMOB_PLAYER_CACHE = {}
+FOTMOB_PLAYER_DATA_CACHE = {}  # {fotmob_p_id: (ts, p_data)}
 FOTMOB_MATCH_CACHE = {}
 
 if os.path.exists(FOTMOB_CACHE_FILE):
@@ -29,6 +32,34 @@ HEADERS = {
     'Accept': 'application/json, text/plain, */*'
 }
 
+def _norm_team_text(s: str) -> str:
+    if not s:
+        return ""
+    s = unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore').decode('utf-8').lower()
+    s = re.sub(r'^(@ |vs |vs\. )', '', s).strip()
+    s = re.sub(r'\((?:w|nu|nữ|women|f|ladies)\)', '', s)
+    s = re.sub(r'\b(muenchen|munchen)\b', 'munich', s)
+    s = re.sub(r'\b(koeln|koln)\b', 'cologne', s)
+    s = re.sub(r'\bpsg\b', 'paris saint germain', s)
+    s = re.sub(r'\bman utd\b', 'manchester united', s)
+    s = re.sub(r'\bman city\b', 'manchester city', s)
+    s = re.sub(r'\b(fc|sc|cf|afc|ac|as|vfl|vfb|tsv|fsv|women|ladies|frauen|femeni)\b', ' ', s)
+    s = re.sub(r'[^a-z0-9\s]', ' ', s)
+    return re.sub(r'\s+', ' ', s).strip()
+
+def _parse_utc_dt(raw_str: str):
+    if not raw_str:
+        return None
+    s = str(raw_str).strip()
+    clean = s.replace('Z', '').split('.')[0]
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d"):
+        try:
+            target = clean[:19] if len(fmt) >= 17 else (clean[:16] if len(fmt) >= 14 else clean[:10])
+            return datetime.strptime(target, fmt)
+        except Exception:
+            continue
+    return None
+
 def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
     """
     Tìm kiếm và ánh xạ cầu thủ bóng đá sang FotMob player ID.
@@ -38,7 +69,8 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
         return None
     
     clean_name = player_name.strip()
-    cache_key = clean_name.lower()
+    norm_team_key = _norm_team_text(team_name or "")
+    cache_key = f"{clean_name.lower()}||{norm_team_key}"
     if cache_key in FOTMOB_PLAYER_CACHE:
         return FOTMOB_PLAYER_CACHE[cache_key]
 
@@ -50,6 +82,7 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
     
     seen_q = set()
     best_cand = None
+    t_keywords = [w for w in norm_team_key.split() if len(w) >= 3]
 
     for q in queries:
         if q in seen_q:
@@ -65,10 +98,8 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
             for grp in data:
                 for sug in grp.get("suggestions", []):
                     if sug.get("type") == "player":
-                        cand_team = (sug.get("teamName") or "").lower()
-                        # Khớp nếu trùng tên câu lạc bộ
-                        if team_name:
-                            t_keywords = [w.lower() for w in team_name.split() if len(w) > 3]
+                        cand_team = _norm_team_text(sug.get("teamName") or "")
+                        if t_keywords and cand_team:
                             if any(w in cand_team for w in t_keywords):
                                 res = {
                                     "id": str(sug.get("id")),
@@ -94,6 +125,15 @@ def get_fotmob_player(player_name: str, team_name: str = "") -> dict:
 
     return None
 
+def _opponents_match(opp_norm: str, opp_keywords: list[str], m_opp_norm: str) -> bool:
+    if not opp_norm or not m_opp_norm:
+        return False
+    if opp_norm == m_opp_norm or opp_norm in m_opp_norm or m_opp_norm in opp_norm:
+        return True
+    if opp_keywords and any(kw in m_opp_norm for kw in opp_keywords):
+        return True
+    return False
+
 def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_name: str = "", event_date_utc: str = None) -> dict:
     """
     Truy vấn dữ liệu trận đấu và thông số chuyên sâu (Opta) từ FotMob cho cầu thủ bóng đá:
@@ -105,6 +145,7 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
     - Tranh chấp thắng (Ground duels %)
     - Số lần chạm bóng (Touches)
     - Thu hồi bóng (Recoveries), tắc bóng (Tackles), v.v.
+    Khớp chính xác theo ngày thi đấu (±36h) và đối thủ. Không bao giờ lấy bừa recentMatches[0].
     """
     player_info = get_fotmob_player(player_name, team_name)
     if not player_info or not player_info.get("id"):
@@ -112,39 +153,70 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
 
     fotmob_p_id = str(player_info["id"])
     
-    # 1. Tải playerData để lấy danh sách recentMatches
-    player_url = f"https://www.fotmob.com/api/data/playerData?id={fotmob_p_id}"
-    try:
-        req = urllib.request.Request(player_url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            p_data = json.loads(resp.read().decode())
-    except Exception:
-        return None
+    # 1. Tải playerData để lấy danh sách recentMatches (cache ngắn 10 phút trong RAM)
+    now_ts = datetime.now().timestamp()
+    cached_pd = FOTMOB_PLAYER_DATA_CACHE.get(fotmob_p_id)
+    if cached_pd and now_ts - cached_pd[0] < 600:
+        p_data = cached_pd[1]
+    else:
+        player_url = f"https://www.fotmob.com/api/data/playerData?id={fotmob_p_id}"
+        try:
+            req = urllib.request.Request(player_url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                p_data = json.loads(resp.read().decode())
+            FOTMOB_PLAYER_DATA_CACHE[fotmob_p_id] = (now_ts, p_data)
+        except Exception:
+            return None
 
     recent_matches = p_data.get("recentMatches", [])
     if not recent_matches:
         return None
 
-    # Tìm trận đấu tương ứng (theo tên đối thủ hoặc trận gần nhất)
+    target_dt = _parse_utc_dt(event_date_utc)
+    opp_norm = _norm_team_text(opponent_name or "")
+    opp_keywords = [w for w in opp_norm.split() if len(w) >= 3 and w not in {"the", "club", "city", "united", "real", "saint"}]
+    if not opp_keywords and opp_norm:
+        opp_keywords = [w for w in opp_norm.split() if len(w) >= 3]
+
+    # Cần ít nhất ngày thi đấu hoặc tên đối thủ mới có thể đối chiếu trận thật
+    if not target_dt and not opp_norm:
+        return None
+
     target_match = None
-    opp_lower = (opponent_name or "").lower()
-
-    if opp_lower:
-        opp_keywords = [w for w in re.split(r'[\s\-]+', opp_lower) if len(w) >= 3 and w not in ["the", "club", "fc"]]
+    if target_dt:
+        date_candidates = []
         for m in recent_matches:
-            m_opp = (m.get("opponentTeamName") or "").lower()
-            if any(kw in m_opp for kw in opp_keywords):
-                target_match = m
-                break
+            m_dt = _parse_utc_dt((m.get("matchDate") or {}).get("utcTime"))
+            if not m_dt:
+                continue
+            delta_sec = abs((m_dt - target_dt).total_seconds())
+            if delta_sec <= 36 * 3600:
+                date_candidates.append((delta_sec, m))
+        date_candidates.sort(key=lambda x: x[0])
 
-    if not target_match and recent_matches:
-        # Lấy trận mới nhất mà cầu thủ có thi đấu
+        if date_candidates:
+            if opp_norm:
+                for _, m in date_candidates:
+                    m_opp_norm = _norm_team_text(m.get("opponentTeamName") or "")
+                    if _opponents_match(opp_norm, opp_keywords, m_opp_norm):
+                        target_match = m
+                        break
+            else:
+                # Không có tên đối thủ, chỉ nhận nếu trùng trong ±24h
+                if date_candidates[0][0] <= 24 * 3600:
+                    target_match = date_candidates[0][1]
+    elif opp_norm:
+        # Không có ngày thi đấu: chỉ nhận nếu chỉ có đúng 1 trận khớp đối thủ để tránh dính trận lượt đi/lượt về khác ngày
+        opp_matches = []
         for m in recent_matches:
-            if m.get("playedInMatch") or m.get("ratingProps"):
-                target_match = m
-                break
-        if not target_match:
-            target_match = recent_matches[0]
+            m_opp_norm = _norm_team_text(m.get("opponentTeamName") or "")
+            if _opponents_match(opp_norm, opp_keywords, m_opp_norm):
+                opp_matches.append(m)
+        if len(opp_matches) == 1:
+            target_match = opp_matches[0]
+
+    if not target_match:
+        return None
 
     match_id = target_match.get("id")
     if not match_id:

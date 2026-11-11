@@ -806,7 +806,9 @@ def _compute_dashboard_data(
                 ev_id = sched_today_match.get("event_id")
                 try:
                     fresh_stats = fetch_player_match_stats(
-                        p.name, sport_name, team_name, event_id=ev_id, match_state="post", news_titles=p_news_titles
+                        p.name, sport_name, team_name, event_id=ev_id, match_state="post", news_titles=p_news_titles,
+                        match_date_utc=sched_today_match.get("match_date_utc"),
+                        match_name=sched_today_match.get("match_name")
                     )
                     if fresh_stats:
                         if fresh_stats.get("match_result") and (not match_result or "-" not in str(match_result)):
@@ -1003,7 +1005,11 @@ def _compute_dashboard_data(
                 
                 # Cập nhật thông số thi đấu trực tiếp cho cầu thủ
                 ev_id = live_info.get("event_id")
-                stats_info = fetch_player_match_stats(p.name, sport_name, team_name, event_id=ev_id, match_state=match_state, news_titles=p_news_titles)
+                stats_info = fetch_player_match_stats(
+                    p.name, sport_name, team_name, event_id=ev_id, match_state=match_state, news_titles=p_news_titles,
+                    match_date_utc=live_info.get("match_date_utc") or (sched_today_match.get("match_date_utc") if sched_today_match else None),
+                    match_name=live_info.get("match_name") or (sched_today_match.get("match_name") if sched_today_match else None)
+                )
                 if stats_info.get("match_result") and (not match_result or "-" not in str(match_result)):
                     match_result = stats_info.get("match_result")
                 if stats_info.get("tags"):
@@ -1152,7 +1158,9 @@ def _compute_dashboard_data(
                     if db_perf.has_played and not has_fotmob and -3 <= diff_d <= 0 and espn_sport == "soccer" and ev_id:
                         try:
                             fresh_stats = fetch_player_match_stats(
-                                p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles
+                                p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles,
+                                match_date_utc=m.get("match_date_utc") or (db_perf.match_date.strftime("%Y-%m-%dT%H:%M:%SZ") if db_perf.match_date else None),
+                                match_name=m.get("match_name") or db_perf.match_name
                             )
                             if fresh_stats and fresh_stats.get("detailed_stats"):
                                 db_perf.performance_rating = fresh_stats.get("rating")
@@ -1227,7 +1235,9 @@ def _compute_dashboard_data(
                     if ev_id and stats_lower_limit <= diff_d <= 0:
                         try:
                             real_stats = fetch_player_match_stats(
-                                p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles
+                                p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles,
+                                match_date_utc=m.get("match_date_utc"),
+                                match_name=m.get("match_name")
                             )
                         except Exception:
                             real_stats = None
@@ -1257,17 +1267,6 @@ def _compute_dashboard_data(
                         m["is_fallback_rating"] = is_fb
 
                         m_tags = [clean_comp] if clean_comp else []
-                        for t in raw_tags_list:
-                            if t:
-                                t_low = t.lower()
-                                if t_low == "bàn quyết định":
-                                    t = "Bàn mở tỉ số"
-                                    t_low = t.lower()
-                                if "cứu thua" in t_low and "xuất sắc" not in t_low:
-                                    continue
-                                if t not in m_tags:
-                                    m_tags.append(t)
-                        m["tags"] = m_tags
                         for t in raw_tags_list:
                             if t:
                                 t_low = t.lower()
@@ -2129,7 +2128,9 @@ def get_player_match_detail(
         
     # 2. Cào dữ liệu theo nhu cầu (On-Demand Fetching)
     real_stats = fetch_player_match_stats(
-        player.name, sport_name, team_name, event_id=event_id, match_state="post"
+        player.name, sport_name, team_name, event_id=event_id, match_state="post",
+        match_date_utc=match_date or (perf.match_date.strftime("%Y-%m-%dT%H:%M:%SZ") if perf and perf.match_date else None),
+        match_name=perf.match_name if perf else None
     )
     if real_stats:
         has_p = real_stats.get("has_played", False)
