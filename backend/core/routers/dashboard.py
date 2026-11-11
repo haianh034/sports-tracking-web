@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
@@ -17,6 +17,8 @@ import threading
 logger = logging.getLogger("uvicorn.error")
 
 _DASHBOARD_BUILD_LOCK = threading.Lock()
+_HYDRATION_LOCK = threading.Lock()
+_IS_HYDRATING = False
 
 @dataclass(slots=True)
 class FastNewsItem:
@@ -66,6 +68,88 @@ templates = Jinja2Templates(directory="frontend/templates")
 
 _DASHBOARD_CACHE = {}
 _DASHBOARD_CACHE_TTL = 900.0  # 15 minutes (900s) for lightning fast reloads
+_DASHBOARD_SNAPSHOT_FILE = os.path.join(os.path.dirname(__file__), "dashboard_snapshot_cache.json")
+_SNAPSHOT_LOCK = threading.Lock()
+_SNAPSHOT_CHECKED_ON_BOOT = False
+
+def _save_dashboard_snapshot(result_data: dict):
+    if not result_data:
+        return
+    def _write_task(payload_copy):
+        if not _SNAPSHOT_LOCK.acquire(blocking=False):
+            return
+        try:
+            wrapper = {
+                "saved_ts": datetime.datetime.now().timestamp(),
+                "today_date_vn": payload_copy.get("today_date_vn"),
+                "data": payload_copy
+            }
+            tmp_file = _DASHBOARD_SNAPSHOT_FILE + ".tmp"
+            with open(tmp_file, "w", encoding="utf-8") as f:
+                json.dump(wrapper, f, ensure_ascii=False)
+            os.replace(tmp_file, _DASHBOARD_SNAPSHOT_FILE)
+        except Exception as e:
+            logger.warning(f"[Snapshot] Lỗi ghi snapshot dashboard: {e}")
+        finally:
+            _SNAPSHOT_LOCK.release()
+    threading.Thread(target=_write_task, args=(result_data,), daemon=True).start()
+
+def _load_dashboard_snapshot_if_available() -> bool:
+    """
+    Nạp snapshot dashboard từ đĩa nếu có trong cùng ngày VN (tối đa 12h).
+    Giúp mở app / reload / restart server hiển thị tức thì trong < 50ms (Stale-While-Revalidate).
+    """
+    global _SNAPSHOT_CHECKED_ON_BOOT
+    if _SNAPSHOT_CHECKED_ON_BOOT:
+        return False
+    _SNAPSHOT_CHECKED_ON_BOOT = True
+
+    if not os.path.exists(_DASHBOARD_SNAPSHOT_FILE):
+        return False
+
+    try:
+        now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+        today_str_vn = (now_utc + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
+        now_ts = datetime.datetime.now().timestamp()
+
+        with open(_DASHBOARD_SNAPSHOT_FILE, "r", encoding="utf-8") as f:
+            wrapper = json.load(f)
+
+        saved_ts = wrapper.get("saved_ts", 0)
+        saved_date = wrapper.get("today_date_vn")
+        snap_data = wrapper.get("data")
+
+        if not snap_data or not saved_ts:
+            return False
+
+        # Chỉ dùng lại snapshot của cùng ngày Việt Nam (hoặc < 12 tiếng)
+        if saved_date != today_str_vn or (now_ts - saved_ts) > 43200:
+            return False
+
+        is_stale = (now_ts - saved_ts) > _DASHBOARD_CACHE_TTL
+        all_full_key = ("", "", None, None, "all", True)
+        all_partial_key = ("", "", None, None, "all", False)
+        empty_full_key = ("", "", None, None, "", True)
+        empty_partial_key = ("", "", None, None, "", False)
+
+        if not is_stale and snap_data.get("is_full_load"):
+            _DASHBOARD_CACHE[all_full_key] = (saved_ts, snap_data)
+            _DASHBOARD_CACHE[empty_full_key] = (saved_ts, snap_data)
+            _DASHBOARD_CACHE[all_partial_key] = (saved_ts, snap_data)
+            _DASHBOARD_CACHE[empty_partial_key] = (saved_ts, snap_data)
+        else:
+            # Stale hoặc chưa full: đặt vào partial cache để trả về ngay tức thì (<50ms),
+            # đồng thời gắn is_full_load=False để kích hoạt background hydration làm mới ngầm!
+            stale_copy = dict(snap_data)
+            stale_copy["is_full_load"] = False
+            _DASHBOARD_CACHE[all_partial_key] = (now_ts, stale_copy)
+            _DASHBOARD_CACHE[empty_partial_key] = (now_ts, stale_copy)
+
+        logger.info(f"==> [Snapshot] Nạp tức thì dashboard từ ổ đĩa (tuổi: {int(now_ts - saved_ts)}s, stale={is_stale})")
+        return True
+    except Exception as e:
+        logger.warning(f"[Snapshot] Lỗi đọc snapshot dashboard: {e}")
+        return False
 
 def _filter_cached_dashboard(base_data: dict, entity_type: str = None) -> dict:
     if not entity_type or entity_type == "all":
@@ -119,7 +203,8 @@ def _filter_cached_dashboard(base_data: dict, entity_type: str = None) -> dict:
         "countries_list": [{"name": c} for c in sorted(active_countries_set)],
         "total_players": base_data.get("total_players", 0),
         "total_national_teams": base_data.get("total_national_teams", 0),
-        "total_all": base_data.get("total_all", 0)
+        "total_all": base_data.get("total_all", 0),
+        "is_full_load": base_data.get("is_full_load", False)
     }
 
 def unpack_stats(stats_val):
@@ -135,7 +220,14 @@ def unpack_stats(stats_val):
     return stats_val, None
 
 def invalidate_dashboard_cache():
+    global _SNAPSHOT_CHECKED_ON_BOOT
     _DASHBOARD_CACHE.clear()
+    _SNAPSHOT_CHECKED_ON_BOOT = False
+    try:
+        if os.path.exists(_DASHBOARD_SNAPSHOT_FILE):
+            os.remove(_DASHBOARD_SNAPSHOT_FILE)
+    except Exception:
+        pass
 
 @router.get("/", response_class=HTMLResponse)
 def read_root(request: Request, db: Session = Depends(get_db)):
@@ -174,6 +266,8 @@ def get_dashboard_data(
     sport_id: Optional[int] = None,
     country_id: Optional[int] = None,
     entity_type: Optional[str] = Query(None, description="'all', 'player', or 'national_team'"),
+    full: Optional[bool] = Query(False, description="True for phase-2 full hydration (historical & deep future)"),
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db)
 ):
     clean_sport = sport if isinstance(sport, str) else None
@@ -182,55 +276,125 @@ def get_dashboard_data(
     clean_country_id = country_id if isinstance(country_id, int) else None
     clean_entity_type = entity_type if isinstance(entity_type, str) else None
 
-    cache_key = (
+    if not _DASHBOARD_CACHE:
+        _load_dashboard_snapshot_if_available()
+
+    cache_key_full = (
         (clean_sport or "").strip().lower(),
         (clean_country or "").strip().lower(),
         clean_sport_id,
         clean_country_id,
-        (clean_entity_type or "").strip().lower()
+        (clean_entity_type or "").strip().lower(),
+        True
+    )
+    cache_key_partial = (
+        (clean_sport or "").strip().lower(),
+        (clean_country or "").strip().lower(),
+        clean_sport_id,
+        clean_country_id,
+        (clean_entity_type or "").strip().lower(),
+        False
     )
     now_ts = datetime.datetime.now().timestamp()
-    if cache_key in _DASHBOARD_CACHE:
-        c_ts, c_data = _DASHBOARD_CACHE[cache_key]
+
+    # 1. Nếu bản Full đã sẵn sàng trong cache, luôn trả về ngay bản Full (0ms)
+    if cache_key_full in _DASHBOARD_CACHE:
+        c_ts, c_data = _DASHBOARD_CACHE[cache_key_full]
         if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
             return c_data
 
-    # Tối ưu hóa chuyển tab siêu tốc (0.01s): Nếu đã có cache của 'all' (hoặc None), trích xuất nhanh
-    base_all_cache_key = (
+    # Tối ưu hóa chuyển tab siêu tốc (0.01s): Nếu đã có cache của 'all', trích xuất nhanh
+    base_all_full_key = (
         (clean_sport or "").strip().lower(),
         (clean_country or "").strip().lower(),
         clean_sport_id,
         clean_country_id,
-        "all"
+        "all",
+        True
+    )
+    base_all_partial_key = (
+        (clean_sport or "").strip().lower(),
+        (clean_country or "").strip().lower(),
+        clean_sport_id,
+        clean_country_id,
+        "all",
+        False
     )
     if clean_entity_type in ["player", "national_team"]:
-        for potential_key in [base_all_cache_key, ((clean_sport or "").strip().lower(), (clean_country or "").strip().lower(), clean_sport_id, clean_country_id, "")]:
-            if potential_key in _DASHBOARD_CACHE:
-                base_ts, base_data = _DASHBOARD_CACHE[potential_key]
+        for pot_k in [base_all_full_key, ((clean_sport or "").strip().lower(), (clean_country or "").strip().lower(), clean_sport_id, clean_country_id, "", True)]:
+            if pot_k in _DASHBOARD_CACHE:
+                base_ts, base_data = _DASHBOARD_CACHE[pot_k]
                 if now_ts - base_ts < _DASHBOARD_CACHE_TTL:
                     derived_data = _filter_cached_dashboard(base_data, clean_entity_type)
-                    _DASHBOARD_CACHE[cache_key] = (base_ts, derived_data)
+                    _DASHBOARD_CACHE[cache_key_full] = (base_ts, derived_data)
+                    _DASHBOARD_CACHE[cache_key_partial] = (base_ts, derived_data)
+                    return derived_data
+
+    # 2. Nếu người dùng gọi full=True: Cần tính toán hoặc đợi bản Full
+    if full:
+        with _DASHBOARD_BUILD_LOCK:
+            now_ts = datetime.datetime.now().timestamp()
+            if cache_key_full in _DASHBOARD_CACHE:
+                c_ts, c_data = _DASHBOARD_CACHE[cache_key_full]
+                if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
+                    return c_data
+
+            full_data = _compute_dashboard_data(
+                db=db,
+                sport=sport,
+                country=country,
+                sport_id=sport_id,
+                country_id=country_id,
+                clean_sport=clean_sport,
+                clean_country=clean_country,
+                clean_sport_id=clean_sport_id,
+                clean_country_id=clean_country_id,
+                clean_entity_type=clean_entity_type,
+                cache_key=cache_key_full,
+                is_full_load=True
+            )
+            _DASHBOARD_CACHE[cache_key_partial] = (now_ts, full_data)
+            return full_data
+
+    # 3. Mặc định full=False (Giai đoạn 1: Khung D-7 đến D+30 siêu nhanh)
+    if cache_key_partial in _DASHBOARD_CACHE:
+        c_ts, c_data = _DASHBOARD_CACHE[cache_key_partial]
+        if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
+            if background_tasks and cache_key_full not in _DASHBOARD_CACHE:
+                background_tasks.add_task(
+                    _run_background_full_hydration,
+                    sport, country, sport_id, country_id,
+                    clean_sport, clean_country, clean_sport_id, clean_country_id,
+                    clean_entity_type, cache_key_full, cache_key_partial
+                )
+            return c_data
+
+    # Chuyển tab nhanh từ partial all nếu có
+    if clean_entity_type in ["player", "national_team"]:
+        for pot_k in [base_all_partial_key, ((clean_sport or "").strip().lower(), (clean_country or "").strip().lower(), clean_sport_id, clean_country_id, "", False)]:
+            if pot_k in _DASHBOARD_CACHE:
+                base_ts, base_data = _DASHBOARD_CACHE[pot_k]
+                if now_ts - base_ts < _DASHBOARD_CACHE_TTL:
+                    derived_data = _filter_cached_dashboard(base_data, clean_entity_type)
+                    _DASHBOARD_CACHE[cache_key_partial] = (base_ts, derived_data)
+                    if background_tasks and cache_key_full not in _DASHBOARD_CACHE:
+                        background_tasks.add_task(
+                            _run_background_full_hydration,
+                            sport, country, sport_id, country_id,
+                            clean_sport, clean_country, clean_sport_id, clean_country_id,
+                            clean_entity_type, cache_key_full, cache_key_partial
+                        )
                     return derived_data
 
     # Chống thundering herd (stampede) trên Render: Chỉ 1 luồng build data tại 1 thời điểm
     with _DASHBOARD_BUILD_LOCK:
-        # Double check cache sau khi acquire lock (tránh tính toán lại nếu luồng khác vừa build xong)
         now_ts = datetime.datetime.now().timestamp()
-        if cache_key in _DASHBOARD_CACHE:
-            c_ts, c_data = _DASHBOARD_CACHE[cache_key]
+        if cache_key_partial in _DASHBOARD_CACHE:
+            c_ts, c_data = _DASHBOARD_CACHE[cache_key_partial]
             if now_ts - c_ts < _DASHBOARD_CACHE_TTL:
                 return c_data
 
-        if clean_entity_type in ["player", "national_team"]:
-            for potential_key in [base_all_cache_key, ((clean_sport or "").strip().lower(), (clean_country or "").strip().lower(), clean_sport_id, clean_country_id, "")]:
-                if potential_key in _DASHBOARD_CACHE:
-                    base_ts, base_data = _DASHBOARD_CACHE[potential_key]
-                    if now_ts - base_ts < _DASHBOARD_CACHE_TTL:
-                        derived_data = _filter_cached_dashboard(base_data, clean_entity_type)
-                        _DASHBOARD_CACHE[cache_key] = (base_ts, derived_data)
-                        return derived_data
-
-        return _compute_dashboard_data(
+        partial_data = _compute_dashboard_data(
             db=db,
             sport=sport,
             country=country,
@@ -241,8 +405,63 @@ def get_dashboard_data(
             clean_sport_id=clean_sport_id,
             clean_country_id=clean_country_id,
             clean_entity_type=clean_entity_type,
-            cache_key=cache_key
+            cache_key=cache_key_partial,
+            is_full_load=False
         )
+
+        # Kích hoạt nạp ngầm Giai đoạn 2 (Toàn bộ quá khứ sâu & tương lai xa)
+        if background_tasks and cache_key_full not in _DASHBOARD_CACHE:
+            background_tasks.add_task(
+                _run_background_full_hydration,
+                sport, country, sport_id, country_id,
+                clean_sport, clean_country, clean_sport_id, clean_country_id,
+                clean_entity_type, cache_key_full, cache_key_partial
+            )
+
+        return partial_data
+
+
+def _run_background_full_hydration(
+    sport, country, sport_id, country_id,
+    clean_sport, clean_country, clean_sport_id, clean_country_id,
+    clean_entity_type, cache_key_full, cache_key_partial
+):
+    global _IS_HYDRATING
+    with _HYDRATION_LOCK:
+        if _IS_HYDRATING:
+            return
+        _IS_HYDRATING = True
+
+    try:
+        logger.info("==> [Background Hydration] Bắt đầu nạp ngầm Giai đoạn 2 (Toàn bộ quá khứ & tương lai)...")
+        from backend.core.db.session import SessionLocal
+        db_bg = SessionLocal()
+        try:
+            full_data = _compute_dashboard_data(
+                db=db_bg,
+                sport=sport,
+                country=country,
+                sport_id=sport_id,
+                country_id=country_id,
+                clean_sport=clean_sport,
+                clean_country=clean_country,
+                clean_sport_id=clean_sport_id,
+                clean_country_id=clean_country_id,
+                clean_entity_type=clean_entity_type,
+                cache_key=cache_key_full,
+                is_full_load=True
+            )
+            now_ts = datetime.datetime.now().timestamp()
+            _DASHBOARD_CACHE[cache_key_full] = (now_ts, full_data)
+            _DASHBOARD_CACHE[cache_key_partial] = (now_ts, full_data)
+            logger.info("==> [Background Hydration] Nạp ngầm Giai đoạn 2 thành công! Đã sẵn sàng phục vụ 100% dữ liệu.")
+        finally:
+            db_bg.close()
+    except Exception as e:
+        logger.warning(f"[Background Hydration] Lỗi trong quá trình nạp ngầm Giai đoạn 2: {e}")
+    finally:
+        with _HYDRATION_LOCK:
+            _IS_HYDRATING = False
 
 
 def _compute_dashboard_data(
@@ -256,7 +475,8 @@ def _compute_dashboard_data(
     clean_sport_id: Optional[int],
     clean_country_id: Optional[int],
     clean_entity_type: Optional[str],
-    cache_key: tuple
+    cache_key: tuple,
+    is_full_load: bool = False
 ) -> dict:
     t_start = time.time()
     logger.info("==> [API] Bắt đầu nạp bảng theo dõi (get_dashboard_data)...")
@@ -361,15 +581,19 @@ def _compute_dashboard_data(
             api_team_id=team_id,
             country_name=c_name,
             gender=p_gender,
-            nt_sched_cache=nt_sched_memo
+            nt_sched_cache=nt_sched_memo,
+            include_deep_history=is_full_load
         )
 
     sched_map = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
         for pid, s_list in ex.map(_fetch_player_career, player_data_tuples):
             sched_map[pid] = s_list
 
-    # Prefetch recent past ESPN event summaries in parallel ONLY if not already locked in DB (Khung D-7 đến D)
+    # Prefetch recent past ESPN event summaries in parallel ONLY if not already locked in DB
+    # Giai đoạn 1 (is_full_load=False): Khung D-7 đến D
+    # Giai đoạn 2 (is_full_load=True): Toàn bộ mùa giải từ đầu (-300.0 <= diff_d < -0.05)
+    diff_lower_limit = -300.0 if is_full_load else -7.0
     unique_past_events = set()
     for p, team_name, sport_name, _ in player_data_tuples:
         espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
@@ -385,7 +609,7 @@ def _compute_dashboard_data(
                 elif m_date_vn and (p.id, str(m_date_vn)) in perf_by_player_date:
                     has_in_db = True
 
-                if not has_in_db and ev_id and -7.0 <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
+                if not has_in_db and ev_id and diff_lower_limit <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
                     cache_k = f"{p.name}_{ev_id}_post"
                     if cache_k not in MATCH_STATS_CACHE:
                         unique_past_events.add((espn_sport, str(ev_id)))
@@ -997,16 +1221,18 @@ def _compute_dashboard_data(
                     m["tags"] = m_tags
                 else:
                     real_stats = None
-                    # KHUNG ƯU TIÊN HIỆU NĂNG D-7 ĐẾN D: Chỉ cào thông số chi tiết in-game theo thời gian thực cho trận trong 7 ngày qua
-                    if ev_id and -7.0 <= diff_d <= 0:
+                    # Giai đoạn 1 (is_full_load=False): Chỉ cào chi tiết thời gian thực cho trận trong 7 ngày qua (-7.0 <= diff_d <= 0)
+                    # Giai đoạn 2 (is_full_load=True): Cào thông số cho toàn bộ quá khứ của mùa giải (-300.0 <= diff_d <= 0)
+                    stats_lower_limit = -300.0 if is_full_load else -7.0
+                    if ev_id and stats_lower_limit <= diff_d <= 0:
                         try:
                             real_stats = fetch_player_match_stats(
                                 p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles
                             )
                         except Exception:
                             real_stats = None
-                    elif diff_d < -7.0:
-                        # Trận quá khứ sâu (> 7 ngày trước) chưa có trong DB:
+                    elif diff_d < stats_lower_limit:
+                        # Trận quá khứ sâu chưa có trong DB:
                         # Giữ nguyên tỷ số chung cuộc từ lịch thi đấu, đánh dấu needs_lazy_load để nạp ngầm khi người dùng bấm vào xem
                         m["rating"] = None
                         m["player_stats"] = None
@@ -1841,9 +2067,12 @@ def _compute_dashboard_data(
         "countries_list": countries_list,
         "total_players": total_filtered_players,
         "total_national_teams": total_filtered_national_teams,
-        "total_all": total_filtered_players + total_filtered_national_teams
+        "total_all": total_filtered_players + total_filtered_national_teams,
+        "is_full_load": is_full_load
     }
     _DASHBOARD_CACHE[cache_key] = (now_ts, result_data)
+    if not clean_sport and not clean_country and not clean_sport_id and not clean_country_id and (clean_entity_type in [None, "", "all"]):
+        _save_dashboard_snapshot(result_data)
     import gc
     gc.collect()
     try:

@@ -869,6 +869,32 @@ async function loadDashboard(refreshDropdowns = true) {
         window._fullDashboardRawData = data;
 
         renderDashboardData(data, refreshDropdowns);
+
+        // AUTO-HYDRATION GIAI ĐOẠN 2:
+        // Sau khi nạp siêu tốc Giai đoạn 1 (D-7 đến D+30), nếu is_full_load = false,
+        // Frontend tự động gọi ngầm trong nền /api/dashboard?full=true để nạp trọn vẹn quá khứ sâu & tương lai xa.
+        // Cập nhật dữ liệu ngầm mượt mà 100% không reload hay làm gián đoạn người dùng.
+        if (data && data.is_full_load === false && !window._isHydratingPhase2) {
+            window._isHydratingPhase2 = true;
+            console.log("[Auto-Hydration] Đang kích hoạt nạp ngầm Giai đoạn 2 (Toàn bộ quá khứ sâu & tương lai xa)...");
+            setTimeout(async () => {
+                try {
+                    const fullRes = await fetch('/api/dashboard?full=true');
+                    if (fullRes.ok) {
+                        const fullData = await fullRes.json();
+                        if (fullData && fullData.is_full_load) {
+                            console.log("[Auto-Hydration] Giai đoạn 2 hoàn tất! Đã cập nhật đầy đủ 100% dữ liệu quá khứ và tương lai.");
+                            window._fullDashboardRawData = fullData;
+                            renderDashboardData(fullData, false);
+                        }
+                    }
+                } catch (hErr) {
+                    console.warn("[Auto-Hydration] Lỗi nạp ngầm Giai đoạn 2:", hErr);
+                } finally {
+                    window._isHydratingPhase2 = false;
+                }
+            }, 3000);
+        }
     } catch (err) {
         console.error("Lỗi khi tải dữ liệu dashboard:", err);
         if (!window._dashboardRetryAttempted) {

@@ -114349,5 +114349,1722 @@
       "Vé Bán kết"
     ],
     "has_played": true
+  },
+  "Ryunosuke Sato_401928504_post": {
+    "stats_text": "{\"summary\": \"3 sút, 91% chuyền (43/47)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"is_player_of_the_match\": false, \"summary\": \"3 sút, 91% chuyền (43/47)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"3 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"91% (43/47)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/7 (14%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"65 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6386084, \"opponent\": \"Tavernes de la Valldigna\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 6.8,
+    "tags": [
+      "Đá chính",
+      "90 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.8,
+      "rating": 6.8,
+      "is_player_of_the_match": false,
+      "summary": "3 sút, 91% chuyền (43/47)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "91% (43/47)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/7 (14%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "65 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6386084,
+      "opponent": "Tavernes de la Valldigna",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Hiroto Shinozuka_tabletennis_5e18de59_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Hiroto Shinozuka_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Ryuusei Kawakami_tabletennis_49940484_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Ryuusei Kawakami_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Miku Matsushima_tabletennis_7d5519f9_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Miku Matsushima_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "An Se-young_badminton_2b218f34_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "An Se-young_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Seo Seung-jae_badminton_fab1c674_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Seo Seung-jae_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kim Won-ho_badminton_191f4e12_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kim Won-ho_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Jang Woo-jin_tabletennis_c50318a2_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Jang Woo-jin_struct_nt_2bcfdba8_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "An Jae-hyun_tabletennis_d252f3c9_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "An Jae-hyun_struct_nt_2bcfdba8_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Park Gang-hyeon_tabletennis_56e82f0d_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Park Gang-hyeon_struct_nt_2bcfdba8_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Joo Cheon-hui_tabletennis_dea63889_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Momoko Tanikawa_401916987_post": {
+    "stats_text": "{\"summary\": \"4 tạo cơ hội, 80% chuyền (37/46)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.1, \"rating\": 8.1, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 80% chuyền (37/46)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (37/46)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"8/14 (57%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"69 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"6 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 6148580, \"opponent\": \"Paris Saint Germain (W)\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0}}",
+    "rating": 8.1,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.1,
+      "rating": 8.1,
+      "is_player_of_the_match": false,
+      "summary": "4 tạo cơ hội, 80% chuyền (37/46)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "4 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "80% (37/46)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "8/14 (57%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "69 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "6 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 6148580,
+      "opponent": "Paris Saint Germain (W)",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0
+    }
+  },
+  "Yukiya Uda_tabletennis_978f121e_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Yukiya Uda_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Akane Yamaguchi_badminton_64164ee9_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akane Yamaguchi_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Watanabe Yuzuno_badminton_9d18efed_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yoo Tae-bin_badminton_799d6641_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yoo Tae-bin_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Wang Chan_badminton_71b5014e_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Wang Chan_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee So-hee_badminton_5e1d6fe6_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee So-hee_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Baek Ha-na_badminton_e6162d2d_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Baek Ha-na_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee Yu-lim_badminton_5fd01871_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee Yu-lim_struct_nt_6fabd6f2_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lim Jong-hoon_tabletennis_e9fe5777_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Lim Jong-hoon_struct_nt_2bcfdba8_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Shin Yu-bin_tabletennis_11ee92e6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Shin Yu-bin_struct_nt_2bcfdba8_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Yuki Ishikawa_volleyball_e1b34297_post": {
+    "stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)",
+    "rating": 8.8,
+    "tags": [
+      "Đội hình xuất phát",
+      "Chủ công (OH)",
+      "19 điểm",
+      "2 Ace",
+      "Monster Block",
+      "Hiệu suất tấn công 56%"
+    ],
+    "has_played": true
+  },
+  "Kodai Naraoka_badminton_7a9c3231_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kodai Naraoka_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yuji Nishida_volleyball_8b9f40f2_post": {
+    "stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)",
+    "rating": 8.8,
+    "tags": [
+      "Đội hình xuất phát",
+      "Đối chuyền (OP)",
+      "19 điểm",
+      "2 Ace",
+      "Monster Block",
+      "Hiệu suất tấn công 56%"
+    ],
+    "has_played": true
+  },
+  "Koki Watanabe_badminton_f65ec262_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Koki Watanabe_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yushi Tanaka_badminton_523bdc93_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yushi Tanaka_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kenta Nishimoto_badminton_15149774_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kenta Nishimoto_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yudai Okimoto_badminton_58bc8636_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yudai Okimoto_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nozomi Okuhara_badminton_a00e7736_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nozomi Okuhara_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hina Akechi_badminton_b11ed562_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hina Akechi_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Takuro Hoki_badminton_355c6c99_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Takuro Hoki_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yugo Kobayashi_badminton_54756f65_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yugo Kobayashi_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akira Koga_badminton_a98f3736_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akira Koga_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nao Yamakita_badminton_6d9cbe6d_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nao Yamakita_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hinata Suzuki_badminton_30b28eaf_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hinata Suzuki_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Rui Hirokami_badminton_0f2bdf20_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Rui Hirokami_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Sayaka Hobara_badminton_c1b68cea_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Sayaka Hobara_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hiroki Midorikawa_badminton_a1677469_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hiroki Midorikawa_struct_nt_96195595_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Sora Matsushima_tabletennis_45ebff9f_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Sora Matsushima_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Tomokazu Harimoto_tabletennis_cab774c6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Tomokazu Harimoto_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Shunsuke Togami_tabletennis_c9eea656_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Shunsuke Togami_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Hina Hayata_tabletennis_c71ced0e_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Hina Hayata_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Miwa Harimoto_tabletennis_60b098ff_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Miwa Harimoto_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Mima Ito_tabletennis_dcd0eaa9_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Mima Ito_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Miyu Nagasaki_tabletennis_96c98632_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Miyu Nagasaki_struct_nt_b3c034a6_post": {
+    "stats_text": "Thắng 3-1 (11-8, 9-11, 11-7, 11-6)",
+    "rating": 8.6,
+    "tags": [
+      "Đơn nam (MS)",
+      "Tấn công áp đảo",
+      "Vé Bán kết"
+    ],
+    "has_played": true
+  },
+  "Rui Hachimura_401909962_in": {
+    "stats_text": "{\"summary\": \"8 PTS, 2 REB, 0 AST (8 phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 6.5, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"8 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"2 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"0 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"2-5\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"2-3\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"2-3\"}, {\"label\": \"Cướp bóng (STL)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"1 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"8 phút\"}], \"fun_facts\": []}}",
+    "rating": 6.5,
+    "tags": [
+      "Đang thi đấu",
+      "Đội hình xuất phát (Starting 5)",
+      "8 phút",
+      "8 điểm",
+      "2 REB",
+      "1 STL",
+      "2 quả 3PT"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 6.5,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "8 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "2 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "0 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "2-5"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "2-3"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "2-3"
+        },
+        {
+          "label": "Cướp bóng (STL)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "1 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "8 phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "An Se-young_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Seo Seung-jae_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kim Won-ho_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akane Yamaguchi_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yoo Tae-bin_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Wang Chan_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee So-hee_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Baek Ha-na_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee Yu-lim_struct_nt_755e664a_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yuki Ishikawa_struct_nt_7f8baa7f_post": {
+    "stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)",
+    "rating": 8.8,
+    "tags": [
+      "Đội hình xuất phát",
+      "Chủ công (OH)",
+      "19 điểm",
+      "2 Ace",
+      "Monster Block",
+      "Hiệu suất tấn công 56%"
+    ],
+    "has_played": true
+  },
+  "Kodai Naraoka_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yuji Nishida_struct_nt_7f8baa7f_post": {
+    "stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)",
+    "rating": 8.8,
+    "tags": [
+      "Đội hình xuất phát",
+      "Đối chuyền (OP)",
+      "19 điểm",
+      "2 Ace",
+      "Monster Block",
+      "Hiệu suất tấn công 56%"
+    ],
+    "has_played": true
+  },
+  "Koki Watanabe_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yushi Tanaka_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kenta Nishimoto_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yudai Okimoto_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nozomi Okuhara_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hina Akechi_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Takuro Hoki_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yugo Kobayashi_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akira Koga_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nao Yamakita_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hinata Suzuki_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Rui Hirokami_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Sayaka Hobara_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hiroki Midorikawa_struct_nt_b8333b18_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Rui Hachimura_401909962_post": {
+    "stats_text": "{\"summary\": \"8 PTS, 2 REB, 0 AST (8 phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 6.5, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"8 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"2 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"0 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"2-5\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"2-3\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"2-3\"}, {\"label\": \"Cướp bóng (STL)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"1 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"8 phút\"}], \"fun_facts\": []}}",
+    "rating": 6.5,
+    "tags": [
+      "Đội hình xuất phát (Starting 5)",
+      "8 phút",
+      "8 điểm",
+      "2 REB",
+      "1 STL",
+      "2 quả 3PT"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 6.5,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "8 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "2 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "0 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "2-5"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "2-3"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "2-3"
+        },
+        {
+          "label": "Cướp bóng (STL)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "1 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "8 phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "An Se-young_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Seo Seung-jae_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kim Won-ho_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akane Yamaguchi_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yoo Tae-bin_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Wang Chan_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee So-hee_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Baek Ha-na_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Lee Yu-lim_struct_nt_0a539c24_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yuki Ishikawa_struct_nt_d2414095_post": {
+    "stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)",
+    "rating": 8.8,
+    "tags": [
+      "Đội hình xuất phát",
+      "Chủ công (OH)",
+      "19 điểm",
+      "2 Ace",
+      "Monster Block",
+      "Hiệu suất tấn công 56%"
+    ],
+    "has_played": true
+  },
+  "Kodai Naraoka_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yuji Nishida_struct_nt_d2414095_post": {
+    "stats_text": "19 điểm (15 tấn công, 2 chắn bóng, 2 ace)",
+    "rating": 8.8,
+    "tags": [
+      "Đội hình xuất phát",
+      "Đối chuyền (OP)",
+      "19 điểm",
+      "2 Ace",
+      "Monster Block",
+      "Hiệu suất tấn công 56%"
+    ],
+    "has_played": true
+  },
+  "Koki Watanabe_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yushi Tanaka_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Kenta Nishimoto_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yudai Okimoto_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nozomi Okuhara_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nữ (WS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hina Akechi_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Takuro Hoki_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Yugo Kobayashi_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Akira Koga_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Nao Yamakita_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hinata Suzuki_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Rui Hirokami_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Sayaka Hobara_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
+  },
+  "Hiroki Midorikawa_struct_nt_e65d01a3_post": {
+    "stats_text": "Thắng 2-1 (21-18, 19-21, 21-16)",
+    "rating": 8.7,
+    "tags": [
+      "Đơn nam (MS)",
+      "Vào tứ kết",
+      "Lội ngược dòng ngoạn mục",
+      "Match-point kịch tính"
+    ],
+    "has_played": true
   }
 }

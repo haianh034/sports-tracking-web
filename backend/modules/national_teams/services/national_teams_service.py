@@ -1206,12 +1206,31 @@ def fetch_national_team_schedule(team) -> list:
     t_tier = str(t_tier or "Senior")
     t_gender = str(t_gender or "Men")
 
-    cache_key = t_id or f"{t_sport}_{t_country}_{t_tier}_{t_gender}"
+    cache_key = f"{t_sport}_{t_country}_{t_tier}_{t_gender}".lower()
     now_ts = datetime.datetime.now().timestamp()
-    if cache_key in NATIONAL_TEAM_SCHED_CACHE:
-        cached_ts, cached_matches = NATIONAL_TEAM_SCHED_CACHE[cache_key]
-        if now_ts - cached_ts < 1800:  # 15 minutes cache
-            return cached_matches
+    NT_TTL = 14400  # 4 hours cache for NT schedules
+
+    for k_cand in ([cache_key, t_id] if t_id else [cache_key]):
+        if k_cand in NATIONAL_TEAM_SCHED_CACHE:
+            cached_ts, cached_matches = NATIONAL_TEAM_SCHED_CACHE[k_cand]
+            if now_ts - cached_ts < NT_TTL:
+                # Update unified key so both Players and NTs share it
+                NATIONAL_TEAM_SCHED_CACHE[cache_key] = (cached_ts, cached_matches)
+                now_utc_ref = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+                refreshed_m = []
+                for m in cached_matches:
+                    m_c = dict(m)
+                    m_utc = m_c.get("match_date_utc")
+                    if m_utc:
+                        try:
+                            dt = datetime.datetime.fromisoformat(m_utc.replace("Z", ""))
+                            diff = (dt - now_utc_ref).total_seconds() / 86400.0
+                            m_c["diff_days"] = diff
+                            m_c["is_past"] = (diff < -0.1) or (m_c.get("match_state") == "post")
+                        except Exception:
+                            pass
+                    refreshed_m.append(m_c)
+                return refreshed_m
 
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     matches = []

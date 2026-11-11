@@ -9,7 +9,44 @@ from backend.core.config import SPORT_TO_ESPN, normalize_player_name
 from backend.core.services.wiki_service import get_team_aliases_from_wiki
 from backend.modules.players.services.sports_service import get_tournament_tag
 
+import threading
+
 ESPN_TEAM_INFO_CACHE = {}
+ESPN_TEAM_CACHE_FILE = os.path.join(os.path.dirname(__file__), "espn_team_info_cache.json")
+_ESPN_INFO_LOCK = threading.Lock()
+
+if os.path.exists(ESPN_TEAM_CACHE_FILE):
+    try:
+        with open(ESPN_TEAM_CACHE_FILE, "r", encoding="utf-8") as f:
+            _raw_info = json.load(f)
+            _now_init = datetime.datetime.now().timestamp()
+            for k, val in _raw_info.items():
+                parts = k.split("||")
+                if len(parts) == 3:
+                    ts_val = val.get("ts", 0)
+                    info_val = val.get("info")
+                    # Keep valid info for 7 days, None misses for 1 hour
+                    if (info_val is not None and _now_init - ts_val < 604800) or (info_val is None and _now_init - ts_val < 3600):
+                        ESPN_TEAM_INFO_CACHE[(parts[0], parts[1], parts[2])] = info_val
+    except Exception:
+        pass
+
+def _save_espn_team_info_cache():
+    if not _ESPN_INFO_LOCK.acquire(blocking=False):
+        return
+    try:
+        serializable = {}
+        now_t = datetime.datetime.now().timestamp()
+        for k, v in list(ESPN_TEAM_INFO_CACHE.items()):
+            key_str = f"{k[0]}||{k[1]}||{k[2]}"
+            serializable[key_str] = {"ts": now_t, "info": v}
+        with open(ESPN_TEAM_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(serializable, f, ensure_ascii=False)
+    except Exception:
+        pass
+    finally:
+        _ESPN_INFO_LOCK.release()
+
 SCHEDULE_CACHE = {}
 TEAM_SCHED_CACHE_FILE = os.path.join(os.path.dirname(__file__), "team_schedules_cache.json")
 SCHEDULE_30D_CACHE = {}
@@ -219,9 +256,11 @@ def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str 
 
     if best_candidate and best_score > 0:
         ESPN_TEAM_INFO_CACHE[cache_key] = best_candidate
+        _save_espn_team_info_cache()
         return best_candidate
 
     ESPN_TEAM_INFO_CACHE[cache_key] = None
+    _save_espn_team_info_cache()
     return None
 
 def fetch_tennis_schedule(player_or_team_name: str) -> dict:
@@ -1007,7 +1046,8 @@ def fetch_player_career_schedule(
     api_team_id: str = None,
     country_name: str = None,
     gender: str = "Men",
-    nt_sched_cache: dict = None
+    nt_sched_cache: dict = None,
+    include_deep_history: bool = False
 ) -> list:
     if is_player_retired(player_name, current_team):
         return []
@@ -1019,7 +1059,8 @@ def fetch_player_career_schedule(
     if not history:
         club_matches = fetch_player_upcoming_schedule_30d(
             current_team, sport_name, player_name,
-            force_refresh=force_refresh, api_team_id=api_team_id, gender=gender
+            force_refresh=force_refresh, api_team_id=api_team_id, gender=gender,
+            include_deep_history=include_deep_history
         )
         for m in club_matches:
             d_vn = m.get("date_only_vn") or ""
@@ -1037,7 +1078,8 @@ def fetch_player_career_schedule(
             
             team_matches = fetch_player_upcoming_schedule_30d(
                 t_name, s_name, player_name,
-                force_refresh=force_refresh, api_team_id=api_team_id, gender=gender
+                force_refresh=force_refresh, api_team_id=api_team_id, gender=gender,
+                include_deep_history=include_deep_history
             )
             for m in team_matches:
                 d_vn = m.get("date_only_vn") or ""
@@ -1087,16 +1129,114 @@ def fetch_player_career_schedule(
     all_matches.sort(key=lambda x: str(x.get("match_date_utc") or ""))
     return all_matches
 
-def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, player_name: str = None, force_refresh: bool = False, api_team_id: str = None, gender: str = "Men") -> list:
+def _refresh_match_diff_days(matches: list) -> list:
+    if not matches:
+        return matches
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    refreshed = []
+    for m in matches:
+        m_copy = dict(m)
+        m_utc = m_copy.get("match_date_utc")
+        if m_utc:
+            try:
+                dt = datetime.datetime.strptime(m_utc[:19], "%Y-%m-%dT%H:%M:%S")
+                diff = (dt - now_utc).total_seconds() / 86400.0
+                m_copy["diff_days"] = diff
+                if m_copy.get("match_state") == "post" or diff < -0.1:
+                    m_copy["is_past"] = True
+                elif diff > 0:
+                    m_copy["is_past"] = False
+            except Exception:
+                pass
+        refreshed.append(m_copy)
+    return refreshed
+
+_CLUB_FETCH_LOCK = threading.Lock()
+_IN_FLIGHT_CLUB_EVENTS = {}
+
+def fetch_player_upcoming_schedule_30d(
+    team_name: str,
+    sport_name: str = None,
+    player_name: str = None,
+    force_refresh: bool = False,
+    api_team_id: str = None,
+    gender: str = "Men",
+    include_deep_history: bool = False
+) -> list:
     if is_player_retired(player_name, team_name):
         return []
-    cache_key = (str(team_name).strip().lower(), str(sport_name or "").lower(), str(player_name or "").lower())
-    now_ts = datetime.datetime.now().timestamp()
-    if not force_refresh and cache_key in SCHEDULE_30D_CACHE:
-        cached_ts, cached_list = SCHEDULE_30D_CACHE[cache_key]
-        if now_ts - cached_ts < 1800:
-            return cached_list
 
+    is_team_sport = sport_name in ["Bóng đá", "Bóng rổ", "Bóng chày"]
+    effective_gender = (gender or "Men").lower()
+    if "(nữ)" in str(team_name).lower() or "(w)" in str(team_name).lower() or "women" in str(team_name).lower():
+        gender = "Women"
+        effective_gender = "women"
+
+    cache_key = (
+        str(team_name).strip().lower(),
+        str(sport_name or "").lower(),
+        f"__club_{effective_gender}" if is_team_sport else str(player_name or "").lower()
+    )
+    legacy_key = (str(team_name).strip().lower(), str(sport_name or "").lower(), str(player_name or "").lower())
+
+    now_ts = datetime.datetime.now().timestamp()
+    SCHED_TTL = 14400  # 4 hours cache (live matches updated via live_score_service)
+
+    # Check shared club cache (or legacy player cache)
+    if not force_refresh:
+        for k_cand in ([cache_key, legacy_key] if is_team_sport else [cache_key]):
+            if k_cand in SCHEDULE_30D_CACHE:
+                cached_ts, cached_list = SCHEDULE_30D_CACHE[k_cand]
+                if now_ts - cached_ts < SCHED_TTL:
+                    # Nếu đang ở Phase 2 (include_deep_history=True), kiểm tra xem cache đã có dữ liệu quá khứ 2024/2025 chưa
+                    if include_deep_history and is_team_sport:
+                        has_24_25 = any((m.get("date_only_vn") or "") < "2026-01-01" for m in cached_list)
+                        if has_24_25:
+                            return _refresh_match_diff_days(cached_list)
+                    else:
+                        return _refresh_match_diff_days(cached_list)
+
+    # Coalesce concurrent requests for the same club key so 5 players on the same team only fetch once!
+    wait_event = None
+    is_owner = False
+    with _CLUB_FETCH_LOCK:
+        if cache_key in _IN_FLIGHT_CLUB_EVENTS:
+            wait_event = _IN_FLIGHT_CLUB_EVENTS[cache_key]
+        else:
+            wait_event = threading.Event()
+            _IN_FLIGHT_CLUB_EVENTS[cache_key] = wait_event
+            is_owner = True
+
+    if not is_owner and wait_event:
+        wait_event.wait(timeout=30)
+        if cache_key in SCHEDULE_30D_CACHE:
+            return _refresh_match_diff_days(SCHEDULE_30D_CACHE[cache_key][1])
+
+    try:
+        return _fetch_player_upcoming_schedule_30d_impl(
+            team_name, sport_name, player_name, force_refresh, api_team_id, gender,
+            include_deep_history, cache_key, legacy_key, now_ts
+        )
+    finally:
+        if is_owner:
+            with _CLUB_FETCH_LOCK:
+                ev = _IN_FLIGHT_CLUB_EVENTS.pop(cache_key, None)
+                if ev:
+                    ev.set()
+
+
+def _fetch_player_upcoming_schedule_30d_impl(
+    team_name: str,
+    sport_name: str,
+    player_name: str,
+    force_refresh: bool,
+    api_team_id: str,
+    gender: str,
+    include_deep_history: bool,
+    cache_key: tuple,
+    legacy_key: tuple,
+    now_ts: float
+) -> list:
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     matches = []
 
@@ -1108,9 +1248,6 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
         return non_espn_list
 
     team_info = None
-    if "(nữ)" in str(team_name).lower() or "(w)" in str(team_name).lower() or "women" in str(team_name).lower():
-        gender = "Women"
-
     if api_team_id and str(api_team_id).strip().isdigit():
         team_info = get_espn_team_info(team_name, sport_name, api_team_id=api_team_id, gender=gender)
     if not team_info:
@@ -1130,12 +1267,16 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
 
     # 1. Tách và giữ lại các trận lịch sử bất biến (> 14 ngày trước hoặc thuộc các năm cũ)
     archived_historical_matches = []
-    if cache_key in SCHEDULE_30D_CACHE:
-        _, existing_list = SCHEDULE_30D_CACHE[cache_key]
-        archived_historical_matches = [
-            m for m in existing_list 
-            if (m.get("diff_days") is not None and m["diff_days"] < -14) or (m.get("date_only_vn") and m["date_only_vn"] < "2026-10-01")
-        ]
+    for k_old in (cache_key, legacy_key):
+        if k_old in SCHEDULE_30D_CACHE:
+            _, existing_list = SCHEDULE_30D_CACHE[k_old]
+            if existing_list:
+                archived_historical_matches = [
+                    m for m in existing_list 
+                    if (m.get("diff_days") is not None and m["diff_days"] < -14) or (m.get("date_only_vn") and m["date_only_vn"] < "2026-10-01")
+                ]
+                if archived_historical_matches:
+                    break
 
     # Kiểm tra xem đội bóng này đã có sẵn dữ liệu lịch sử năm 2024 và 2025 chưa
     has_archived_2024_2025 = any(m.get("date_only_vn", "") < "2026-01-01" for m in archived_historical_matches)
@@ -1146,31 +1287,33 @@ def fetch_player_upcoming_schedule_30d(team_name: str, sport_name: str = None, p
 
     urls = []
     if sport == "soccer":
-        # Chỉ truy vấn các mùa giải cũ 2024, 2025 nếu chưa từng có trong kho lưu trữ
+        # Phase 1: Chỉ gọi đúng 2 URL nhanh nhất của mùa giải hiện tại để tránh chờ 15-25s/đội
         urls = [
-            f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?fixture=true",
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?fixture=true",
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule",
-            f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2026",
-            f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2026",
         ]
-        if not has_archived_2024_2025:
-            urls.extend([
-                f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2024",
-                f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?season=2025",
-                f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2024",
-                f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2025",
-            ])
+        if league and league != "all":
+            urls.insert(0, f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/teams/{team_id}/schedule?fixture=true")
+
+        # Phase 2 (include_deep_history=True): Mới truy vấn thêm mùa 2024, 2025, 2026 nếu chưa có trong archive
+        if include_deep_history:
+            urls.append(f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2026")
+            if not has_archived_2024_2025:
+                urls.extend([
+                    f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2024",
+                    f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2025",
+                ])
     else:
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule",
-            f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026",
         ]
-        if not has_archived_2024_2025:
-            urls.extend([
-                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2024",
-                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025",
-            ])
+        if include_deep_history:
+            urls.append(f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026")
+            if not has_archived_2024_2025:
+                urls.extend([
+                    f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2024",
+                    f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025",
+                ])
 
     seen_match_keys = set()
     for u in urls:
