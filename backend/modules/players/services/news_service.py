@@ -1,4 +1,6 @@
 import re
+import time
+import threading
 import feedparser
 import urllib.parse
 import datetime
@@ -58,6 +60,57 @@ def _matches_any_keyword(text: str, kw_list: list) -> bool:
                 return True
     return False
 
+def _is_cjk_char(c: str) -> bool:
+    return ('\u4e00' <= c <= '\u9fff') or ('\u3040' <= c <= '\u30ff')
+
+def _is_hangul_char(c: str) -> bool:
+    return '\uac00' <= c <= '\ud7af'
+
+def _is_isolated_subtoken(token: str, full_player_name: str, all_aliases: list = None) -> bool:
+    """
+    Tự động phát hiện và loại bỏ họ/tên đơn lẻ hoặc bị cắt cụt (ví dụ 'Suzuki', '鈴木', '김')
+    dựa trên cấu trúc ngôn ngữ và đối chiếu với tên đầy đủ mà không cần danh sách khóa cứng.
+    """
+    t = (token or "").strip()
+    if not t or len(t) < 2:
+        return True
+
+    t_low = t.lower()
+    p_parts = [w for w in (full_player_name or "").strip().split() if w.strip()]
+
+    # 1. Nếu là tên Latin (ASCII): VĐV có >= 2 từ thì tuyệt đối không chấp nhận token chỉ gồm 1 từ đơn
+    if t.isascii():
+        if len(p_parts) >= 2 and len(t.split()) < 2:
+            return True
+        return False
+
+    # 2. Nếu là chữ Hán/Nhật (CJK):
+    has_cjk = any(_is_cjk_char(c) for c in t)
+    if has_cjk:
+        cjk_no_space = t.replace(" ", "")
+        # Kiểm tra xem token ngắn (<= 2 chữ CJK) có phải là phần bị cắt của tên CJK đầy đủ (>= 3 chữ) trong aliases không
+        if len(cjk_no_space) <= 2:
+            if len(p_parts) >= 2:
+                return True
+            for other in (all_aliases or []):
+                o_clean = (other or "").strip().replace(" ", "")
+                if len(o_clean) >= 3 and cjk_no_space in o_clean and o_clean != cjk_no_space:
+                    return True
+        return False
+
+    # 3. Nếu là chữ Hàn (Hangul): họ đơn lẻ thường 1 âm tiết, tên đầy đủ thường >= 3 âm tiết
+    has_kr = any(_is_hangul_char(c) for c in t)
+    if has_kr:
+        kr_no_space = t.replace(" ", "")
+        if len(kr_no_space) < 3:
+            for other in (all_aliases or []):
+                o_clean = (other or "").strip().replace(" ", "")
+                if len(o_clean) >= 3 and kr_no_space in o_clean and o_clean != kr_no_space:
+                    return True
+            if len(kr_no_space) == 1:
+                return True
+    return False
+
 def build_valid_player_names(player_name: str, aliases: str = "") -> list:
     raw_names = [player_name]
     if aliases:
@@ -68,18 +121,15 @@ def build_valid_player_names(player_name: str, aliases: str = "") -> list:
         clean = raw.strip()
         if not clean or clean.lower() in CLUB_BLACKLIST:
             continue
+        if _is_isolated_subtoken(clean, player_name, raw_names):
+            continue
         valid_tokens.add(clean)
         
         unspaced = clean.replace(" ", "")
-        if unspaced != clean:
+        if unspaced != clean and not _is_isolated_subtoken(unspaced, player_name, raw_names):
             valid_tokens.add(unspaced)
-            
-        parts = clean.split()
-        for p in parts:
-            if len(p) >= 3 and p.lower() not in COMMON_BAD_SURNAMES and p not in COMMON_BAD_SURNAMES and (p.isalpha() or any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' or '\uac00' <= c <= '\ud7af' for c in p)):
-                valid_tokens.add(p)
 
-    return [t for t in valid_tokens if len(t) >= 2 and t.lower() not in COMMON_BAD_SURNAMES and t not in COMMON_BAD_SURNAMES]
+    return [t for t in valid_tokens if len(t) >= 2]
 
 def classify_news_article(title: str, summary: str = "") -> str:
     clean_summary = re.sub(r'<[^>]+>', ' ', summary)
@@ -186,140 +236,283 @@ PLAYER_NATIVE_NAMES = {
     "kota takai": ["高井幸大", "高井 幸大"]
 }
 
-COMMON_BAD_SURNAMES = {
-    '鈴木', '田中', '佐藤', '山本', '伊藤', '渡辺', '渡邉', '小林', '吉田', '中村', 
-    '加藤', '山口', '斎藤', '松本', '井上', '木村', '林', '清水', '小杉', '後藤', 
-    '福田', '宇野', '橋岡', '町野', '前田', '守田', '佐野', '上田', '菅原', '坂元', 
-    '町田', '市原', '毎熊', '小川', '三戸', '福井', '高丘', '瀬古', '塩貝', '西田', 
-    '高井', '松島', '戸上', '張本', '保木', '西本', '沖本', '奥原', '明地', '山北', 
-    '廣上', '保原', '緑川', '古賀', '村上', '岡本', '大谷', '今永', '堂安', '板倉', 
-    '遠藤', '三笘', '久保', '鎌田', '八村', '朗希', '誠也', '彩艶', '唯人', '陽向', 
-    '湧士', '拳太', '優大', '希望', '陽菜', '卓朗', '優吾', '奈緒', '瑠依', '彩夏', 
-    '大輝', '宗隆', '和真', '翔平', '由伸', '昇太', '正尚', '敬斗', '修斗', '大樹', 
-    '禅斗', '師王', '健洋', '拓実', '英正', '海舟', '麻也', '綺世', '由勢', '達裕', 
-    '浩樹', '吏音', '晟矢', '航基', '航大', '舜介', '太智', '陽平', '理仁', '歩夢', 
-    '健人', '有志', '幸大', '輝空', '智和', '隼輔', 'ひな', '美和', '美誠', '美柚', 
-    '幸矢', '谷川', '옌스', '황소', '유진', '김', '이', '박', '최', '정', '강', 
-    '조', '윤', '장', '임', '한', '오', '서', '신', '권', '황', '안', '송', '전', '홍',
-    'suzuki', 'tanaka', 'sato', 'ito', 'kim', 'lee', 'park', 'watanabe', 'yamamoto', 'yoshida'
+_SIBLINGS_CACHE = {"ts": 0.0, "players": []}
+_SIBLINGS_CACHE_LOCK = threading.Lock()
+
+SPORT_EXCLUSIVE_PROFILES = {
+    "Bóng đá": {
+        "サッカー", "jリーグ", "j1", "j2", "premier league", "bundesliga", "la liga",
+        "serie a", "ligue 1", "eredivisie", "champions league", "europa league",
+        "uefa", "fifa", "gk", "サカノワ", "ゲキサカ", "축구", "k리그", "프리미어리그", "bóng đá"
+    },
+    "Cầu lông": {
+        "バドミントン", "badminton", "bwf", "world tour", "shuttlecock",
+        "シングルス", "ダブルス", "ミックスダブルス", "배드민턴", "cầu lông"
+    },
+    "Bóng bàn": {
+        "卓球", "table tennis", "wtt", "ittf", "ping pong", "tリーグ", "탁구", "bóng bàn"
+    },
+    "Bóng chày": {
+        "野球", "プロ野球", "mlb", "npb", "kbo", "home run", "本塁打",
+        "ホームラン", "投手", "打率", "カブス", "ドジャース", "야구", "메이저리그", "bóng chày"
+    },
+    "Bóng rổ": {
+        "バスケ", "バスケットボール", "basketball", "nba", "bリーグ", "b.league",
+        "fiba", "three-pointer", "ダンク", "농구", "kbl", "bóng rổ"
+    },
+    "Bóng chuyền": {
+        "バレー", "バレーボール", "volleyball", "svリーグ", "vリーグ", "vnl", "배구", "bóng chuyền"
+    },
+    "Quần vợt": {
+        "テニス", "tennis", "atpツアー", "wtaツアー", "wimbledon", "ウィンブルドン",
+        "全豪オープン", "全仏オープン", "全米オープン", "테니스", "quần vợt"
+    },
+    "Golf": {
+        "ゴルフ", "golf", "jlpga", "lpga", "pgaツアー", "birdie", "골프"
+    }
 }
 
-def is_article_strictly_for_player(title: str, summary: str, player_name: str, native_names: list, sport_name: str = "") -> bool:
-    content = f"{title} {summary}".lower()
-    content_raw = f"{title} {summary}"
-    p_low = player_name.lower().strip()
-    
-    # 1. Negative Cross-Player Conflict Exclusion (Loại trừ người khác trùng họ)
-    # 1.1 Nhóm Suzuki:
-    if "hinata suzuki" in p_low:
-        if any(k in content_raw for k in ["彩艶", "Zion", "唯人", "Yuito", "誠也", "Seiya", "鈴木愛", "パルマ", "Parma", "Aston Villa", "Cubs", "カブス", "GK", "サカノワ"]):
-            if "陽向" not in content_raw and "hinata" not in content:
-                return False
-        if not ("hinata suzuki" in content or "suzuki hinata" in content or "鈴木陽向" in content_raw or "鈴木 陽向" in content_raw or "陽向" in content_raw):
-            return False
-            
-    elif "yuito suzuki" in p_low:
-        if any(k in content_raw for k in ["彩艶", "Zion", "誠也", "Seiya", "陽向", "Hinata", "Cubs", "Aston Villa", "GK"]):
-            if "唯人" not in content_raw and "yuito" not in content:
-                return False
-        if not ("yuito suzuki" in content or "suzuki yuito" in content or "鈴木唯人" in content_raw or "鈴木 唯人" in content_raw or "唯人" in content_raw):
-            return False
-            
-    elif "zion suzuki" in p_low:
-        if any(k in content_raw for k in ["唯人", "Yuito", "誠也", "Seiya", "陽向", "Hinata", "Cubs"]):
-            if "彩艶" not in content_raw and "zion" not in content:
-                return False
-        if not ("zion suzuki" in content or "suzuki zion" in content or "鈴木彩艶" in content_raw or "鈴木 彩艶" in content_raw or "彩艶" in content_raw):
-            return False
+def _extract_surname_and_given(player_name: str, native_names: list = None):
+    """
+    Trích xuất tự động Họ (surname) và Tên riêng (given name) từ cả tên Latin và tên bản địa (CJK/Hangul)
+    để nhận diện và phân tách mọi VĐV trùng họ trong hệ thống.
+    """
+    p_clean = (player_name or "").strip()
+    parts = [re.sub(r'[^a-z0-9\-]', '', w.lower()) for w in p_clean.split() if w.strip()]
 
-    elif "seiya suzuki" in p_low:
-        if any(k in content_raw for k in ["彩艶", "Zion", "唯人", "Yuito", "陽向", "Hinata", "Aston Villa", "Parma", "GK"]):
-            if "誠也" not in content_raw and "seiya" not in content:
-                return False
-        if not ("seiya suzuki" in content or "suzuki seiya" in content or "鈴木誠也" in content_raw or "鈴木 誠也" in content_raw or "誠也" in content_raw):
-            return False
+    latin_surnames = set()
+    latin_givens = set()
+    COMMON_KOREAN_FIRST_SURNAMES = {
+        "kim", "lee", "park", "choi", "jung", "jeong", "kang", "cho", "yoon",
+        "jang", "lim", "han", "oh", "seo", "shin", "kwon", "hwang", "ahn",
+        "song", "jeon", "hong", "bae", "seol", "yang", "paik", "eom"
+    }
+    if len(parts) >= 2:
+        if "-" in parts[-1] or (len(parts) == 2 and parts[0] in COMMON_KOREAN_FIRST_SURNAMES):
+            latin_surnames.add(parts[0])
+            latin_givens.add(parts[-1])
+        else:
+            latin_surnames.add(parts[-1])
+            latin_givens.add(parts[0])
+            if len(parts) > 2:
+                latin_givens.add(" ".join(parts[:-1]))
 
-    # 1.2 Nhóm Tanaka:
-    elif "yushi tanaka" in p_low:
-        if any(k in content_raw for k in ["田中碧", "Ao Tanaka", "田中聡", "Satoshi Tanaka", "Leeds", "EFL", "ブンデス"]):
-            if "湧士" not in content_raw and "yushi" not in content:
-                return False
-        if not ("yushi tanaka" in content or "tanaka yushi" in content or "田中湧士" in content_raw or "田中 湧士" in content_raw or "湧士" in content_raw):
-            return False
+    native_surnames = set()
+    native_givens = set()
+    for nn in (native_names or []):
+        nn_clean = (nn or "").strip()
+        if " " in nn_clean:
+            n_parts = [x.strip() for x in nn_clean.split() if x.strip()]
+            if len(n_parts) == 2:
+                native_surnames.add(n_parts[0])
+                if len(n_parts[1]) >= 2:
+                    native_givens.add(n_parts[1])
+        else:
+            if any(_is_cjk_char(c) for c in nn_clean) and len(nn_clean) >= 3:
+                if len(nn_clean) >= 4:
+                    native_surnames.add(nn_clean[:2])
+                    native_givens.add(nn_clean[2:])
+                elif len(nn_clean) == 3:
+                    native_surnames.add(nn_clean[:2])
+                    native_surnames.add(nn_clean[:1])
+                    if len(nn_clean[1:]) >= 2:
+                        native_givens.add(nn_clean[1:])
+            elif any(_is_hangul_char(c) for c in nn_clean) and len(nn_clean) >= 3:
+                native_surnames.add(nn_clean[0])
+                if len(nn_clean[1:]) >= 2:
+                    native_givens.add(nn_clean[1:])
 
-    elif "ao tanaka" in p_low:
-        if any(k in content_raw for k in ["湧士", "Yushi", "田中聡", "Satoshi Tanaka", "バドミントン", "badminton"]):
-            if "田中碧" not in content_raw and "ao tanaka" not in content and "碧" not in content_raw:
-                return False
+    return latin_surnames, latin_givens, native_surnames, native_givens
 
-    # 1.3 Nhóm Ito:
-    elif "mima ito" in p_low:
-        if any(k in content_raw for k in ["洋輝", "Hiroki", "バイエルン", "Bayern", "ブンデス", "シュトゥットガルト"]):
-            if "美誠" not in content_raw and "mima" not in content:
-                return False
-        if not ("mima ito" in content or "ito mima" in content or "伊藤美誠" in content_raw or "伊藤 美誠" in content_raw or "美誠" in content_raw):
-            return False
+def _get_all_players_profile_map(db: Session = None) -> list:
+    """
+    Tự động tổng hợp hồ sơ họ-tên của toàn bộ VĐV có trong Database (cache 5 phút)
+    để đối chiếu chéo tự động giữa các VĐV cùng họ mà không cần khóa cứng bất kỳ cái tên nào.
+    """
+    global _SIBLINGS_CACHE
+    now_t = time.time()
+    with _SIBLINGS_CACHE_LOCK:
+        if _SIBLINGS_CACHE["players"] and (now_t - _SIBLINGS_CACHE["ts"] < 300):
+            return _SIBLINGS_CACHE["players"]
 
-    elif "hiroki ito" in p_low:
-        if any(k in content_raw for k in ["美誠", "Mima", "卓球", "table tennis", "WTT"]):
-            if "洋輝" not in content_raw and "hiroki" not in content:
-                return False
-        if not ("hiroki ito" in content or "ito hiroki" in content or "伊藤洋輝" in content_raw or "伊藤 洋輝" in content_raw or "洋輝" in content_raw):
-            return False
+    close_after = False
+    session = db
+    if session is None:
+        try:
+            from backend.core.db.session import SessionLocal
+            session = SessionLocal()
+            close_after = True
+        except Exception:
+            return _SIBLINGS_CACHE.get("players", [])
 
-    # 1.4 Nhóm Harimoto:
-    elif "miwa harimoto" in p_low:
-        if "張本智和" in content_raw and "美和" not in content_raw and "miwa" not in content:
-            return False
-        if not ("miwa harimoto" in content or "harimoto miwa" in content or "張本美和" in content_raw or "張本 美和" in content_raw or "美和" in content_raw):
-            return False
+    try:
+        rows = session.query(Player).all()
+        snapshot = []
+        for r in rows:
+            p_n = (r.name or "").strip()
+            s_n = (r.sport_name or "").strip()
+            al = (r.name_aliases or "").strip()
+            nat_list = list(PLAYER_NATIVE_NAMES.get(p_n.lower(), []))
+            raw_list = [x.strip() for x in al.split(",") if x.strip()] if al else []
+            for ac in raw_list:
+                if not _is_isolated_subtoken(ac, p_n, raw_list + nat_list) and ac not in nat_list:
+                    if any(_is_cjk_char(c) or _is_hangul_char(c) for c in ac):
+                        nat_list.append(ac)
+            lat_sur, lat_giv, nat_sur, nat_giv = _extract_surname_and_given(p_n, nat_list)
+            snapshot.append({
+                "name": p_n,
+                "name_lower": p_n.lower(),
+                "sport": s_n,
+                "native_names": nat_list,
+                "latin_surnames": lat_sur,
+                "latin_givens": lat_giv,
+                "native_surnames": nat_sur,
+                "native_givens": nat_giv
+            })
+        with _SIBLINGS_CACHE_LOCK:
+            _SIBLINGS_CACHE = {"ts": time.time(), "players": snapshot}
+        return snapshot
+    except Exception:
+        return _SIBLINGS_CACHE.get("players", [])
+    finally:
+        if close_after and session:
+            session.close()
 
-    elif "tomokazu harimoto" in p_low:
-        if "張本美和" in content_raw and "智和" not in content_raw and "tomokazu" not in content:
-            return False
+def is_article_strictly_for_player(
+    title: str,
+    summary: str,
+    player_name: str,
+    native_names: list,
+    sport_name: str = "",
+    db: Session = None
+) -> bool:
+    """
+    Bộ lọc bài báo 4 lớp hoàn toàn tự động (Zero-Hardcode):
+    - Lớp 1 & 2: Yêu cầu khớp ít nhất 1 biến thể Tên Đầy Đủ (cấm hoàn toàn họ đơn lẻ).
+    - Lớp 3: Loại trừ xung đột Môn Thể thao tự động (Cross-Sport Conflict Guard).
+    - Lớp 4: Loại trừ chéo tự động với bất kỳ VĐV nào trùng họ trong DB.
+    """
+    clean_summary = re.sub(r'<[^>]+>', ' ', summary or "")
+    content_raw = f"{title} {clean_summary}"
+    content = content_raw.lower()
+    p_low = (player_name or "").lower().strip()
 
-    # 2. General Verification: Bài báo phải có ít nhất 1 tên đầy đủ hợp lệ
-    required_matches = [player_name.lower()]
+    my_lat_sur, my_lat_giv, my_nat_sur, my_nat_giv = _extract_surname_and_given(player_name, native_names)
+
+    # Xây dựng tập biến thể Tên Đầy Đủ bắt buộc
+    required_full_names = {p_low}
     p_parts = player_name.split()
     if len(p_parts) == 2:
-        required_matches.append(f"{p_parts[1]} {p_parts[0]}".lower())
-    for nn in native_names:
-        required_matches.append(nn.lower())
-        
-    has_name_match = any(m in content for m in required_matches)
-    return has_name_match
+        required_full_names.add(f"{p_parts[1]} {p_parts[0]}".lower())
+    for nn in (native_names or []):
+        nn_clean = (nn or "").strip()
+        if not _is_isolated_subtoken(nn_clean, player_name, native_names):
+            required_full_names.add(nn_clean.lower())
+            unspaced = nn_clean.replace(" ", "")
+            if len(unspaced) >= 3:
+                required_full_names.add(unspaced.lower())
 
-def fetch_player_news_entries(player_name: str, aliases: str = "", country_name: str = "", sport_name: str = "") -> list:
+    # LỚP 4: Loại trừ chéo tự động với các VĐV khác cùng họ đang có trong Database
+    all_profiles = _get_all_players_profile_map(db=db)
+    has_my_given = any(
+        (re.search(r'\b' + re.escape(g) + r'\b', content) if g.isascii() else (g in content_raw))
+        for g in (my_lat_giv | my_nat_giv) if len(g) >= 2
+    )
+    for prof in all_profiles:
+        if prof["name_lower"] == p_low:
+            continue
+        shares_surname = bool(my_lat_sur & prof["latin_surnames"]) or bool(my_nat_sur & prof["native_surnames"])
+        if not shares_surname:
+            continue
+
+        mentions_sibling_full = (
+            prof["name_lower"] in content
+            or any(nn.lower() in content for nn in prof["native_names"] if len(nn.replace(" ", "")) >= 3)
+        )
+        mentions_sibling_given = any(
+            (re.search(r'\b' + re.escape(g) + r'\b', content) if g.isascii() else (g in content_raw))
+            for g in (prof["latin_givens"] | prof["native_givens"]) if len(g) >= 2
+        )
+        if (mentions_sibling_full or mentions_sibling_given) and not has_my_given:
+            return False
+
+    # LỚP 2: Bắt buộc bài báo phải chứa ít nhất 1 Tên Đầy Đủ của VĐV mục tiêu (có word-boundary cho Latin)
+    has_full_name_match = False
+    for req_name in required_full_names:
+        if not req_name:
+            continue
+        if req_name.isascii():
+            if re.search(r'\b' + re.escape(req_name) + r'\b', content):
+                has_full_name_match = True
+                break
+        else:
+            if req_name in content:
+                has_full_name_match = True
+                break
+
+    if not has_full_name_match:
+        return False
+
+    # LỚP 3: Kiểm tra xung đột Môn Thể thao Tự động (Cross-Sport Conflict Guard)
+    if sport_name and sport_name in SPORT_EXCLUSIVE_PROFILES:
+        my_sport_kws = SPORT_EXCLUSIVE_PROFILES[sport_name]
+        has_my_sport_kw = _matches_any_keyword(content, list(my_sport_kws))
+        if not has_my_sport_kw:
+            for other_sport, other_kws in SPORT_EXCLUSIVE_PROFILES.items():
+                if other_sport == sport_name:
+                    continue
+                if _matches_any_keyword(content, list(other_kws)):
+                    title_low = (title or "").lower()
+                    in_title = any(
+                        (re.search(r'\b' + re.escape(rn) + r'\b', title_low) if rn.isascii() else (rn in title_low))
+                        for rn in required_full_names if rn
+                    )
+                    if not in_title:
+                        return False
+
+    return True
+
+def fetch_player_news_entries(
+    player_name: str,
+    aliases: str = "",
+    country_name: str = "",
+    sport_name: str = "",
+    db: Session = None
+) -> list:
     nat = (country_name or "").strip()
     p_lower = (player_name or "").lower().strip()
 
-    # 1. Clean aliases and filter out irrelevant foreign scripts & single isolated surnames
-    clean_aliases = []
-    if aliases:
-        for a in aliases.split(","):
-            a_clean = a.strip()
-            if not a_clean or "(" in a_clean or ")" in a_clean or len(a_clean) < 2:
-                continue
-            if a_clean.lower() in CLUB_BLACKLIST or a_clean in COMMON_BAD_SURNAMES or a_clean.lower() in COMMON_BAD_SURNAMES:
-                continue
-            if nat == "Nhật Bản":
-                if not any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' or c.isascii() for c in a_clean):
-                    continue
-            elif nat == "Hàn Quốc":
-                if not any('\uac00' <= c <= '\ud7af' or c.isascii() for c in a_clean):
-                    continue
-            clean_aliases.append(a_clean)
+    # Tự động tổng hợp tất cả biến thể tên đầy đủ để làm đối chiếu khi lọc bỏ các họ cộc
+    known_native = list(PLAYER_NATIVE_NAMES.get(p_lower, []))
+    raw_aliases_list = [a.strip() for a in (aliases or "").split(",") if a.strip()]
+    all_candidate_names = [player_name] + known_native + raw_aliases_list
 
-    # 2. Search terms: prioritize English name and native script
+    # 1. Lọc bỏ các token bị cắt cụt / họ đứng đơn lẻ bằng bộ phân tích cấu trúc tự động
+    clean_aliases = []
+    for a_clean in raw_aliases_list:
+        if not a_clean or "(" in a_clean or ")" in a_clean or len(a_clean) < 2:
+            continue
+        if a_clean.lower() in CLUB_BLACKLIST:
+            continue
+        if _is_isolated_subtoken(a_clean, player_name, all_candidate_names):
+            continue
+        if nat == "Nhật Bản":
+            if not any(_is_cjk_char(c) or c.isascii() for c in a_clean):
+                continue
+        elif nat == "Hàn Quốc":
+            if not any(_is_hangul_char(c) or c.isascii() for c in a_clean):
+                continue
+        clean_aliases.append(a_clean)
+
+    # 2. Search terms: prioritize English name and full native script
     search_terms = [player_name]
     native_names = []
     latin_aliases = []
-    
-    # Auto-populate native names from PLAYER_NATIVE_NAMES lookup
+
     for k, v in PLAYER_NATIVE_NAMES.items():
         if k == p_lower or (len(k) >= 5 and (k in p_lower or p_lower in k)):
             for item in v:
-                if item not in native_names and item not in COMMON_BAD_SURNAMES:
+                if item not in native_names and not _is_isolated_subtoken(item, player_name, all_candidate_names):
                     native_names.append(item)
 
     for a in clean_aliases:
@@ -327,21 +520,22 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
             pure_jp = re.findall(r'[\u4e00-\u9fff\u3040-\u30ff\s]{2,}', a)
             for pj in pure_jp:
                 pj_clean = pj.strip()
-                if pj_clean and pj_clean not in COMMON_BAD_SURNAMES and pj_clean not in native_names and len(pj_clean) >= 3:
+                if pj_clean and pj_clean not in native_names and not _is_isolated_subtoken(pj_clean, player_name, all_candidate_names):
                     native_names.append(pj_clean)
-            if any('\u4e00' <= c <= '\u9fff' or '\u3040' <= c <= '\u30ff' for c in a):
-                if a not in native_names and a not in COMMON_BAD_SURNAMES and not any(k in a.lower() for k in ["born", "japanese:", "kanji:"]):
-                    if len(a.replace(" ", "")) >= 3:
+            if any(_is_cjk_char(c) for c in a):
+                if a not in native_names and not any(k in a.lower() for k in ["born", "japanese:", "kanji:"]):
+                    if not _is_isolated_subtoken(a, player_name, all_candidate_names):
                         native_names.append(a)
         elif nat == "Hàn Quốc":
             pure_kr = re.findall(r'[\uac00-\ud7af]{2,4}', a)
             for pk in pure_kr:
-                if pk not in native_names and pk not in COMMON_BAD_SURNAMES:
+                if pk not in native_names and not _is_isolated_subtoken(pk, player_name, all_candidate_names):
                     native_names.append(pk)
-            if any('\uac00' <= c <= '\ud7af' for c in a):
-                if a not in native_names and a not in COMMON_BAD_SURNAMES and not any(k in a.lower() for k in ["born", "korean:", "hanja:"]):
-                    native_names.append(a)
-        elif a.lower() != player_name.lower() and a.lower() not in COMMON_BAD_SURNAMES:
+            if any(_is_hangul_char(c) for c in a):
+                if a not in native_names and not any(k in a.lower() for k in ["born", "korean:", "hanja:"]):
+                    if not _is_isolated_subtoken(a, player_name, all_candidate_names):
+                        native_names.append(a)
+        elif a.lower() != player_name.lower() and not _is_isolated_subtoken(a, player_name, all_candidate_names):
             if a not in latin_aliases:
                 latin_aliases.append(a)
 
@@ -421,8 +615,8 @@ def fetch_player_news_entries(player_name: str, aliases: str = "", country_name:
             if not title or not link or link in seen_links or (norm_t and norm_t in seen_titles):
                 continue
 
-            # Kiểm tra nghiêm ngặt bài báo: đúng VĐV đó, loại bỏ 100% người khác trùng họ (như Hinata vs Zion/Yuito/Seiya Suzuki)
-            if not is_article_strictly_for_player(title, summary, player_name, native_names, sport_name=sport_name):
+            # Kiểm tra nghiêm ngặt bài báo: tự động đối chiếu Tên Đầy Đủ, Xung đột Môn & VĐV trùng họ trong DB
+            if not is_article_strictly_for_player(title, summary, player_name, native_names, sport_name=sport_name, db=db):
                 continue
 
             pub_dt = None
@@ -468,7 +662,7 @@ def scan_player_news(db: Session, player_id: int, player_name: str, sport_name: 
 
     nat = (player.country_name or "").strip()
     s_name = sport_name or (player.sport_name if player.sport else "")
-    entries = fetch_player_news_entries(player_name, player.name_aliases or "", nat, sport_name=s_name)
+    entries = fetch_player_news_entries(player_name, player.name_aliases or "", nat, sport_name=s_name, db=db)
 
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     # Dọn dẹp tin tức cũ hơn 30 ngày trong database để bảo tồn khung tin cho các trận gần đây

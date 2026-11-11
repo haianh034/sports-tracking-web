@@ -232,7 +232,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
 
                 news_entries = []
                 if update_news:
-                    news_entries = fetch_player_news_entries(p_name, p_aliases, p_country)
+                    news_entries = fetch_player_news_entries(p_name, p_aliases, p_country, sport_name=p_sport)
 
                 p_news_titles = [ne['title'] for ne in news_entries] if news_entries else None
                 stats_info = fetch_player_match_stats(p_name, p_sport, p_team, event_id=ev_id, match_state=m_state, news_titles=p_news_titles)
