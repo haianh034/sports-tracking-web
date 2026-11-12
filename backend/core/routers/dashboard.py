@@ -56,7 +56,14 @@ from backend.modules.players.services.espn_service import (
     fetch_player_match_stats, fetch_match_recap_news, fetch_espn_summary,
     MATCH_STATS_CACHE, get_player_official_injury, is_player_retired
 )
-from backend.modules.players.services.sports_service import format_player_stats_and_tags, get_tournament_tag
+from backend.modules.players.services.sports_service import (
+    format_player_stats_and_tags,
+    get_tournament_tag,
+    extract_round_stage_tag,
+    extract_match_outcome_tag,
+    resolve_team_league,
+)
+from backend.modules.national_teams.services.national_teams_service import evaluate_national_team_callup
 from backend.core.services.live_score_service import get_live_scores_map
 from backend.modules.national_teams.services.national_teams_service import (
     fetch_national_team_schedule, fetch_national_team_news_feed,
@@ -756,10 +763,38 @@ def _compute_dashboard_data(
                 country_flag = info.get("flag", "🌐")
                 break
 
+        # ĐÁNH GIÁ TRIỆU TẬP ĐTQG CHO CÁC TRẬN ĐẤU ĐỘI TUYỂN TRONG KHUNG [-7, +30] NGÀY
+        p_off_inj_now = get_player_official_injury(p.name, sport_name)
+        p_news_titles_pre = [n.title for n in all_player_news[:15]]
+        for m in all_matches_raw:
+            is_nt_m = bool(
+                m.get("is_national_team")
+                or m.get("is_nt_match")
+                or str(m.get("event_id") or "").startswith("espn_nt_")
+                or "đtqg" in str(m.get("competition") or "").lower()
+            )
+            diff_m = m.get("diff_days", 999)
+            if is_nt_m and -7 <= diff_m <= 30:
+                nt_status, nt_tag, nt_reason = evaluate_national_team_callup(
+                    p.name,
+                    team_name,
+                    sport_name,
+                    country_name,
+                    getattr(p, "gender", "Male") or "Male",
+                    nt_match=m,
+                    player_news_titles=p_news_titles_pre,
+                    official_injury=p_off_inj_now,
+                )
+                m["nt_callup_status"] = nt_status
+                m["nt_callup_tag"] = nt_tag
+                m["nt_callup_reason"] = nt_reason
+
         # XÁC ĐỊNH CHÍNH XÁC TRẬN ĐẤU TRONG KHUNG 48H (HÔM NAY VÀ HÔM QUA) TỪ LỊCH ĐẤU THỰC TẾ
         sched_today_match = None
         candidate_matches = []
         for m in all_matches_raw:
+            if m.get("nt_callup_status") == "not_called_up":
+                continue
             m_dvn = m.get("date_only_vn")
             if not m_dvn and m.get("match_date_utc"):
                 try:
@@ -1144,6 +1179,7 @@ def _compute_dashboard_data(
                 db_tags = [t.strip() for t in (match_today.impression_tags or "").split(",") if t.strip()] if match_today else []
                 is_no_play = not h_played or any(no_play_kw in t for t in (db_tags or tags) for no_play_kw in ["Không đăng ký", "Không thi đấu", "Dự bị (Không vào sân)", "Chấn thương"])
                 
+                m["has_played"] = not is_no_play
                 m["rating"] = None if is_no_play else rating
                 m["player_stats"] = None if is_no_play else raw_stats
                 # Include competition tag + impression tags directly from match_today
@@ -1204,6 +1240,29 @@ def _compute_dashboard_data(
 
                 if db_perf and (db_perf.player_stats or db_perf.impression_tags or db_perf.has_played is not None):
                     has_fotmob = bool(db_perf.player_stats and '"source": "FotMob"' in db_perf.player_stats)
+                    # Tự động làm sạch dữ liệu DB bị lỗi cũ (espn_nt_ bị cắt prefix, trận cá nhân đã có tỷ số nhưng has_played=False, hoặc "Không thi đấu" không có dữ liệu đội hình)
+                    db_tags_low = str(db_perf.impression_tags or "").strip().lower()
+                    is_poisoned_nt = bool(ev_id and str(ev_id).startswith("espn_nt_") and not db_perf.has_played and "không đăng ký" in db_tags_low)
+                    is_poisoned_ind = bool(ev_id and str(ev_id).startswith(("wtt_", "fs_")) and m.get("match_result") and not db_perf.has_played and not re.search(r'\b(wo|w/o|walkover|cancelled|postponed)\b', str(m.get("match_result") or ""), re.I))
+                    is_poisoned_no_lineup = bool(not db_perf.has_played and not db_perf.player_stats and db_tags_low in ("không thi đấu", "không đăng ký thi đấu") and (-7 <= diff_d <= 0 or is_poisoned_nt))
+                    if (is_poisoned_nt or is_poisoned_ind or is_poisoned_no_lineup) and ev_id:
+                        try:
+                            healed = fetch_player_match_stats(
+                                p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles,
+                                match_date_utc=m.get("match_date_utc") or (db_perf.match_date.strftime("%Y-%m-%dT%H:%M:%SZ") if db_perf.match_date else None),
+                                match_name=m.get("match_name") or db_perf.match_name
+                            )
+                            if healed:
+                                db_perf.has_played = bool(healed.get("has_played", db_perf.has_played))
+                                db_perf.performance_rating = healed.get("rating") if db_perf.has_played else None
+                                db_perf.player_stats = healed.get("stats_text") if db_perf.has_played else None
+                                db_perf.impression_tags = ", ".join(healed.get("tags") or [])
+                                if healed.get("match_result") and not db_perf.match_result:
+                                    db_perf.match_result = healed.get("match_result")
+                                db.commit()
+                        except Exception:
+                            pass
+
                     # Quy tắc lưu cứng: Trận đấu diễn ra quá 3 ngày (diff_d < -3) được giữ nguyên vĩnh viễn trong DB, KHÔNG gọi lại API.
                     # Chỉ kiểm tra nâng cấp FotMob nếu trận bóng đá vừa diễn ra trong vòng 3 ngày (-3 <= diff_d <= 0) và chưa có điểm chính thức FotMob:
                     if db_perf.has_played and not has_fotmob and -3 <= diff_d <= 0 and espn_sport == "soccer" and ev_id:
@@ -1466,6 +1525,39 @@ def _compute_dashboard_data(
             m_s, m_d = unpack_stats(m.get("player_stats"))
             m["player_stats"] = m_s
             m["detailed_stats"] = m_d
+
+            # Gắn tag Vòng đấu (Vòng 1..N, Tứ kết, Bán kết, Chung kết...) và Kết quả (Thắng/Thua/Hòa)
+            m_tags_cur = list(m.get("tags") or [])
+            round_raw = m.get("round_tag") or (m_d.get("round_raw") if isinstance(m_d, dict) else "") or ""
+            resolved_round = extract_round_stage_tag(round_raw, m.get("competition", ""), m.get("raw_match_name", ""))
+            if resolved_round and resolved_round not in m_tags_cur:
+                m_tags_cur.append(resolved_round)
+
+            if is_m_past or m.get("match_state") == "post":
+                outcome_tag = extract_match_outcome_tag(
+                    m.get("match_result"),
+                    m.get("player_team") or team_name,
+                    m.get("match_name"),
+                    player_name=p.name,
+                )
+                if outcome_tag and outcome_tag not in m_tags_cur:
+                    m_tags_cur.append(outcome_tag)
+
+            if m.get("nt_callup_status") == "not_called_up":
+                m_tags_cur = [t for t in m_tags_cur if not any(k in t.lower() for k in ["không đăng ký", "không thi đấu", "chấn thương"])]
+                if "Không lên tuyển" not in m_tags_cur:
+                    m_tags_cur.append("Không lên tuyển")
+                m["has_played"] = False
+                m["rating"] = None
+                m["is_not_called_up"] = True
+            elif m.get("nt_callup_status") == "injured_withdrawal":
+                m_tags_cur = [t for t in m_tags_cur if "không đăng ký" not in t.lower()]
+                if "Vắng mặt ĐTQG (Chấn thương)" not in m_tags_cur:
+                    m_tags_cur.append("Vắng mặt ĐTQG (Chấn thương)")
+                m["has_played"] = False
+                m["rating"] = None
+            m["tags"] = m_tags_cur
+
             # Trận đấu trong vòng 7 ngày (1 tuần) hoặc trận tương lai: Giữ nguyên trọn vẹn toàn bộ bài báo theo trận
             # Trận cũ hơn 7 ngày (quá 1 tuần): Giới hạn tối đa 8 bài để tiết kiệm dung lượng JSON
             is_within_7d = is_matching_today_perf or (m_date_vn in [today_str_vn, yesterday_str_vn]) or (diff_d >= -7.0)
@@ -1473,7 +1565,7 @@ def _compute_dashboard_data(
             m["news_count"] = len(m_news)
             all_matches.append(m)
 
-            if 0 <= diff_d <= 30 and not is_m_past and m.get("match_state") != "post":
+            if 0 <= diff_d <= 30 and not is_m_past and m.get("match_state") != "post" and m.get("nt_callup_status") != "not_called_up":
                 upcoming_matches_30d.append(m)
 
         all_upcoming_matches = [
@@ -1515,7 +1607,20 @@ def _compute_dashboard_data(
             c_summary, c_details = unpack_stats(raw_stats)
             curr_stats = c_summary
             curr_detailed_stats = c_details
-            curr_tags = tags
+            curr_tags = list(tags or [])
+            today_round_raw = (sched_today_match.get("round_tag") if sched_today_match else "") or (c_details.get("round_raw") if isinstance(c_details, dict) else "") or ""
+            today_round_tag = extract_round_stage_tag(today_round_raw, comp_name, curr_match_name)
+            if today_round_tag and today_round_tag not in curr_tags:
+                curr_tags.append(today_round_tag)
+            if curr_match_state == "post" and curr_match_result:
+                today_outcome = extract_match_outcome_tag(
+                    curr_match_result,
+                    (sched_today_match.get("player_team") if sched_today_match else None) or team_name,
+                    curr_match_name,
+                    player_name=p.name,
+                )
+                if today_outcome and today_outcome not in curr_tags:
+                    curr_tags.append(today_outcome)
             next_match_text = curr_match_name
             next_match_date_str = match_today.match_date.strftime("%d/%m/%Y") if (match_today and match_today.match_date) else "Hôm nay"
             is_within_month = True
@@ -1531,6 +1636,11 @@ def _compute_dashboard_data(
             
             clean_comp = get_tournament_tag(team_name, sport_name, curr_match_name, first_up.get("competition", ""))
             curr_tags = [clean_comp] if clean_comp else []
+            up_round_tag = first_up.get("round_tag") or extract_round_stage_tag(first_up.get("competition", ""), first_up.get("raw_match_name", ""))
+            if up_round_tag and up_round_tag not in curr_tags:
+                curr_tags.append(up_round_tag)
+            if first_up.get("nt_callup_status") == "injured_withdrawal" and "Vắng mặt ĐTQG (Chấn thương)" not in curr_tags:
+                curr_tags.append("Vắng mặt ĐTQG (Chấn thương)")
             next_match_text = first_up['match_name']
             next_match_date_str = first_up.get("date_vn") or "Sắp diễn ra"
             is_within_month = True
@@ -1549,7 +1659,10 @@ def _compute_dashboard_data(
 
         # Unified official injury handling for all players across all sports
         off_inj = get_player_official_injury(p.name, sport_name)
-        if not off_inj and any("chấn thương" in t.lower() or "đau nhẹ" in t.lower() for t in (curr_tags or tags)):
+        has_official_inj_feed = resolve_team_league(team_name, sport_name) in {"MLB", "NBA", "NHL", "NFL"}
+        if not off_inj and has_official_inj_feed:
+            curr_tags = [t for t in curr_tags if "chấn thương" not in str(t).lower() and "đau nhẹ" not in str(t).lower()]
+        elif not off_inj and any("chấn thương" in t.lower() or "đau nhẹ" in t.lower() for t in (curr_tags or tags)):
             inj_tag = next((t for t in (curr_tags or tags) if "chấn thương" in t.lower() or "đau nhẹ" in t.lower()), "Chấn thương")
             off_inj = {
                 "has_injury": True,

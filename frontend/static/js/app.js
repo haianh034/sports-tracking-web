@@ -453,15 +453,33 @@ function renderTagBadge(tag) {
         </span>`;
     }
 
-    if (tLow.includes('vòng bảng') || tLow.includes('vòng loại') || tLow.includes('super round') || tLow.includes('tranh hạng 3')) {
-        return `<span class="inline-flex items-center gap-1 bg-indigo-950/80 text-indigo-300 text-[11px] px-2.5 py-1 rounded-md border border-indigo-800/70 font-semibold shadow-sm">
-            <span>🏅</span><span>${escapeHtml(label)}</span>
+    if (tLow === 'không lên tuyển') {
+        return `<span title="VĐV không được triệu tập lên Đội tuyển Quốc gia ở đợt tập trung / giải đấu này" class="inline-flex items-center gap-1 bg-slate-900/90 text-slate-300 text-[11px] px-2.5 py-1 rounded-md border border-slate-700/80 font-medium shadow-sm">
+            <span>🚫</span><span>${escapeHtml(label)}</span>
         </span>`;
     }
 
-    if (tLow.includes('chung kết') || tLow.includes('bán kết')) {
+    if (tLow.includes('vắng mặt đtqg')) {
+        return `<span title="Vắng mặt đợt tập trung ĐTQG do chấn thương" class="inline-flex items-center gap-1 bg-amber-950/80 text-amber-300 text-[11px] px-2.5 py-1 rounded-md border border-amber-700/70 font-medium shadow-sm">
+            <span>🚑</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('walkover') || tLow.includes('bỏ cuộc')) {
+        return `<span title="Trận đấu kết thúc do bỏ cuộc (Walkover)" class="inline-flex items-center gap-1 bg-gray-900/90 text-gray-300 text-[11px] px-2.5 py-1 rounded-md border border-gray-700 font-medium shadow-sm">
+            <span>🏳️</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (tLow.includes('chung kết') || tLow.includes('bán kết') || tLow.includes('tứ kết')) {
         return `<span class="inline-flex items-center gap-1 bg-purple-950/80 text-purple-300 text-[11px] px-2.5 py-1 rounded-md border border-purple-800/80 font-bold shadow-sm">
             <span>🎖️</span><span>${escapeHtml(label)}</span>
+        </span>`;
+    }
+
+    if (/^vòng\s+(\d+|1\/\d+)/.test(tLow) || tLow.includes('vòng bảng') || tLow.includes('vòng loại') || tLow.includes('play-off') || tLow.includes('super round') || tLow.includes('tranh hạng 3')) {
+        return `<span class="inline-flex items-center gap-1 bg-indigo-950/80 text-indigo-300 text-[11px] px-2.5 py-1 rounded-md border border-indigo-800/70 font-semibold shadow-sm">
+            <span>🏅</span><span>${escapeHtml(label)}</span>
         </span>`;
     }
 
@@ -2412,7 +2430,12 @@ function renderModalScheduleList(tab) {
                     const rColor = ratingVal >= 8.0 ? 'bg-amber-950/80 border-amber-500/60 text-amber-300' : (ratingVal >= 7.0 ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300' : 'bg-blue-950/80 border-blue-500/60 text-blue-300');
                     ratingBadge = `<span class="px-2 py-0.5 rounded-full border text-[11px] font-mono font-bold ${rColor}">${ratingVal.toFixed(1)}</span>`;
                 } else if (m.has_played === false) {
-                    ratingBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] bg-gray-800 text-gray-400 border border-gray-700/60">Không ra sân</span>`;
+                    const mTagsLow = (m.tags || []).map(t => String(t).toLowerCase());
+                    let absLabel = 'Không ra sân';
+                    if (mTagsLow.some(t => t.includes('không lên tuyển'))) absLabel = 'Không lên tuyển';
+                    else if (mTagsLow.some(t => t.includes('vắng mặt đtqg'))) absLabel = 'Vắng mặt (Chấn thương)';
+                    else if (mTagsLow.some(t => t.includes('walkover') || t.includes('bỏ cuộc'))) absLabel = 'Walkover (WO)';
+                    ratingBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] bg-gray-800 text-gray-400 border border-gray-700/60">${absLabel}</span>`;
                 }
                 const scoreText = m.match_result || 'Đã kết thúc';
                 const tagPreview = (m.tags && m.tags.length > 0) 

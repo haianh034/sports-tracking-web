@@ -464,6 +464,7 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
                 if is_potm:
                     break
 
+    round_raw = str(m_data.get("general", {}).get("leagueRoundName") or m_data.get("general", {}).get("matchRound") or "")
     result = {
         "source": "FotMob",
         "fotmob_rating": fotmob_rating,
@@ -476,7 +477,8 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
         "opponent": target_match.get("opponentTeamName"),
         "minutes_played": minutes_played,
         "goals": goals,
-        "assists": assists
+        "assists": assists,
+        "round_raw": round_raw,
     }
 
     FOTMOB_MATCH_CACHE[match_cache_key] = result

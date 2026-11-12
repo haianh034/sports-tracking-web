@@ -8,6 +8,7 @@ import re
 import threading
 import unicodedata
 import httpx
+from backend.modules.players.services.sports_service import extract_round_stage_tag
 
 WTT_PROD_BASE = "https://wtt-website-api-prod-3-frontdoor-bddnb2haduafdze9.a01.azurefd.net/api/"
 WTT_LIVE_BASE = "https://wtt-website-api-vm-frontdoor-hhaec5epbhdyfugz.a01.azurefd.net/liveeventsapi/api/"
@@ -516,7 +517,7 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
 
             sub_ev = str(card.get("sub_event") or "")
             is_doubles = "doubles" in sub_ev.lower() or "DOUBLES" in dc.upper()
-            round_lbl = _wtt_round_label(dc, card.get("sub_desc", ""))
+            round_lbl = extract_round_stage_tag(_wtt_round_label(dc, card.get("sub_desc", "")), card.get("sub_desc", "")) or _wtt_round_label(dc, card.get("sub_desc", ""))
 
             tags = []
             match_res = None
@@ -914,27 +915,34 @@ def _fetch_flashscore_matches(
         stats_text = ""
         tags = []
 
+        is_walkover = bool(re.search(r'\b(wo|w/o|walkover|ret|retired)\b', f"{sc} {cls}", re.I))
         if m_state in ("post", "in") and sc:
             set_part = f" • {sets_str}" if sets_str else ""
             state_lbl = "LIVE" if m_state == "in" else "FT"
             match_res = f"{row['side1']} {sc} {row['side2']} ({state_lbl}){set_part}"
-            m_sc = re.match(r"(\d+)\s*-\s*(\d+)", sc)
-            if m_sc:
-                a, b = int(m_sc.group(1)), int(m_sc.group(2))
-                our_s, opp_s = (a, b) if is_s1 else (b, a)
-                wl = "Thắng" if our_s > opp_s else ("Thua" if opp_s > our_s else "Hòa")
-                if m_state == "post":
-                    tags.append(wl)
-                stats_text = f"{wl} {our_s}-{opp_s}" + (f" ({sets_str})" if sets_str else "")
+            if is_walkover:
+                tags.append("Bỏ cuộc / Walkover (WO)")
+            else:
+                m_sc = re.match(r"(\d+)\s*-\s*(\d+)", sc)
+                if m_sc:
+                    a, b = int(m_sc.group(1)), int(m_sc.group(2))
+                    our_s, opp_s = (a, b) if is_s1 else (b, a)
+                    wl = "Thắng" if our_s > opp_s else ("Thua" if opp_s > our_s else "Hòa")
+                    if m_state == "post":
+                        tags.append(wl)
+                    stats_text = f"{wl} {our_s}-{opp_s}" + (f" ({sets_str})" if sets_str else "")
         elif m_state == "post":
             match_res = "Đã kết thúc (FT)"
 
         comp_clean = _clean_fs_comp(row["comp"], sport_slug)
+        fs_round_tag = extract_round_stage_tag(row["comp"], comp_clean)
+        if fs_round_tag and fs_round_tag not in tags:
+            tags.append(fs_round_tag)
         if not is_team_mode and "/" in our_side:
             tags.append("Đánh đôi")
 
         ev_id = f"fs_{sport_slug}_{row['mid']}"
-        has_p = (m_state == "post" and bool(sc))
+        has_p = (m_state == "post" and bool(sc) and not is_walkover)
         WTT_MATCH_STATS_LOOKUP[ev_id] = {
             "has_played": has_p,
             "stats_text": stats_text,
@@ -953,6 +961,7 @@ def _fetch_flashscore_matches(
             "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
             "time_only_vn": dt_vn.strftime("%H:%M"),
             "competition": comp_clean,
+            "round_tag": fs_round_tag,
             "event_id": ev_id,
             "match_state": m_state,
             "match_result": match_res,

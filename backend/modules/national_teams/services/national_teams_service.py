@@ -1686,3 +1686,188 @@ def get_national_teams_dashboard_data(db: Session, country: str = None, sport: s
         "available_countries": sorted(list({t["country"] for t in result_teams})),
         "available_tiers": ["Senior", "U23", "U20", "U19", "U18", "U21", "Youth"]
     }
+
+
+_NT_SQUAD_CONTEXT_CACHE = {}
+
+
+def fetch_national_team_squad_context(
+    country: str,
+    sport: str,
+    tier: str = "Senior",
+    comp_name: str = "",
+) -> dict:
+    """Fetch recent official/news squad-announcement headlines for a national team (4h TTL)."""
+    cache_key = (
+        (country or "").strip().lower(),
+        (sport or "").strip().lower(),
+        (tier or "Senior").strip().lower(),
+        (comp_name or "").strip().lower()[:60],
+    )
+    now_ts = datetime.datetime.now().timestamp()
+    cached = _NT_SQUAD_CONTEXT_CACHE.get(cache_key)
+    if cached and (now_ts - cached["ts"] < 14400):
+        return cached["data"]
+
+    c_low = (country or "").lower()
+    s_low = (sport or "").lower()
+    is_jp = any(k in c_low for k in ["japan", "nhật"])
+    is_kr = any(k in c_low for k in ["korea", "hàn"])
+
+    queries = []
+    if is_jp:
+        if "bóng chày" in s_low or "baseball" in s_low:
+            queries.append(("ja", "侍ジャパン メンバー OR ロースター OR 招集"))
+            queries.append(("en", '"Samurai Japan" OR "Japan national baseball" roster OR squad OR APBC'))
+        elif "bóng đá" in s_low or "soccer" in s_low or "football" in s_low:
+            queries.append(("ja", "サッカー日本代表 招集 OR メンバー"))
+            queries.append(("en", '"Japan national football" OR "Samurai Blue" squad OR called up'))
+        else:
+            queries.append(("en", f'"{country}" {sport} national team squad OR roster'))
+    elif is_kr:
+        if "bóng chày" in s_low or "baseball" in s_low:
+            queries.append(("ko", "야구 대표팀 명단 OR 엔트리"))
+            queries.append(("en", '"South Korea" baseball national team roster OR squad OR APBC'))
+        elif "bóng đá" in s_low or "soccer" in s_low or "football" in s_low:
+            queries.append(("ko", "축구 국가대표팀 명단 OR 소집"))
+            queries.append(("en", '"South Korea" national football team squad OR called up'))
+        else:
+            queries.append(("en", f'"{country}" {sport} national team squad OR roster'))
+    else:
+        queries.append(("en", f'"{country}" {sport} national team squad OR roster'))
+
+    titles = []
+    seen = set()
+    for lang, q in queries[:2]:
+        try:
+            hl = "ja" if lang == "ja" else ("ko" if lang == "ko" else "en-US")
+            gl = "JP" if lang == "ja" else ("KR" if lang == "ko" else "US")
+            ceid = f"{gl}:{lang}"
+            url = f"https://news.google.com/rss/search?q={urllib.parse.quote(q)}&hl={hl}&gl={gl}&ceid={ceid}"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                xml_data = resp.read()
+            root = ET.fromstring(xml_data)
+            for item in root.findall("./channel/item")[:15]:
+                t_el = item.find("title")
+                if t_el is not None and t_el.text:
+                    t_clean = t_el.text.strip()
+                    if t_clean.lower() not in seen:
+                        seen.add(t_clean.lower())
+                        titles.append(t_clean)
+        except Exception:
+            continue
+
+    combined_low = " ".join([comp_name or ""] + titles).lower()
+    is_dom_u24 = any(k in combined_low for k in [
+        "asia professional baseball", "apbc", "u-24", "u24", "u-23", "u23",
+        "eaff", "e-1", "domestic", "jリーグ組", "kbo", "npb",
+    ])
+    res = {
+        "titles": titles,
+        "is_domestic_or_u24_tournament": is_dom_u24,
+    }
+    _NT_SQUAD_CONTEXT_CACHE[cache_key] = {"ts": now_ts, "data": res}
+    return res
+
+
+def evaluate_national_team_callup(
+    player_name: str,
+    team_name: str,
+    sport_name: str,
+    country_name: str,
+    gender: str = "Male",
+    nt_match: dict = None,
+    player_news_titles: list = None,
+    official_injury: dict = None,
+    recent_club_injury: bool = False,
+) -> tuple:
+    """
+    Determine whether an athlete is called up, omitted/not called up, or injured for a National Team match.
+    Returns (status, tag_label, reason_detail) where status in:
+      'called_up' | 'not_called_up' | 'injured_withdrawal' | 'unknown'
+    """
+    nt_match = nt_match or {}
+    tags_low = " ".join(str(t).lower() for t in (nt_match.get("tags") or []))
+    if nt_match.get("has_played") and not nt_match.get("no_lineup_data"):
+        return ("called_up", "Được triệu tập", "Thi đấu chính thức cho ĐTQG")
+    if any(k in tags_low for k in ["đá chính", "vào sân", "dự bị", "xuất phát"]):
+        return ("called_up", "Được triệu tập", "Có tên trong danh sách thi đấu ĐTQG")
+    if "không lên tuyển" in tags_low:
+        return ("not_called_up", "Không lên tuyển", "Không có tên trong danh sách ĐTQG")
+    if "vắng mặt đtqg (chấn thương)" in tags_low:
+        return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Rút lui khỏi ĐTQG do chấn thương")
+
+    comp_name = str(nt_match.get("competition") or nt_match.get("raw_match_name") or "")
+    comp_low = comp_name.lower()
+    nt_tier = str(nt_match.get("nt_tier") or nt_match.get("tier") or "Senior")
+
+    # 1. Deterministic tournament eligibility (Youth or Domestic/U24 tournaments)
+    if nt_tier in {"U23", "U21", "U20", "U19", "U18", "U17", "Youth"} or any(
+        u in comp_low for u in ["u23", "u-23", "u21", "u20", "u-20", "u19", "u17"]
+    ):
+        return ("not_called_up", "Không lên tuyển", f"Giải trẻ ({nt_tier}) - không thuộc diện triệu tập")
+
+    try:
+        from backend.modules.players.services.sports_service import resolve_team_league
+        club_league = resolve_team_league(team_name, sport_name)
+    except Exception:
+        club_league = ""
+
+    is_apbc = any(k in comp_low for k in ["asia professional", "apbc", "raxus"])
+    if is_apbc and club_league == "MLB":
+        return (
+            "not_called_up",
+            "Không lên tuyển",
+            "Giải APBC dành cho cầu thủ NPB/KBO/CPBL (U24), các ngôi sao MLB không lên tuyển",
+        )
+
+    is_eaff = any(k in comp_low for k in ["eaff", "e-1 championship"])
+    if is_eaff and club_league in {"Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Eredivisie", "Championship", "MLS", "WSL"}:
+        return (
+            "not_called_up",
+            "Không lên tuyển",
+            "Giải EAFF E-1 chỉ triệu tập cầu thủ thi đấu trong nước",
+        )
+
+    # 2. Player & NT squad news evidence
+    p_tokens = [tok.lower() for tok in re.split(r"\s+", (player_name or "").strip()) if len(tok) >= 3]
+    last_tok = p_tokens[-1] if p_tokens else ""
+    first_tok = p_tokens[0] if p_tokens else ""
+
+    def _mentions_player(text_low: str) -> bool:
+        if not p_tokens:
+            return False
+        if (player_name or "").lower() in text_low:
+            return True
+        return bool(last_tok and first_tok and last_tok in text_low and first_tok in text_low)
+
+    p_titles = [str(t) for t in (player_news_titles or []) if t]
+    for title in p_titles[:15]:
+        tl = title.lower()
+        if any(k in tl for k in ["withdraw", "withdrew", "pulled out", "ruled out", "辞退", "負傷離脱", "怪我", "부상 낙마", "소집 해제", "rút lui", "lỡ hẹn"]):
+            if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "world cup", "friendly"]):
+                return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", title)
+        if any(k in tl for k in ["left out", "omitted", "snubbed", "not called", "選外", "招集外", "不選出", "제외", "명단 제외", "không được triệu tập"]):
+            return ("not_called_up", "Không lên tuyển", title)
+        if any(k in tl for k in ["called up", "named in", "squad", "roster", "招集", "代表選出", "メンバー入り", "발탁", "명단 포함", "triệu tập", "lên tuyển"]):
+            if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "friendly", "qualifier"]):
+                return ("called_up", "Được triệu tập", title)
+
+    if official_injury or recent_club_injury:
+        return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Đang chấn thương tại CLB nên vắng mặt đợt tập trung ĐTQG")
+
+    squad_ctx = fetch_national_team_squad_context(country_name, sport_name, tier=nt_tier, comp_name=comp_name)
+    sq_titles = squad_ctx.get("titles") or []
+    for st in sq_titles:
+        stl = st.lower()
+        if _mentions_player(stl):
+            if any(k in stl for k in ["withdraw", "辞退", "負傷", "부상", "omitted", "選外", "제외"]):
+                return ("not_called_up", "Không lên tuyển", st)
+            if any(k in stl for k in ["roster", "squad", "called", "招集", "メンバー", "代表", "명단", "발탁"]):
+                return ("called_up", "Được triệu tập", st)
+
+    if squad_ctx.get("is_domestic_or_u24_tournament") and club_league in {"MLB", "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "NBA"}:
+        return ("not_called_up", "Không lên tuyển", "Giải đấu sử dụng đội hình nội địa / U24")
+
+    return ("unknown", "", "")

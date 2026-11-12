@@ -401,6 +401,130 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
 
     return ""
 
+def extract_round_stage_tag(raw_stage: str = "", competition: str = "", match_name: str = "") -> str:
+    """Chuẩn hóa thông tin vòng đấu thực tế từ API (Vòng 1, Vòng 2..., Tứ kết, Bán kết, Chung kết)."""
+    text = f"{raw_stage or ''} {competition or ''} {match_name or ''}".strip()
+    if not text:
+        return ""
+    tl = text.lower()
+
+    if any(k in tl for k in ["chung kết", "grand final", "championship game"]) or (
+        re.search(r'\bfinal\b', tl) and not any(x in tl for x in ["semi", "quarter", "1/8", "1/16", "1/32", "eighth", "sixteenth"])
+    ):
+        return "Chung kết"
+    if any(k in tl for k in ["bán kết", "semifinal", "semi-final", "semi final"]):
+        return "Bán kết"
+    if any(k in tl for k in ["tứ kết", "quarterfinal", "quarter-final", "quarter final"]):
+        return "Tứ kết"
+    if any(k in tl for k in ["vòng 1/8", "round of 16", "last 16", "1/8-finals", "1/8 final"]):
+        return "Vòng 1/8"
+    if any(k in tl for k in ["vòng 1/16", "round of 32", "last 32", "1/16-finals", "1/16 final"]):
+        return "Vòng 1/16"
+    if any(k in tl for k in ["vòng 1/32", "round of 64", "last 64", "1/32-finals", "1/32 final"]):
+        return "Vòng 1/32"
+    if any(k in tl for k in ["tranh hạng 3", "3rd place", "third place", "bronze"]):
+        return "Tranh hạng 3"
+    if any(k in tl for k in ["playoff", "play-off", "play-in", "wild card", "wildcard"]):
+        return "Play-off"
+    if any(k in tl for k in ["vòng bảng", "group stage", "league phase"]) or re.search(r'\bgroup\s+[a-h]\b', tl):
+        return "Vòng bảng"
+    if any(k in tl for k in ["vòng loại", "qualifying", "qualification", "preliminary"]):
+        return "Vòng loại"
+
+    # Numeric rounds: "Week 18", "Matchweek 11", "Round 3", "First Round", "3", "Vòng 5"
+    word_ordinals = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8}
+    for w, num in word_ordinals.items():
+        if re.search(rf'\b{w}\s+(?:round|stage)\b', tl):
+            return f"Vòng {num}"
+
+    m_num = re.search(r'\b(?:vòng|round|matchday|matchweek|gameweek|week|gw|stage)\s*#?\s*(\d{1,2})\b', tl)
+    if m_num:
+        return f"Vòng {int(m_num.group(1))}"
+
+    raw_s = (raw_stage or "").strip()
+    if raw_s.isdigit() and 1 <= int(raw_s) <= 60:
+        return f"Vòng {int(raw_s)}"
+
+    return ""
+
+
+def extract_match_outcome_tag(match_result: str, team_name: str = "", match_name: str = "", sport_name: str = "", player_name: str = "") -> str:
+    """Trả về 'Thắng', 'Thua' hoặc 'Hòa' dựa trên tỉ số thực tế của trận đã kết thúc."""
+    res = (match_result or "").strip()
+    if not res:
+        return ""
+    res_low = res.lower()
+    if any(k in res_low for k in ["chưa", "hủy", "hoãn", "postponed", "cancelled", "walkover", "wo)"]):
+        return ""
+
+    # Tách phần tỉ số chính (bỏ phần ghi chú trong ngoặc và set phụ sau dấu •)
+    main_part = res.split("•")[0].strip()
+    main_part = re.sub(r'\([^)]*\)', '', main_part).strip()
+
+    m_pair = re.search(r'^(.*?)\s+(\d+)\s*[-–:]\s*(\d+)\s+(.*?)$', main_part)
+    if m_pair:
+        left_name = m_pair.group(1).strip()
+        left_sc = int(m_pair.group(2))
+        right_sc = int(m_pair.group(3))
+        right_name = m_pair.group(4).strip()
+
+        def _same_side(a: str, b: str) -> bool:
+            al = re.sub(r'[^a-z0-9\s]', ' ', (a or '').lower()).split()
+            bl = re.sub(r'[^a-z0-9\s]', ' ', (b or '').lower()).split()
+            stop = {'fc', 'cf', 'sc', 'afc', 'ac', 'city', 'united', 'club', 'team', 'women', 'the'}
+            at = [t for t in al if len(t) >= 3 and t not in stop]
+            bt = [t for t in bl if len(t) >= 3 and t not in stop]
+            return bool(at and bt and (set(at) & set(bt)))
+
+        is_left_ours = None
+        t_clean = re.sub(r'\s*\((?:nữ|women|w)\)', '', (team_name or ''), flags=re.I).strip().lower()
+        if t_clean and t_clean not in ("tự do", "chưa rõ", "chưa rõ clb", "unknown", "atp", "wta", "pga", "golf"):
+            l_low = left_name.lower()
+            r_low = right_name.lower()
+            if t_clean in l_low or l_low in t_clean or _same_side(t_clean, left_name):
+                is_left_ours = True
+            elif t_clean in r_low or r_low in t_clean or _same_side(t_clean, right_name):
+                is_left_ours = False
+
+        if is_left_ours is None and player_name:
+            p_toks = [tok.lower() for tok in re.split(r'\s+', player_name.strip()) if len(tok) >= 3]
+            if p_toks:
+                l_low = left_name.lower()
+                r_low = right_name.lower()
+                l_hit = sum(1 for tok in p_toks if tok in l_low)
+                r_hit = sum(1 for tok in p_toks if tok in r_low)
+                if l_hit > r_hit:
+                    is_left_ours = True
+                elif r_hit > l_hit:
+                    is_left_ours = False
+
+        if is_left_ours is None and match_name:
+            mn = match_name.strip()
+            opp_clean = re.sub(r'^(@|vs\.?)\s+', '', mn, flags=re.I).strip().lower()
+            if opp_clean:
+                l_low = left_name.lower()
+                r_low = right_name.lower()
+                if opp_clean in r_low or r_low in opp_clean or _same_side(opp_clean, right_name):
+                    is_left_ours = True
+                elif opp_clean in l_low or l_low in opp_clean or _same_side(opp_clean, left_name):
+                    is_left_ours = False
+            if is_left_ours is None:
+                if mn.lower().startswith("vs "):
+                    is_left_ours = True
+                elif mn.lower().startswith("@ "):
+                    is_left_ours = False
+
+        if is_left_ours is not None:
+            our_s, opp_s = (left_sc, right_sc) if is_left_ours else (right_sc, left_sc)
+            if our_s > opp_s:
+                return "Thắng"
+            if opp_s > our_s:
+                return "Thua"
+            return "Hòa"
+
+    return ""
+
+
 def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: str, match_name: str, match_state: str, existing_stats: str = None, existing_tags: list = None, competition_name: str = "", news_titles: list = None, is_no_match: bool = False) -> tuple:
     tourn_tag = get_tournament_tag(team_name, sport_name, match_name, competition_name)
 
@@ -451,9 +575,12 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
             return bool(re.search(r'\b' + re.escape(kw) + r'\b', text, re.IGNORECASE))
         return kw in text
 
-    # Check for injury keywords in news
+    # Check for injury keywords in news ONLY for finished non-ESPN-feed matches when already absent
+    # Never infer pre-match injury purely from unverified news headlines (MLB/NBA/NHL/NFL use official ESPN injury feed).
     has_injury_in_news = False
-    if news_titles and not is_no_match:
+    s_low_tag = (sport_name or "").lower()
+    has_official_inj_feed = any(k in s_low_tag for k in ["bóng chày", "baseball", "bóng rổ", "basketball", "khúc côn cầu", "hockey", "bầu dục mỹ", "nfl"])
+    if news_titles and not is_no_match and match_state == "post" and not has_official_inj_feed:
         INJURY_KWS = ["chấn thương", "nghỉ thi đấu", "vắng mặt", "phẫu thuật", "rách cơ", "đau cơ", "quá tải", "dây chằng", "đầu gối", "injury", "injured", "out with", "surgery", "sprain", "torn", "acl", "hamstring", "concussion", "fracture", "부상", "결장", "수술", "십자인대", "근육 과부하", "怪我", "負傷", "離脱", "欠場", "手術", "ベンチ外"]
         FALSE_INJURY_PHRASES = [
             "not surgery", "no surgery", "offseason rest", "off-season rest", "avoids injury", 
@@ -485,19 +612,12 @@ def format_player_stats_and_tags(player_name: str, sport_name: str, team_name: s
                     final_tags.append("Không đăng ký (Chấn thương)")
                 elif t and t not in final_tags:
                     final_tags.append(t)
-        else:
-            if has_injury_in_news:
-                final_tags.append("Không đăng ký (Chấn thương)")
-            else:
-                final_tags.append("Không thi đấu")
     else:
         # Pre-match or upcoming
         if clean_existing_tags:
             for t in clean_existing_tags:
                 if t and t not in final_tags:
                     final_tags.append(t)
-        if has_injury_in_news and "Chấn thương" not in final_tags and not any("chấn thương" in t.lower() for t in final_tags):
-            final_tags.append("Chấn thương")
 
     cleaned_tags = []
     seen = set()

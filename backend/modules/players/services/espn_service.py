@@ -7,7 +7,7 @@ import re
 import hashlib
 from backend.core.config import SPORT_TO_ESPN, ESPN_INDIVIDUAL_SPORT_LEAGUES, resolve_espn_sport_code, normalize_player_name
 from backend.core.services.wiki_service import get_team_aliases_from_wiki
-from backend.modules.players.services.sports_service import get_tournament_tag
+from backend.modules.players.services.sports_service import get_tournament_tag, extract_round_stage_tag, extract_match_outcome_tag
 
 import threading
 
@@ -798,6 +798,19 @@ def extract_opponent_name(team_name: str, home_name: str, away_name: str, event_
     return opp_name
 
 
+def _extract_espn_round_tag(event: dict, comp: dict, fallback_text: str = "") -> str:
+    """Extract normalized round/stage tag from ESPN event/competition metadata."""
+    wk = event.get("week") if isinstance(event, dict) else None
+    wk_txt = ""
+    if isinstance(wk, dict):
+        wk_txt = wk.get("text") or (f"Week {wk['number']}" if wk.get("number") else "")
+    st = event.get("seasonType") if isinstance(event, dict) else None
+    st_txt = st.get("name", "") if isinstance(st, dict) else ""
+    notes = comp.get("notes") if isinstance(comp, dict) else None
+    note_txt = notes[0].get("headline", "") if isinstance(notes, list) and notes and isinstance(notes[0], dict) else ""
+    return extract_round_stage_tag(wk_txt, st_txt, note_txt, fallback_text)
+
+
 def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
     if not team_name or team_name in ["Tự do", "Chưa rõ Đội"]: 
         return None
@@ -886,10 +899,12 @@ def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
                     )
                     clean_comp = get_tournament_tag(team_name, sport_name, opp_name, raw_comp)
                     comp_league = clean_comp or raw_comp or ""
+                    round_tag = _extract_espn_round_tag(event, comp, raw_comp)
                     match_info = {
                         "match_name": opp_name,
                         "raw_match_name": ev_n,
                         "competition": comp_league,
+                        "round_tag": round_tag,
                         "match_date": date_obj,
                         "event_id": str(event.get('id', '')),
                         "match_state": status_state,
@@ -1128,6 +1143,8 @@ def fetch_fotmob_team_schedule(team_name: str, player_name: str = None, gender: 
                     else:
                         formatted_result = "Đã kết thúc (FT)"
 
+                fm_round_raw = f.get('roundName') or (f"Vòng {f.get('round')}" if f.get('round') else "") or f.get('tournament', {}).get('round', '')
+                fm_round_tag = extract_round_stage_tag(str(fm_round_raw))
                 matches.append({
                     'match_name': opp_name,
                     'raw_match_name': f"{home_name} vs {away_name}",
@@ -1137,6 +1154,7 @@ def fetch_fotmob_team_schedule(team_name: str, player_name: str = None, gender: 
                     'date_only_vn': dt_vn.strftime('%Y-%m-%d'),
                     'time_only_vn': dt_vn.strftime('%H:%M'),
                     'competition': f.get('tournament', {}).get('name', ''),
+                    'round_tag': fm_round_tag,
                     'event_id': f"fm_{f.get('id')}",
                     'match_state': 'post' if is_finished else 'pre',
                     'match_result': formatted_result,
@@ -1586,6 +1604,7 @@ def _fetch_player_upcoming_schedule_30d_impl(
                         )
                         clean_comp = get_tournament_tag(team_name, sport, opp_name, raw_comp)
                         comp_name = clean_comp or raw_comp or ""
+                        round_tag = _extract_espn_round_tag(ev, comp_obj, raw_comp)
 
                         status_type = comp_obj.get("status", {}).get("type", {})
                         status_state = status_type.get("state", "pre")
@@ -1608,6 +1627,7 @@ def _fetch_player_upcoming_schedule_30d_impl(
                             "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
                             "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
                             "competition": comp_name,
+                            "round_tag": round_tag,
                             "match_state": status_state if status_state in ["in", "post"] else ("post" if diff < -0.1 else "pre"),
                             "match_result": match_result,
                             "is_past": (diff < 0 or status_state == "post"),
@@ -2059,37 +2079,52 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
     if event_id and match_state in ["post", "in"]:
         try:
             ev_id_str = str(event_id)
+            is_nt_event = ev_id_str.startswith("espn_nt_")
+            clean_ev_id = ev_id_str[len("espn_nt_"):] if is_nt_event else ev_id_str
+
             # 0. RACKET / VOLLEYBALL REAL SOURCES (WTT Official API & Flashscore)
             if ev_id_str.startswith(("wtt_", "fs_")):
+                rv_stats = None
                 try:
                     from backend.modules.players.services.racket_volleyball_service import get_racket_or_volleyball_match_stats
                     rv_stats = get_racket_or_volleyball_match_stats(ev_id_str)
-                    if rv_stats:
-                        return rv_stats
                 except Exception:
                     pass
-                # Fallback to cached schedule item if SCHEDULE_30D_CACHE was loaded from disk
-                for _ck, (_cts, _clist) in list(SCHEDULE_30D_CACHE.items()):
-                    if isinstance(_clist, list):
-                        for _it in _clist:
-                            if str(_it.get("event_id") or "") == ev_id_str and (_it.get("player_stats") or _it.get("match_result")):
-                                return {
-                                    "stats_text": _it.get("player_stats") or "",
-                                    "rating": None,
-                                    "tags": list(_it.get("tags") or []),
-                                    "has_played": bool(_it.get("has_played")),
-                                    "match_result": _it.get("match_result"),
-                                }
+                if not rv_stats:
+                    # Fallback to cached schedule item if SCHEDULE_30D_CACHE was loaded from disk
+                    for _ck, (_cts, _clist) in list(SCHEDULE_30D_CACHE.items()):
+                        if isinstance(_clist, list):
+                            for _it in _clist:
+                                if str(_it.get("event_id") or "") == ev_id_str and (_it.get("player_stats") or _it.get("match_result")):
+                                    rv_stats = {
+                                        "stats_text": _it.get("player_stats") or "",
+                                        "rating": _it.get("rating"),
+                                        "tags": list(_it.get("tags") or []),
+                                        "has_played": bool(_it.get("has_played")),
+                                        "match_result": _it.get("match_result"),
+                                    }
+                                    break
+                        if rv_stats:
+                            break
+                if rv_stats:
+                    m_res = str(rv_stats.get("match_result") or "")
+                    if re.search(r'\b(wo|w/o|walkover|retired|ret\.)\b', m_res, re.I):
+                        return {"stats_text": rv_stats.get("stats_text") or m_res, "rating": None, "tags": ["Bỏ cuộc / Walkover (WO)"], "has_played": False, "match_result": m_res}
+                    if match_state == "post" and m_res and not re.search(r'(cancelled|postponed|abandoned|hủy|hoãn)', m_res, re.I):
+                        rv_stats = dict(rv_stats)
+                        rv_stats["has_played"] = True
+                        rv_stats["tags"] = [t for t in (rv_stats.get("tags") or []) if "không thi đấu" not in str(t).lower()]
+                    return rv_stats
 
             # 1. SOCCER SUMMARY
             if espn_sport == "soccer":
-                if str(event_id).startswith("fm_"):
-                    fm_res = _fetch_fotmob_match_summary(player_name, team_name, event_id, match_state, news_titles)
+                if ev_id_str.startswith("fm_"):
+                    fm_res = _fetch_fotmob_match_summary(player_name, team_name, ev_id_str, match_state, news_titles)
                     if fm_res:
                         return fm_res
 
-                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event={event_id}"
-                data = fetch_espn_summary(sum_url, event_id)
+                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event={clean_ev_id}"
+                data = fetch_espn_summary(sum_url, clean_ev_id)
                 
                 try:
                     comp_hdr = data.get('header', {}).get('competitions', [{}])[0]
@@ -2428,31 +2463,58 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                     except Exception:
                         pass
 
+                    has_roster_data = any(
+                        r.get('roster') or r.get('substitutes')
+                        for r in (data.get('rosters') or [])
+                    )
                     reason = detect_player_absence_reason(player_name, news_titles=news_titles)
-                    if reason == 'injury':
-                        tag_name = "Không đăng ký (Chấn thương)"
-                    elif reason == 'suspension':
-                        tag_name = "Treo giò (Vắng mặt)"
-                    elif reason == 'rest':
-                        tag_name = "Không đăng ký (Xoay tua / Nghỉ ngơi)"
-                    else:
-                        tag_name = "Không đăng ký thi đấu"
-                    return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False}
+                    if not has_roster_data:
+                        # No public lineup data (cups/friendlies/youth): do NOT fabricate "Không đăng ký thi đấu"
+                        if reason == 'injury':
+                            off_inj = get_player_official_injury(player_name, sport_name)
+                            if off_inj:
+                                return {"stats_text": "", "rating": None, "tags": [off_inj["formatted_tag"]], "has_played": False, "match_result": official_header_res}
+                        return {"stats_text": "", "rating": None, "tags": ["Đang thi đấu"] if match_state == "in" else [], "has_played": (match_state == "post"), "match_result": official_header_res, "no_lineup_data": True}
 
-            # 2. BASKETBALL (NBA) SUMMARY
+                    if is_nt_event:
+                        if reason == 'injury':
+                            tag_name = "Vắng mặt ĐTQG (Chấn thương)"
+                        elif reason == 'suspension':
+                            tag_name = "Treo giò (Vắng mặt)"
+                        else:
+                            tag_name = "Không lên tuyển"
+                    else:
+                        if reason == 'injury':
+                            tag_name = "Không đăng ký (Chấn thương)"
+                        elif reason == 'suspension':
+                            tag_name = "Treo giò (Vắng mặt)"
+                        elif reason == 'rest':
+                            tag_name = "Không đăng ký (Xoay tua / Nghỉ ngơi)"
+                        else:
+                            tag_name = "Không đăng ký thi đấu"
+                    return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
+
+            # 2. BASKETBALL (NBA / FIBA) SUMMARY
             elif espn_sport == "basketball":
-                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={event_id}"
-                data = fetch_espn_summary(sum_url, event_id)
+                lg_bball = "fiba" if is_nt_event else "nba"
+                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/{lg_bball}/summary?event={clean_ev_id}"
+                data = fetch_espn_summary(sum_url, clean_ev_id)
+                if is_nt_event and not data.get("boxscore", {}).get("players"):
+                    sum_url_fb = f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={clean_ev_id}"
+                    data_fb = fetch_espn_summary(sum_url_fb, clean_ev_id)
+                    if data_fb:
+                        data = data_fb
 
                 matched_ath = None
                 st_map = {}
                 boxscore = data.get("boxscore", {})
+                has_boxscore_data = bool(boxscore.get("players"))
                 for t in boxscore.get("players", []):
                     for stat in t.get("statistics", []):
                         labels = stat.get("labels", [])
                         for ath in stat.get("athletes", []):
-                            ath_name = ath.get("athlete", {}).get("displayName", "").lower()
-                            if any(part in ath_name for part in p_parts):
+                            ath_name = ath.get("athlete", {}).get("displayName", "")
+                            if _matches_athlete(ath_name):
                                 matched_ath = ath
                                 stats_vals = ath.get("stats", [])
                                 for idx, lbl in enumerate(labels):
@@ -2568,20 +2630,35 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
                 else:
                     reason = detect_player_absence_reason(player_name, news_titles=news_titles, summary_injuries=data.get("injuries", []))
-                    if reason == 'injury':
+                    if not has_boxscore_data:
+                        if reason == 'injury':
+                            off_inj = get_player_official_injury(player_name, sport_name)
+                            if off_inj:
+                                return {"stats_text": "", "rating": None, "tags": [off_inj["formatted_tag"]], "has_played": False, "match_result": official_header_res}
+                        return {"stats_text": "", "rating": None, "tags": ["Đang thi đấu"] if match_state == "in" else [], "has_played": (match_state == "post"), "match_result": official_header_res, "no_lineup_data": True}
+                    if is_nt_event:
+                        tag_name = "Vắng mặt ĐTQG (Chấn thương)" if reason == 'injury' else "Không lên tuyển"
+                    elif reason == 'injury':
                         tag_name = "Không đăng ký (Chấn thương)"
                     elif reason == 'suspension':
                         tag_name = "Treo giò (Vắng mặt)"
                     else:
                         tag_name = "Không đăng ký thi đấu"
-                    return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False}
+                    return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
 
-            # 3. BASEBALL (MLB) SUMMARY
+            # 3. BASEBALL (MLB / WBC / NT) SUMMARY
             elif espn_sport == "baseball":
-                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event={event_id}"
-                data = fetch_espn_summary(sum_url, event_id)
+                lg_bball_base = "world-baseball-classic" if is_nt_event else "mlb"
+                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/baseball/{lg_bball_base}/summary?event={clean_ev_id}"
+                data = fetch_espn_summary(sum_url, clean_ev_id)
+                if is_nt_event and not data.get("boxscore", {}).get("players"):
+                    sum_url_fb = f"https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event={clean_ev_id}"
+                    data_fb = fetch_espn_summary(sum_url_fb, clean_ev_id)
+                    if data_fb:
+                        data = data_fb
 
                 boxscore = data.get("boxscore", {})
+                has_boxscore_data = bool(boxscore.get("players"))
                 matched_bat = None
                 bat_ath = None
                 matched_pitch = None
@@ -2592,8 +2669,8 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         labels = stat.get("labels", [])
                         st_type = stat.get("type")
                         for ath in stat.get("athletes", []):
-                            ath_name = ath.get("athlete", {}).get("displayName", "").lower()
-                            if any(part in ath_name for part in p_parts):
+                            ath_name = ath.get("athlete", {}).get("displayName", "")
+                            if _matches_athlete(ath_name):
                                 s_map = {}
                                 vals = ath.get("stats", [])
                                 for idx, lbl in enumerate(labels):
@@ -2730,17 +2807,25 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                     return {"stats_text": " | ".join(st_parts) if st_parts else "", "rating": rating, "tags": tags, "has_played": True}
                 else:
                     reason = detect_player_absence_reason(player_name, news_titles=news_titles, summary_injuries=data.get("injuries", []))
-                    if reason == 'injury':
+                    if not has_boxscore_data:
+                        if reason == 'injury':
+                            off_inj = get_player_official_injury(player_name, sport_name)
+                            if off_inj:
+                                return {"stats_text": "", "rating": None, "tags": [off_inj["formatted_tag"]], "has_played": False, "match_result": official_header_res}
+                        return {"stats_text": "", "rating": None, "tags": ["Đang thi đấu"] if match_state == "in" else [], "has_played": (match_state == "post"), "match_result": official_header_res, "no_lineup_data": True}
+                    if is_nt_event:
+                        tag_name = "Vắng mặt ĐTQG (Chấn thương)" if reason == 'injury' else "Không lên tuyển"
+                    elif reason == 'injury':
                         off_inj = get_player_official_injury(player_name, sport_name)
                         tag_name = off_inj["formatted_tag"] if off_inj else "Không đăng ký (Chấn thương)"
                     else:
                         tag_name = "Dự bị (Không thi đấu)" if match_state == "post" else "Dự bị"
-                    return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False}
+                    return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
 
             # 4. ESPN INDIVIDUAL SPORTS (Tennis, Golf, Racing/F1, MMA/UFC) - chỉ lấy thông số thực từ Scoreboard/Overview
             elif espn_sport in ESPN_INDIVIDUAL_SPORT_LEAGUES:
                 real_events = fetch_espn_individual_upcoming_30d(player_name, sport_name, espn_sport, days_back=90, days_fwd=30)
-                matched_ev = next((ev for ev in real_events if str(ev.get("event_id")) == str(event_id)), None)
+                matched_ev = next((ev for ev in real_events if str(ev.get("event_id")) == ev_id_str), None)
                 if matched_ev and (matched_ev.get("match_result") or matched_ev.get("player_stats") or matched_ev.get("match_state") in ("post", "in")):
                     tags_ind = list(matched_ev.get("tags") or [])
                     if not tags_ind:
@@ -2756,11 +2841,11 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                     }
 
             # 5. GENERIC ESPN TEAM SPORT BOXSCORE (NHL Hockey, NFL, Rugby, Cricket, Lacrosse, etc.)
-            elif espn_sport not in {"soccer", "basketball", "baseball"} and str(event_id).isdigit():
+            elif espn_sport not in {"soccer", "basketball", "baseball"} and clean_ev_id.isdigit():
                 t_info = get_espn_team_info(team_name, sport_name)
                 lg_slug = (t_info or {}).get("league") or {"hockey": "nhl", "football": "nfl"}.get(espn_sport, "all")
-                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/{espn_sport}/{lg_slug}/summary?event={event_id}"
-                data = fetch_espn_summary(sum_url, event_id)
+                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/{espn_sport}/{lg_slug}/summary?event={clean_ev_id}"
+                data = fetch_espn_summary(sum_url, clean_ev_id)
                 if data:
                     boxscore = data.get("boxscore", {})
                     for t in boxscore.get("players", []):
@@ -2780,17 +2865,17 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
     reason = detect_player_absence_reason(player_name, news_titles=news_titles)
     if reason == 'injury':
         off_inj = get_player_official_injury(player_name, sport_name)
-        tag_name = off_inj["formatted_tag"] if off_inj else "Chấn thương nhẹ::Theo dõi thể lực hàng ngày"
+        if off_inj:
+            return {"stats_text": "", "rating": None, "tags": [off_inj["formatted_tag"]], "has_played": False, "match_result": official_header_res}
     elif reason == 'suspension':
-        tag_name = "Treo giò (Vắng mặt)"
-    elif match_state == "in":
-        tag_name = "Đang diễn ra"
-    elif match_state == "post":
-        tag_name = "Không thi đấu"
-    else:
-        tag_name = ""
+        return {"stats_text": "", "rating": None, "tags": ["Treo giò (Vắng mặt)"], "has_played": False, "match_result": official_header_res}
+    if match_state == "in":
+        return {"stats_text": "", "rating": None, "tags": ["Đang thi đấu"], "has_played": False, "match_result": official_header_res}
+    if match_state == "post":
+        # No boxscore/roster evidence of absence -> never falsely tag "Không thi đấu"
+        return {"stats_text": "", "rating": None, "tags": [], "has_played": True, "match_result": official_header_res, "no_lineup_data": True}
 
-    return {"stats_text": "", "rating": None, "tags": [tag_name] if tag_name else [], "has_played": False, "match_result": official_header_res}
+    return {"stats_text": "", "rating": None, "tags": [], "has_played": False, "match_result": official_header_res}
 
 MATCH_RECAP_CACHE = {}
 
