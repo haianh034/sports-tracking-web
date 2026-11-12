@@ -1696,12 +1696,16 @@ def fetch_national_team_squad_context(
     sport: str,
     tier: str = "Senior",
     comp_name: str = "",
+    gender: str = "Male",
+    opponent_name: str = "",
 ) -> dict:
-    """Fetch recent official/news squad-announcement headlines for a national team (4h TTL)."""
+    """Fetch recent official/news squad-announcement headlines & decoded roster text (4h TTL)."""
+    g_norm = "Women" if str(gender or "").lower() in ("women", "female", "nữ", "f") else "Male"
     cache_key = (
         (country or "").strip().lower(),
         (sport or "").strip().lower(),
         (tier or "Senior").strip().lower(),
+        g_norm.lower(),
         (comp_name or "").strip().lower()[:60],
     )
     now_ts = datetime.datetime.now().timestamp()
@@ -1713,6 +1717,7 @@ def fetch_national_team_squad_context(
     s_low = (sport or "").lower()
     is_jp = any(k in c_low for k in ["japan", "nhật"])
     is_kr = any(k in c_low for k in ["korea", "hàn"])
+    is_women = (g_norm == "Women")
 
     queries = []
     if is_jp:
@@ -1720,23 +1725,31 @@ def fetch_national_team_squad_context(
             queries.append(("ja", "侍ジャパン メンバー OR ロースター OR 招集"))
             queries.append(("en", '"Samurai Japan" OR "Japan national baseball" roster OR squad OR APBC'))
         elif "bóng đá" in s_low or "soccer" in s_low or "football" in s_low:
-            queries.append(("ja", "サッカー日本代表 招集 OR メンバー"))
-            queries.append(("en", '"Japan national football" OR "Samurai Blue" squad OR called up'))
+            if is_women:
+                queries.append(("ja", "site:jfa.jp なでしこジャパン メンバー"))
+                queries.append(("ja", "なでしこジャパン 招集 OR メンバー"))
+            else:
+                queries.append(("ja", "site:jfa.jp SAMURAI BLUE メンバー"))
+                queries.append(("ja", "サッカー日本代表 メンバー 背番号 OR 招集"))
         else:
-            queries.append(("en", f'"{country}" {sport} national team squad OR roster'))
+            queries.append(("en", f'"{country}" {"women " if is_women else ""}{sport} national team squad OR roster'))
     elif is_kr:
         if "bóng chày" in s_low or "baseball" in s_low:
             queries.append(("ko", "야구 대표팀 명단 OR 엔트리"))
             queries.append(("en", '"South Korea" baseball national team roster OR squad OR APBC'))
         elif "bóng đá" in s_low or "soccer" in s_low or "football" in s_low:
-            queries.append(("ko", "축구 국가대표팀 명단 OR 소집"))
-            queries.append(("en", '"South Korea" national football team squad OR called up'))
+            if is_women:
+                queries.append(("ko", "여자축구 국가대표팀 명단 OR 소집"))
+            else:
+                queries.append(("ko", "축구 국가대표팀 소집 명단 발표"))
+                queries.append(("en", '"South Korea" national football team squad OR called up'))
         else:
-            queries.append(("en", f'"{country}" {sport} national team squad OR roster'))
+            queries.append(("en", f'"{country}" {"women " if is_women else ""}{sport} national team squad OR roster'))
     else:
-        queries.append(("en", f'"{country}" {sport} national team squad OR roster'))
+        queries.append(("en", f'"{country}" {"women " if is_women else ""}{sport} national team squad OR roster'))
 
     titles = []
+    articles_meta = []
     seen = set()
     for lang, q in queries[:2]:
         try:
@@ -1750,13 +1763,65 @@ def fetch_national_team_squad_context(
             root = ET.fromstring(xml_data)
             for item in root.findall("./channel/item")[:15]:
                 t_el = item.find("title")
+                l_el = item.find("link")
                 if t_el is not None and t_el.text:
                     t_clean = t_el.text.strip()
                     if t_clean.lower() not in seen:
                         seen.add(t_clean.lower())
                         titles.append(t_clean)
+                        articles_meta.append((t_clean, l_el.text.strip() if (l_el is not None and l_el.text) else ""))
         except Exception:
             continue
+
+    # Decode and fetch top 2 official/squad-list articles to extract full player roster text
+    def _score_squad_article(t_str: str) -> int:
+        tl = t_str.lower()
+        sc = 0
+        if "jfa" in tl or "kfa" in tl: sc += 5
+        if any(k in tl for k in ["招集メンバー", "メンバー・スケジュール", "소집 명단 발표", "명단 발표", "背番号", "official squad", "final roster"]): sc += 4
+        if any(k in tl for k in ["メンバー", "명단", "엔트리", "squad", "roster"]): sc += 2
+        return sc
+
+    ranked_articles = sorted(articles_meta, key=lambda x: -_score_squad_article(x[0]))
+    squad_texts = []
+    squad_nospace_parts = []
+    squad_source_titles = []
+    has_official_squad_roster = False
+
+    try:
+        import httpx
+        from googlenewsdecoder import gnewsdecoder
+        for art_title, art_link in ranked_articles[:3]:
+            if _score_squad_article(art_title) < 2 or not art_link:
+                continue
+            try:
+                dec = gnewsdecoder(art_link)
+                target_url = dec.get("decoded_url") if isinstance(dec, dict) else None
+                if not target_url:
+                    continue
+                resp = httpx.get(target_url, timeout=6, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+                if resp.status_code != 200 or not resp.text:
+                    continue
+                raw_html = resp.text
+                # Strip HTML comments first so archived/commented-out old squads never pollute current roster
+                clean = re.sub(r"<!--.*?-->", " ", raw_html, flags=re.S)
+                clean = re.sub(r"<(?:script|style|nav|footer|header)[^>]*>.*?</(?:script|style|nav|footer|header)>", " ", clean, flags=re.S | re.I)
+                clean = re.sub(r"<[^>]+>", " ", clean)
+                clean_space = re.sub(r"\s+", " ", clean).strip().lower()
+                clean_nospace = re.sub(r"\s+", "", clean).lower()
+                if len(clean_nospace) >= 400 and any(
+                    mk in clean_nospace for mk in ["gk", "df", "mf", "fw", "監督", "명단", "골키퍼", "수비수", "미드필더", "공격수", "pitcher", "catcher", "roster", "squad"]
+                ):
+                    squad_texts.append(clean_space)
+                    squad_nospace_parts.append(clean_nospace)
+                    squad_source_titles.append(art_title)
+                    has_official_squad_roster = True
+                    if len(squad_texts) >= 2:
+                        break
+            except Exception:
+                continue
+    except Exception:
+        pass
 
     combined_low = " ".join([comp_name or ""] + titles).lower()
     is_dom_u24 = any(k in combined_low for k in [
@@ -1766,6 +1831,10 @@ def fetch_national_team_squad_context(
     res = {
         "titles": titles,
         "is_domestic_or_u24_tournament": is_dom_u24,
+        "squad_articles_text": "\n".join(squad_texts),
+        "squad_articles_nospace": "\n".join(squad_nospace_parts),
+        "squad_source_title": squad_source_titles[0] if squad_source_titles else "",
+        "has_official_squad_roster": has_official_squad_roster,
     }
     _NT_SQUAD_CONTEXT_CACHE[cache_key] = {"ts": now_ts, "data": res}
     return res
@@ -1781,6 +1850,7 @@ def evaluate_national_team_callup(
     player_news_titles: list = None,
     official_injury: dict = None,
     recent_club_injury: bool = False,
+    player_aliases: str = None,
 ) -> tuple:
     """
     Determine whether an athlete is called up, omitted/not called up, or injured for a National Team match.
@@ -1830,38 +1900,99 @@ def evaluate_national_team_callup(
             "Giải EAFF E-1 chỉ triệu tập cầu thủ thi đấu trong nước",
         )
 
-    # 2. Player & NT squad news evidence
+    # 2. Build all name variants (Latin + CJK/Hangul aliases from DB)
+    raw_variants = [player_name or ""]
+    if player_aliases:
+        raw_variants.extend([a.strip() for a in str(player_aliases).split(",") if a.strip()])
+    name_variants_low = []
+    cjk_variants_nospace = []
+    for v in raw_variants:
+        vl = v.strip().lower()
+        if len(vl) >= 2 and vl not in name_variants_low:
+            name_variants_low.append(vl)
+        if re.search(r"[\u3040-\u30ff\u4e00-\u9fff\uac00-\ud7af]", v):
+            vn = re.sub(r"\s+", "", v).lower()
+            if len(vn) >= 2 and vn not in cjk_variants_nospace:
+                cjk_variants_nospace.append(vn)
+
     p_tokens = [tok.lower() for tok in re.split(r"\s+", (player_name or "").strip()) if len(tok) >= 3]
     last_tok = p_tokens[-1] if p_tokens else ""
     first_tok = p_tokens[0] if p_tokens else ""
 
-    def _mentions_player(text_low: str) -> bool:
-        if not p_tokens:
-            return False
-        if (player_name or "").lower() in text_low:
+    def _mentions_player(text_low: str, text_nospace: str = "") -> bool:
+        for nv in name_variants_low:
+            if nv in text_low:
+                return True
+        if text_nospace:
+            for cv in cjk_variants_nospace:
+                if cv in text_nospace:
+                    return True
+        if last_tok and first_tok and last_tok in text_low and first_tok in text_low:
             return True
-        return bool(last_tok and first_tok and last_tok in text_low and first_tok in text_low)
+        return False
 
     p_titles = [str(t) for t in (player_news_titles or []) if t]
+    has_recent_inj_news = False
     for title in p_titles[:15]:
         tl = title.lower()
-        if any(k in tl for k in ["withdraw", "withdrew", "pulled out", "ruled out", "辞退", "負傷離脱", "怪我", "부상 낙마", "소집 해제", "rút lui", "lỡ hẹn"]):
+        if any(k in tl for k in ["injury", "injured", "hamstring", "ankle", "knee", "負傷", "怪我", "戦線復帰", "負傷離脱", "부상", "chấn thương"]):
+            has_recent_inj_news = True
+        if any(k in tl for k in ["withdraw", "withdrew", "pulled out", "ruled out", "辞退", "負傷離脱", "부상 낙마", "소집 해제", "rút lui", "lỡ hẹn"]):
             if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "world cup", "friendly"]):
                 return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", title)
         if any(k in tl for k in ["left out", "omitted", "snubbed", "not called", "選外", "招集外", "不選出", "제외", "명단 제외", "không được triệu tập"]):
             return ("not_called_up", "Không lên tuyển", title)
-        if any(k in tl for k in ["called up", "named in", "squad", "roster", "招集", "代表選出", "メンバー入り", "발탁", "명단 포함", "triệu tập", "lên tuyển"]):
-            if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "friendly", "qualifier"]):
-                return ("called_up", "Được triệu tập", title)
 
     if official_injury or recent_club_injury:
         return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Đang chấn thương tại CLB nên vắng mặt đợt tập trung ĐTQG")
 
-    squad_ctx = fetch_national_team_squad_context(country_name, sport_name, tier=nt_tier, comp_name=comp_name)
+    squad_ctx = fetch_national_team_squad_context(
+        country_name,
+        sport_name,
+        tier=nt_tier,
+        comp_name=comp_name,
+        gender=gender,
+        opponent_name=str(nt_match.get("match_name") or ""),
+    )
+
+    # 3. Check official/decoded squad roster text FIRST (highest accuracy, avoids speculative article titles!)
+    sq_text = squad_ctx.get("squad_articles_text") or ""
+    sq_nospace = squad_ctx.get("squad_articles_nospace") or ""
+    if squad_ctx.get("has_official_squad_roster"):
+        in_roster = False
+        withdrawn_in_roster = False
+        for cv in cjk_variants_nospace:
+            idx = sq_nospace.find(cv)
+            if idx >= 0:
+                tail = sq_nospace[idx:idx + len(cv) + 35]
+                if any(wk in tail for wk in ["離脱", "不参加", "辞退", "부상제외", "소집해제"]):
+                    withdrawn_in_roster = True
+                else:
+                    in_roster = True
+                break
+        if not in_roster and not withdrawn_in_roster:
+            for nv in name_variants_low:
+                if nv in sq_text:
+                    in_roster = True
+                    break
+        if in_roster:
+            return ("called_up", "Được triệu tập", squad_ctx.get("squad_source_title") or "Có tên trong danh sách triệu tập ĐTQG")
+        if withdrawn_in_roster or has_recent_inj_news:
+            return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Không có tên / rút lui khỏi danh sách triệu tập ĐTQG do chấn thương")
+        return ("not_called_up", "Không lên tuyển", "Không có tên trong danh sách triệu tập ĐTQG đợt này")
+
+    # 4. Fallback when no official squad roster page was parsed: check player & squad news headlines
+    for title in p_titles[:15]:
+        tl = title.lower()
+        if any(k in tl for k in ["called up", "named in", "squad", "roster", "招集", "代表選出", "メンバー入り", "발탁", "명단 포함", "triệu tập", "lên tuyển"]):
+            if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "friendly", "qualifier"]):
+                return ("called_up", "Được triệu tập", title)
+
     sq_titles = squad_ctx.get("titles") or []
     for st in sq_titles:
         stl = st.lower()
-        if _mentions_player(stl):
+        st_ns = re.sub(r"\s+", "", stl)
+        if _mentions_player(stl, st_ns):
             if any(k in stl for k in ["withdraw", "辞退", "負傷", "부상", "omitted", "選外", "제외"]):
                 return ("not_called_up", "Không lên tuyển", st)
             if any(k in stl for k in ["roster", "squad", "called", "招集", "メンバー", "代表", "명단", "발탁"]):

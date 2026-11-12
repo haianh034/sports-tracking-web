@@ -784,6 +784,7 @@ def _compute_dashboard_data(
                     nt_match=m,
                     player_news_titles=p_news_titles_pre,
                     official_injury=p_off_inj_now,
+                    player_aliases=getattr(p, "name_aliases", None),
                 )
                 m["nt_callup_status"] = nt_status
                 m["nt_callup_tag"] = nt_tag
@@ -793,7 +794,7 @@ def _compute_dashboard_data(
         sched_today_match = None
         candidate_matches = []
         for m in all_matches_raw:
-            if m.get("nt_callup_status") == "not_called_up":
+            if m.get("nt_callup_status") in ("not_called_up", "injured_withdrawal"):
                 continue
             m_dvn = m.get("date_only_vn")
             if not m_dvn and m.get("match_date_utc"):
@@ -1565,7 +1566,7 @@ def _compute_dashboard_data(
             m["news_count"] = len(m_news)
             all_matches.append(m)
 
-            if 0 <= diff_d <= 30 and not is_m_past and m.get("match_state") != "post" and m.get("nt_callup_status") != "not_called_up":
+            if 0 <= diff_d <= 30 and not is_m_past and m.get("match_state") != "post" and m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                 upcoming_matches_30d.append(m)
 
         all_upcoming_matches = [
