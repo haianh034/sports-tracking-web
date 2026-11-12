@@ -36,7 +36,10 @@ def sync_player_matches_history(
     league: str = None,
     espn_team_id: str = None,
     db: Session = None,
-    force_refresh: bool = True
+    force_refresh: bool = True,
+    country_name: str = None,
+    gender: str = None,
+    include_deep_history: bool = True
 ) -> dict:
     """
     Đồng bộ và lưu trữ toàn bộ lịch sử thi đấu trong quá khứ (mùa giải)
@@ -45,9 +48,19 @@ def sync_player_matches_history(
     if not db or not player_id:
         return {"synced_count": 0, "past_count": 0, "upcoming_count": 0}
 
+    if country_name is None or gender is None:
+        p_obj = db.query(Player).filter(Player.id == player_id).first()
+        if p_obj:
+            if country_name is None:
+                country_name = p_obj.country_name
+            if gender is None:
+                gender = p_obj.gender or "Men"
+
     # 1. Lấy toàn bộ lịch thi đấu (quá khứ và tương lai) của cầu thủ/đội tuyển
     all_events = fetch_player_career_schedule(
-        player_name, team_name, sport_name, force_refresh=force_refresh, api_team_id=espn_team_id
+        player_name, team_name, sport_name, force_refresh=force_refresh,
+        api_team_id=espn_team_id, country_name=country_name,
+        gender=gender or "Men", include_deep_history=include_deep_history
     )
     if not all_events:
         return {"synced_count": 0, "past_count": 0, "upcoming_count": 0}
@@ -96,7 +109,10 @@ def sync_player_matches_history(
 
         cur_res = standardize_match_result(m.get("match_result"), raw_name, m_name, team_name)
         raw_comp = m.get("competition") or ""
-        m_comp = league or (get_tournament_tag(team_name, sport_name, m_name, raw_comp) or raw_comp or "")
+        if ev_id and str(ev_id).startswith(("wtt_", "fs_")):
+            m_comp = raw_comp or get_tournament_tag(team_name, sport_name, m_name, raw_comp) or league or ""
+        else:
+            m_comp = league or (get_tournament_tag(team_name, sport_name, m_name, raw_comp) or raw_comp or "")
 
         if is_past or m_state in ["post", "in"]:
             past_count += 1
@@ -115,14 +131,18 @@ def sync_player_matches_history(
             player_stats = None
             tags = [m_comp] if m_comp else []
 
-        # Khớp với bản ghi đã có trong database
+        # Khớp với bản ghi đã có trong database (không ghi đè trận khác event_id cùng ngày)
         target_perf = None
         if ev_id and str(ev_id) in perf_by_ev:
             target_perf = perf_by_ev[str(ev_id)]
         elif m_date_vn and str(m_date_vn) in perf_by_date:
-            target_perf = perf_by_date[str(m_date_vn)]
+            cand = perf_by_date[str(m_date_vn)]
+            if not cand.event_id or not ev_id or str(cand.event_id) == str(ev_id) or str(cand.match_name or "") == str(m_name):
+                target_perf = cand
         elif m_name and str(m_name) in perf_by_name:
-            target_perf = perf_by_name[str(m_name)]
+            cand = perf_by_name[str(m_name)]
+            if not cand.event_id or not ev_id or str(cand.event_id) == str(ev_id):
+                target_perf = cand
 
         if target_perf:
             target_perf.match_name = m_name
@@ -153,6 +173,8 @@ def sync_player_matches_history(
                 competition=m_comp
             )
             db.add(new_perf)
+            if ev_id:
+                perf_by_ev[str(ev_id)] = new_perf
             if ev_id:
                 perf_by_ev[str(ev_id)] = new_perf
             if m_date_vn:

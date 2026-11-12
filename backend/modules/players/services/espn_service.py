@@ -50,6 +50,7 @@ def _save_espn_team_info_cache():
 SCHEDULE_CACHE = {}
 TEAM_SCHED_CACHE_FILE = os.path.join(os.path.dirname(__file__), "team_schedules_cache.json")
 SCHEDULE_30D_CACHE = {}
+_DEEP_NON_ESPN_FETCHED = set()
 
 if os.path.exists(TEAM_SCHED_CACHE_FILE):
     try:
@@ -1004,7 +1005,7 @@ def fetch_player_career_schedule(
         club_matches = fetch_player_upcoming_schedule_30d(
             current_team, sport_name, player_name,
             force_refresh=force_refresh, api_team_id=api_team_id, gender=gender,
-            include_deep_history=include_deep_history
+            include_deep_history=include_deep_history, country_name=country_name
         )
         for m in club_matches:
             d_vn = m.get("date_only_vn") or ""
@@ -1023,7 +1024,7 @@ def fetch_player_career_schedule(
             team_matches = fetch_player_upcoming_schedule_30d(
                 t_name, s_name, player_name,
                 force_refresh=force_refresh, api_team_id=api_team_id, gender=gender,
-                include_deep_history=include_deep_history
+                include_deep_history=include_deep_history, country_name=country_name
             )
             for m in team_matches:
                 d_vn = m.get("date_only_vn") or ""
@@ -1105,7 +1106,8 @@ def fetch_player_upcoming_schedule_30d(
     force_refresh: bool = False,
     api_team_id: str = None,
     gender: str = "Men",
-    include_deep_history: bool = False
+    include_deep_history: bool = False,
+    country_name: str = None
 ) -> list:
     if is_player_retired(player_name, team_name):
         return []
@@ -1138,6 +1140,10 @@ def fetch_player_upcoming_schedule_30d(
                         has_24_25 = any((m.get("date_only_vn") or "") < "2026-01-01" for m in cached_list)
                         if has_24_25:
                             return _refresh_match_diff_days(cached_list)
+                    elif include_deep_history and "bóng bàn" in str(sport_name or "").lower():
+                        cutoff_45d = (datetime.datetime.now() - datetime.timedelta(days=46)).strftime("%Y-%m-%d")
+                        if k_cand in _DEEP_NON_ESPN_FETCHED or any((m.get("date_only_vn") or "9999") < cutoff_45d for m in cached_list):
+                            return _refresh_match_diff_days(cached_list)
                     else:
                         return _refresh_match_diff_days(cached_list)
 
@@ -1160,7 +1166,7 @@ def fetch_player_upcoming_schedule_30d(
     try:
         return _fetch_player_upcoming_schedule_30d_impl(
             team_name, sport_name, player_name, force_refresh, api_team_id, gender,
-            include_deep_history, cache_key, legacy_key, now_ts
+            include_deep_history, cache_key, legacy_key, now_ts, country_name=country_name
         )
     finally:
         if is_owner:
@@ -1180,7 +1186,8 @@ def _fetch_player_upcoming_schedule_30d_impl(
     include_deep_history: bool,
     cache_key: tuple,
     legacy_key: tuple,
-    now_ts: float
+    now_ts: float,
+    country_name: str = None
 ) -> list:
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     matches = []
@@ -1193,8 +1200,28 @@ def _fetch_player_upcoming_schedule_30d_impl(
         _save_team_sched_cache()
         return indiv_list
 
-    # Các môn chưa có trên ESPN Scoreboard / Teams
+    # Các môn chưa có trên ESPN Scoreboard / Teams (Bóng bàn WTT, Cầu lông BWF, Bóng chuyền)
     if not espn_code:
+        s_norm = str(sport_name or "").lower()
+        if any(k in s_norm for k in ["bóng bàn", "bong ban", "table tennis", "cầu lông", "cau long", "badminton", "bóng chuyền", "bong chuyen", "volleyball"]):
+            try:
+                from backend.modules.players.services.racket_volleyball_service import fetch_racket_or_volleyball_schedule
+                rv_list = fetch_racket_or_volleyball_schedule(
+                    player_name=player_name or "",
+                    team_name=team_name or "",
+                    sport_name=sport_name or "",
+                    country_name=country_name,
+                    gender=gender,
+                    include_deep_history=include_deep_history,
+                )
+                if include_deep_history:
+                    _DEEP_NON_ESPN_FETCHED.add(cache_key)
+                SCHEDULE_30D_CACHE[cache_key] = (now_ts, rv_list)
+                _save_team_sched_cache()
+                return rv_list
+            except Exception:
+                pass
+
         team_info_probe = get_espn_team_info(team_name, sport_name, api_team_id=api_team_id, gender=gender)
         if not team_info_probe:
             SCHEDULE_30D_CACHE[cache_key] = (now_ts, [])
@@ -1258,16 +1285,33 @@ def _fetch_player_upcoming_schedule_30d_impl(
                     f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule?season=2025",
                 ])
     else:
-        urls = [
-            f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule",
-        ]
-        if include_deep_history:
-            urls.append(f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026")
-            if not has_archived_2024_2025:
+        if sport == "baseball":
+            urls = [
+                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?seasontype=2",
+                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?seasontype=3",
+            ]
+            if include_deep_history:
                 urls.extend([
-                    f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2024",
-                    f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025",
+                    f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026&seasontype=2",
+                    f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026&seasontype=3",
                 ])
+                if not has_archived_2024_2025:
+                    urls.extend([
+                        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2024&seasontype=2",
+                        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025&seasontype=2",
+                        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025&seasontype=3",
+                    ])
+        else:
+            urls = [
+                f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule",
+            ]
+            if include_deep_history:
+                urls.append(f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2026")
+                if not has_archived_2024_2025:
+                    urls.extend([
+                        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2024",
+                        f"https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams/{team_id}/schedule?season=2025",
+                    ])
 
     seen_match_keys = set()
     for u in urls:
@@ -1824,6 +1868,29 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
     official_header_res = None
     if event_id and match_state in ["post", "in"]:
         try:
+            ev_id_str = str(event_id)
+            # 0. RACKET / VOLLEYBALL REAL SOURCES (WTT Official API & Flashscore)
+            if ev_id_str.startswith(("wtt_", "fs_")):
+                try:
+                    from backend.modules.players.services.racket_volleyball_service import get_racket_or_volleyball_match_stats
+                    rv_stats = get_racket_or_volleyball_match_stats(ev_id_str)
+                    if rv_stats:
+                        return rv_stats
+                except Exception:
+                    pass
+                # Fallback to cached schedule item if SCHEDULE_30D_CACHE was loaded from disk
+                for _ck, (_cts, _clist) in list(SCHEDULE_30D_CACHE.items()):
+                    if isinstance(_clist, list):
+                        for _it in _clist:
+                            if str(_it.get("event_id") or "") == ev_id_str and (_it.get("player_stats") or _it.get("match_result")):
+                                return {
+                                    "stats_text": _it.get("player_stats") or "",
+                                    "rating": None,
+                                    "tags": list(_it.get("tags") or []),
+                                    "has_played": bool(_it.get("has_played")),
+                                    "match_result": _it.get("match_result"),
+                                }
+
             # 1. SOCCER SUMMARY
             if espn_sport == "soccer":
                 if str(event_id).startswith("fm_"):

@@ -560,11 +560,17 @@ def _compute_dashboard_data(
     all_db_perfs = db.query(MatchPerformance).all()
     perf_by_player_event = {}
     perf_by_player_date = {}
+    db_past_perfs_by_player = {}
     for perf in all_db_perfs:
+        ev_s = str(perf.event_id or "")
+        if ev_s.startswith("struct_nt_"):
+            continue
         if perf.event_id:
-            perf_by_player_event[(perf.player_id, str(perf.event_id))] = perf
+            perf_by_player_event[(perf.player_id, ev_s)] = perf
         if perf.date_str:
             perf_by_player_date[(perf.player_id, str(perf.date_str))] = perf
+        if perf.match_state == "post" and perf.match_date is not None and perf.date_str:
+            db_past_perfs_by_player.setdefault(perf.player_id, []).append(perf)
 
     # Pre-warm ĐTQG schedules memo dictionary to avoid redundant network calls across players
     nt_sched_memo = {}
@@ -695,7 +701,49 @@ def _compute_dashboard_data(
             continue
 
         espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
-        all_matches_raw = sched_map.get(p.id, [])
+        all_matches_raw = list(sched_map.get(p.id, []))
+        # Merge valid archived past DB matches (retains sliding-window Flashscore/older WTT matches permanently)
+        archived_perfs = db_past_perfs_by_player.get(p.id, [])
+        if archived_perfs and not is_player_retired(p.name, team_name):
+            seen_ev_ids = {str(m.get("event_id")) for m in all_matches_raw if m.get("event_id")}
+            seen_date_names = {(str(m.get("date_only_vn") or ""), str(m.get("match_name") or "")) for m in all_matches_raw}
+            for ap in archived_perfs:
+                ap_ev = str(ap.event_id or "")
+                ap_dvn = str(ap.date_str or "")
+                ap_name = str(ap.match_name or "")
+                if (ap_ev and ap_ev in seen_ev_ids) or ((ap_dvn, ap_name) in seen_date_names):
+                    continue
+                if not ap.match_date:
+                    continue
+                # Guard against stale legacy NT placeholders without real event IDs
+                if not ap_ev.startswith(("wtt_", "fs_", "fm_", "espn_")) and not ap_ev.isdigit():
+                    continue
+                dt_vn_ap = ap.match_date + datetime.timedelta(hours=7)
+                diff_ap = (ap.match_date - now_utc).total_seconds() / 86400.0
+                if ap_ev:
+                    seen_ev_ids.add(ap_ev)
+                seen_date_names.add((ap_dvn, ap_name))
+                all_matches_raw.append({
+                    "match_name": ap_name,
+                    "raw_match_name": f"{p.name} {ap_name}",
+                    "match_date_utc": ap.match_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "date_vn": dt_vn_ap.strftime("%d/%m %H:%M"),
+                    "date_full_vn": dt_vn_ap.strftime("%d/%m/%Y %H:%M"),
+                    "date_only_vn": ap_dvn or dt_vn_ap.strftime("%Y-%m-%d"),
+                    "time_only_vn": dt_vn_ap.strftime("%H:%M"),
+                    "competition": ap.competition or "",
+                    "event_id": ap_ev or None,
+                    "match_state": "post",
+                    "match_result": ap.match_result,
+                    "status_detail": ap.match_result or dt_vn_ap.strftime("%d/%m • %H:%M"),
+                    "has_played": bool(ap.has_played),
+                    "diff_days": diff_ap,
+                    "is_past": True,
+                    "player_team": team_name,
+                    "player_stats": ap.player_stats,
+                    "tags": [t.strip() for t in str(ap.impression_tags or "").split(",") if t.strip()],
+                })
+            all_matches_raw.sort(key=lambda x: str(x.get("match_date_utc") or ""))
         all_player_news = list(news_by_player.get(p.id, []))
         news_today = [n for n in all_player_news if today_win_start_utc <= n.published_at <= today_win_end_utc]
         
@@ -1149,7 +1197,9 @@ def _compute_dashboard_data(
                 if ev_id:
                     db_perf = perf_by_player_event.get((p.id, str(ev_id)))
                 if not db_perf and m_date_vn:
-                    db_perf = perf_by_player_date.get((p.id, str(m_date_vn)))
+                    cand_perf = perf_by_player_date.get((p.id, str(m_date_vn)))
+                    if cand_perf and (not cand_perf.event_id or not ev_id or str(cand_perf.event_id) == str(ev_id) or str(cand_perf.match_name or "") == str(m.get("match_name") or "")):
+                        db_perf = cand_perf
 
                 if db_perf and (db_perf.player_stats or db_perf.impression_tags or db_perf.has_played is not None):
                     has_fotmob = bool(db_perf.player_stats and '"source": "FotMob"' in db_perf.player_stats)
@@ -1232,7 +1282,8 @@ def _compute_dashboard_data(
                     # Giai đoạn 1 (is_full_load=False): Chỉ cào chi tiết thời gian thực cho trận trong 7 ngày qua (-7.0 <= diff_d <= 0)
                     # Giai đoạn 2 (is_full_load=True): Cào thông số cho toàn bộ quá khứ của mùa giải (-300.0 <= diff_d <= 0)
                     stats_lower_limit = -300.0 if is_full_load else -7.0
-                    if ev_id and stats_lower_limit <= diff_d <= 0:
+                    is_rv_match = bool(ev_id and str(ev_id).startswith(("wtt_", "fs_")))
+                    if ev_id and (stats_lower_limit <= diff_d <= 0 or is_rv_match):
                         try:
                             real_stats = fetch_player_match_stats(
                                 p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles,
