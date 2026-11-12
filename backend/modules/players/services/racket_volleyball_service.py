@@ -653,8 +653,9 @@ def _fetch_flashscore_days(sport_slug: str, day_offsets: list) -> list:
                 def _fetch_one(args):
                     d, d_str, ck, day_date = args
                     try:
+                        fs_url = f"https://www.flashscore.mobi/{sport_slug}/?d={d}" if sport_slug else f"https://www.flashscore.mobi/?d={d}"
                         with httpx.Client(timeout=8.0, headers=FS_HEADERS) as client:
-                            r = client.get(f"https://www.flashscore.mobi/{sport_slug}/?d={d}")
+                            r = client.get(fs_url)
                             if r.status_code == 200:
                                 parsed = _parse_flashscore_day_html(r.text, day_date)
                                 return d, d_str, ck, parsed
@@ -754,13 +755,15 @@ def _match_fs_athlete_side(player_name: str, country_name: str, side_text: str) 
     return False
 
 
-def _match_volleyball_club(team_name: str, club_side: str) -> bool:
+def _match_fs_club(team_name: str, club_side: str) -> bool:
     if not team_name or not club_side:
         return False
     low_side = _strip_accents(club_side).lower().strip()
-    # Reject reserve / youth / wrong-gender squads unless explicitly in team_name
     low_t = _strip_accents(team_name).lower().strip()
-    if re.search(r"\b(2|ii|iii|u19|u20|u21|u23|w|women)\b", low_side) and not re.search(r"\b(2|ii|w|women)\b", low_t):
+    if low_t in ("tu do", "free agent", "unknown", "khong ro", "chua ro clb") or low_t.startswith("doi tuyen "):
+        return False
+    # Reject reserve / youth / wrong-gender squads unless explicitly in team_name
+    if re.search(r"\b(2|ii|iii|u19|u20|u21|u23|w|women)\b", low_side) and not re.search(r"\b(2|ii|w|women|u19|u20|u21|u23)\b", low_t):
         return False
 
     aliases = [low_t]
@@ -769,7 +772,7 @@ def _match_volleyball_club(team_name: str, club_side: str) -> bool:
     elif "suntory" in low_t:
         aliases.append("suntory sunbirds")
     else:
-        core = re.sub(r"\b(vc|club|team|volleyball|bankkart)\b", "", low_t).strip()
+        core = re.sub(r"\b(fc|hc|sc|vc|bc|club|team|volleyball|handball|hockey|basketball|baseball|rugby|bankkart)\b", "", low_t).strip()
         if len(core) >= 4:
             aliases.append(core)
 
@@ -779,13 +782,75 @@ def _match_volleyball_club(team_name: str, club_side: str) -> bool:
     return False
 
 
+def _match_fs_nt_side(country_name: str, tier: str, gender: str, side_text: str) -> bool:
+    """Strictly match Flashscore National / Youth Team names (e.g. 'Japan', 'South Korea U23', 'Japan U17 W')."""
+    if not country_name or not side_text:
+        return False
+    low_c = _strip_accents(country_name).lower().strip()
+    low_s = _strip_accents(side_text).lower().strip()
+
+    if "nhat" in low_c or "japan" in low_c:
+        patterns = [r"\bjapan\b"]
+    elif "han" in low_c or "korea" in low_c:
+        if "north" in low_s or "dpr" in low_s:
+            return False
+        patterns = [r"\bsouth korea\b", r"\bkorea republic\b", r"\bkorea rep\.?\b"]
+    elif "trung" in low_c or "china" in low_c:
+        patterns = [r"\bchina\b"]
+    elif "viet" in low_c:
+        patterns = [r"\bvietnam\b", r"\bviet nam\b"]
+    elif "my" == low_c or "usa" in low_c or "united states" in low_c:
+        patterns = [r"\busa\b", r"\bunited states\b"]
+    elif "dai loan" in low_c or "taipei" in low_c or "taiwan" in low_c:
+        patterns = [r"\bchinese taipei\b", r"\btaiwan\b"]
+    else:
+        patterns = [rf"\b{re.escape(low_c)}\b"]
+
+    matched_pat = None
+    for pat in patterns:
+        if re.search(pat, low_s):
+            matched_pat = pat
+            break
+    if not matched_pat:
+        return False
+
+    # Ensure no non-national-team club words remain after removing the country name + standard suffixes
+    rest = re.sub(matched_pat, " ", low_s).strip()
+    rest_tokens = [t for t in re.split(r"[^a-z0-9]+", rest) if t]
+    allowed_suffixes = {"u23", "u21", "u20", "u19", "u18", "u17", "u16", "u15", "w", "women", "men", "m", "f", "youth", "jr"}
+    if any(t not in allowed_suffixes for t in rest_tokens):
+        return False
+
+    has_w = any(t in {"w", "women", "f"} for t in rest_tokens)
+    g_low = (gender or "Men").lower()
+    if g_low == "women" and not has_w:
+        return False
+    if g_low == "men" and has_w:
+        return False
+
+    u_tokens = [t for t in rest_tokens if re.fullmatch(r"u\d{2}", t) or t in {"youth", "jr"}]
+    t_up = (tier or "Senior").upper().strip()
+    if t_up == "SENIOR":
+        return len(u_tokens) == 0
+    if t_up == "YOUTH":
+        return len(u_tokens) > 0
+    if t_up in [x.upper() for x in u_tokens]:
+        return True
+    # Olympic/AFC U20 & U23 friendly cycles (Japan/Korea U19 <-> U20, U21 <-> U23)
+    if t_up == "U23" and "u21" in u_tokens:
+        return True
+    if t_up == "U20" and "u19" in u_tokens:
+        return True
+    return False
+
+
 def _clean_fs_comp(raw_comp: str, sport_slug: str) -> str:
     if not raw_comp:
         return "BWF World Tour" if sport_slug == "badminton" else "Giải đấu"
     c = raw_comp
-    c = re.sub(r"^(?:BWF\s+WORLD\s+TOUR\s*-\s*(?:MEN|WOMEN|MIXED)\s*:\s*)", "", c, flags=re.I)
-    c = re.sub(r"^(?:OTHERS\s*-\s*(?:MEN|WOMEN|MIXED)\s*:\s*)", "", c, flags=re.I)
-    c = re.sub(r"^(?:TURKEY|JAPAN|ITALY|POLAND|EUROPE)\s*:\s*", "", c, flags=re.I)
+    c = re.sub(r"^(?:BWF\s+WORLD\s+TOUR\s*-\s*(?:MEN|WOMEN|MIXED)(?:\s+DOUBLES)?\s*:\s*)", "", c, flags=re.I)
+    c = re.sub(r"^(?:OTHERS\s*-\s*(?:MEN|WOMEN|MIXED)(?:\s+DOUBLES)?\s*:\s*)", "", c, flags=re.I)
+    c = re.sub(r"^[A-Z][A-Z\s\.\-/]{1,22}:\s*", "", c)
     c = re.sub(r"\s*\([^)]*\)$", "", c).strip()
     return c or raw_comp
 
@@ -796,6 +861,7 @@ def _fetch_flashscore_matches(
     sport_slug: str,
     country_name: str = None,
     is_team_mode: bool = False,
+    nt_match_cfg: dict = None,
 ) -> list:
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     day_rows = _fetch_flashscore_days(sport_slug, list(range(-7, 8)))
@@ -805,9 +871,12 @@ def _fetch_flashscore_matches(
     for d_off, row in day_rows:
         if row["mid"] in seen_mid:
             continue
-        if is_team_mode:
-            is_s1 = _match_volleyball_club(team_name, row["side1"])
-            is_s2 = _match_volleyball_club(team_name, row["side2"])
+        if nt_match_cfg:
+            is_s1 = _match_fs_nt_side(nt_match_cfg["country"], nt_match_cfg["tier"], nt_match_cfg["gender"], row["side1"])
+            is_s2 = _match_fs_nt_side(nt_match_cfg["country"], nt_match_cfg["tier"], nt_match_cfg["gender"], row["side2"])
+        elif is_team_mode:
+            is_s1 = _match_fs_club(team_name, row["side1"])
+            is_s2 = _match_fs_club(team_name, row["side2"])
         else:
             is_s1 = _match_fs_athlete_side(player_name, country_name, row["side1"])
             is_s2 = _match_fs_athlete_side(player_name, country_name, row["side2"])
@@ -905,6 +974,27 @@ def get_racket_or_volleyball_match_stats(event_id: str) -> dict | None:
     return WTT_MATCH_STATS_LOOKUP.get(str(event_id))
 
 
+def fetch_flashscore_national_team_schedule(
+    sport_name: str,
+    country_name: str,
+    tier: str = "Senior",
+    gender: str = "Men",
+) -> list:
+    """Dynamically fetch national & youth team schedules from Flashscore for any supported team sport."""
+    from backend.core.config import resolve_flashscore_sport_slug
+    fs_slug = resolve_flashscore_sport_slug(sport_name)
+    if fs_slug is None:
+        return []
+    return _fetch_flashscore_matches(
+        player_name="",
+        team_name="",
+        sport_slug=fs_slug,
+        country_name=country_name,
+        is_team_mode=True,
+        nt_match_cfg={"country": country_name, "tier": tier or "Senior", "gender": gender or "Men"},
+    )
+
+
 def fetch_racket_or_volleyball_schedule(
     player_name: str,
     team_name: str,
@@ -913,12 +1003,19 @@ def fetch_racket_or_volleyball_schedule(
     gender: str = "Men",
     include_deep_history: bool = False,
 ) -> list:
+    """
+    Universal multi-sport schedule fetcher:
+    - Table Tennis: WTT Official Public API + Flashscore fallback/supplement
+    - Any other sport supported by Flashscore (27 sports dynamically resolved): clubs & individual athletes
+    """
+    from backend.core.config import resolve_flashscore_sport_slug
+    fs_slug = resolve_flashscore_sport_slug(sport_name)
     s_low = _strip_accents(sport_name or "").lower()
-    if any(k in s_low for k in ["bong ban", "table tennis", "ping pong"]):
+
+    if fs_slug == "table-tennis" or any(k in s_low for k in ["bong ban", "table tennis", "ping pong"]):
         wtt_matches = _fetch_wtt_matches_for_player(player_name, include_deep_history=include_deep_history)
         fs_matches = _fetch_flashscore_matches(player_name, team_name, "table-tennis", country_name=country_name, is_team_mode=False)
 
-        # Merge: keep all WTT matches (authoritative full scores/rounds), add any Flashscore match not already present
         merged = list(wtt_matches)
         wtt_signatures = set()
         for wm in wtt_matches:
@@ -931,7 +1028,6 @@ def fetch_racket_or_volleyball_schedule(
             f_toks = [t for t in _norm_tokens(fm.get("match_name") or "") if len(t) >= 3]
             is_dup = False
             for wd, wset in wtt_signatures:
-                # Allow 1-day CET/UTC+8 shift when comparing WTT startDateLocal vs Flashscore
                 try:
                     d_diff = abs((datetime.datetime.strptime(fd_vn, "%Y-%m-%d") - datetime.datetime.strptime(wd, "%Y-%m-%d")).days)
                 except Exception:
@@ -945,10 +1041,18 @@ def fetch_racket_or_volleyball_schedule(
         merged.sort(key=lambda x: str(x.get("match_date_utc") or ""))
         return merged
 
-    if any(k in s_low for k in ["cau long", "badminton"]):
-        return _fetch_flashscore_matches(player_name, team_name, "badminton", country_name=country_name, is_team_mode=False)
+    if fs_slug is None:
+        return []
 
-    if any(k in s_low for k in ["bong chuyen", "volleyball"]):
-        return _fetch_flashscore_matches(player_name, team_name, "volleyball", country_name=country_name, is_team_mode=True)
+    individual_fs_slugs = {"badminton", "tennis", "table-tennis", "boxing", "mma", "snooker", "darts"}
+    if fs_slug in individual_fs_slugs:
+        return _fetch_flashscore_matches(player_name, team_name, fs_slug, country_name=country_name, is_team_mode=False)
 
-    return []
+    # Team / hybrid sports (volleyball, hockey, handball, basketball, baseball, soccer, rugby, cricket, futsal, water-polo, etc.)
+    t_low = _strip_accents(team_name or "").lower().strip()
+    has_club = bool(t_low and t_low not in ("tu do", "free agent", "unknown", "khong ro", "chua ro clb") and not t_low.startswith("doi tuyen "))
+    if has_club:
+        res_club = _fetch_flashscore_matches(player_name, team_name, fs_slug, country_name=country_name, is_team_mode=True)
+        if res_club:
+            return res_club
+    return _fetch_flashscore_matches(player_name, team_name, fs_slug, country_name=country_name, is_team_mode=False)

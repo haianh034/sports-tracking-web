@@ -66,12 +66,13 @@ def sync_player_matches_history(
         return {"synced_count": 0, "past_count": 0, "upcoming_count": 0}
 
     # 2. Prefetch tóm tắt trận đấu (ESPN Summary) song song cho các môn hỗ trợ ESPN
-    espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
-    if espn_sport:
-        league_slug = "all" if espn_sport == "soccer" else ("nba" if espn_sport == "basketball" else "mlb")
+    from backend.core.config import resolve_espn_sport_code
+    espn_sport = resolve_espn_sport_code(sport_name)
+    if espn_sport and espn_sport not in {"tennis", "golf", "racing", "mma", "boxing"}:
+        league_slug = {"soccer": "all", "basketball": "nba", "baseball": "mlb", "hockey": "nhl", "football": "nfl"}.get(espn_sport, "all")
         ev_ids = [
             str(ev.get("event_id")) for ev in all_events
-            if ev.get("event_id") and not str(ev.get("event_id")).startswith("non_espn_")
+            if ev.get("event_id") and not str(ev.get("event_id")).startswith(("non_espn_", "wtt_", "fs_", "fm_", "espn_ov_"))
             and (ev.get("is_past") or ev.get("match_state") in ["post", "in"] or ev.get("diff_days", 0) < 0.1)
         ]
         if ev_ids:

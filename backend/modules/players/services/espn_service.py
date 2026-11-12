@@ -119,14 +119,10 @@ def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str 
         return cand
 
     target_espn_sport = resolve_espn_sport_code(sport_name)
-    if target_espn_sport in ESPN_INDIVIDUAL_SPORT_LEAGUES:
+    if target_espn_sport in ESPN_INDIVIDUAL_SPORT_LEAGUES or target_espn_sport == "boxing":
         return None
     if sport_name and not target_espn_sport:
-        # Cho phép tự động dò trên ESPN nếu là môn mới (không phải cầu lông/bóng bàn/bóng chuyền/bơi...)
-        s_low = sport_name.strip().lower()
-        non_espn_hints = ["cầu lông", "badminton", "bóng bàn", "table tennis", "ping pong", "bơi", "swim", "điền kinh", "athletic", "esport"]
-        if any(h in s_low for h in non_espn_hints):
-            return None
+        return None
 
     is_women = (gender or "").lower() == "women" or any(w in team_name.lower() for w in ["(nữ)", "(women)", "(w)", "women", "ladies", "frauen", "femme", "femeni", "we league", "wsl", "nwsl", "wnba"])
     if is_women:
@@ -313,7 +309,10 @@ def fetch_espn_individual_upcoming_30d(player_name: str, sport_name: str = None,
         for ev in data.get('events', []):
             ev_id = str(ev.get('id') or '')
             ev_name = ev.get('name') or ev.get('shortName') or ''
-            for comp in ev.get('competitions', []):
+            comp_list = list(ev.get('competitions', []) or [])
+            for grp in (ev.get('groupings', []) or []):
+                comp_list.extend(grp.get('competitions', []) or [])
+            for comp in comp_list:
                 c_date_str = comp.get('date') or ev.get('date')
                 if not c_date_str:
                     continue
@@ -365,12 +364,31 @@ def fetch_espn_individual_upcoming_30d(player_name: str, sport_name: str = None,
                 if state in ["post", "in"]:
                     if len(competitors) == 2:
                         sc_list = []
+                        has_any_sc = False
                         for c in competitors:
                             n = c.get('athlete', {}).get('shortName') or c.get('athlete', {}).get('displayName') or ''
                             sc = _extract_score_str(c)
+                            if sc:
+                                has_any_sc = True
                             sc_list.append(f"{n} {sc}".strip())
-                        if any(_extract_score_str(c) != '' for c in competitors):
+                        if has_any_sc:
                             match_res = " - ".join(sc_list) + f" ({st_type.get('shortDetail') or 'FT'})"
+                        else:
+                            # Tennis uses per-set linescores + winner flag instead of top-level score
+                            ls0 = competitors[0].get("linescores") or []
+                            ls1 = competitors[1].get("linescores") or []
+                            if ls0 and ls1:
+                                sets_txt = ", ".join(
+                                    f"{int(float(a.get('value', 0)))}-{int(float(b.get('value', 0)))}"
+                                    for a, b in zip(ls0, ls1)
+                                    if a.get("value") is not None and b.get("value") is not None
+                                )
+                                win_c = next((c for c in competitors if c.get("winner")), None)
+                                win_n = (win_c.get("athlete", {}).get("shortName") or win_c.get("athlete", {}).get("displayName")) if win_c else ""
+                                if sets_txt:
+                                    match_res = (f"{win_n} thắng ({sets_txt})" if win_n else f"Tỉ số: {sets_txt}")
+                                elif win_n:
+                                    match_res = f"{win_n} thắng ({st_type.get('shortDetail') or 'FT'})"
                     else:
                         ord_val = matched_comp.get('order')
                         sc_val = _extract_score_str(matched_comp)
@@ -400,7 +418,156 @@ def fetch_espn_individual_upcoming_30d(player_name: str, sport_name: str = None,
                     "diff_days": diff,
                     "player_team": league_label,
                 })
+
+    # Supplement with ESPN athlete overview (recentTournaments / nextTournament / nextGame) for Golf, F1, Tennis, etc.
+    try:
+        ov_matches = _fetch_espn_athlete_overview_events(player_name, sport_name, espn_code, days_back=max(days_back, 60))
+        existing_sig = {(m.get("date_only_vn"), (m.get("competition") or "").lower()) for m in matches}
+        existing_ids = {str(m.get("event_id")) for m in matches if m.get("event_id")}
+        for om in ov_matches:
+            if str(om.get("event_id")) in existing_ids:
+                continue
+            if (om.get("date_only_vn"), (om.get("competition") or "").lower()) in existing_sig:
+                continue
+            matches.append(om)
+    except Exception:
+        pass
+    matches.sort(key=lambda x: str(x.get("match_date_utc") or ""))
     return matches
+
+
+def _fetch_espn_athlete_overview_events(player_name: str, sport_name: str = None, espn_code: str = None, days_back: int = 90) -> list:
+    """Dynamically search ESPN athlete profile and extract recent/next tournaments or games (Golf, F1, MMA, Tennis, etc.)."""
+    if not player_name:
+        return []
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    norm_target = normalize_player_name(player_name)
+    target_tokens = [t for t in norm_target.split() if len(t) >= 2]
+
+    try:
+        s_url = f"https://site.web.api.espn.com/apis/search/v2?query={urllib.parse.quote(player_name)}&limit=8"
+        req = urllib.request.Request(s_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            s_data = json.loads(r.read().decode())
+    except Exception:
+        return []
+
+    ath_hit = None
+    for grp in s_data.get("results", []):
+        for c in grp.get("contents", []):
+            if c.get("type") != "player":
+                continue
+            dname = (c.get("displayName") or "").strip()
+            c_sport = (c.get("sport") or "").lower()
+            if espn_code and c_sport and c_sport != espn_code:
+                continue
+            n_ath = normalize_player_name(dname)
+            if n_ath == norm_target or (len(target_tokens) >= 2 and all(t in n_ath.split() for t in target_tokens)):
+                uid = str(c.get("uid") or "")
+                m_aid = re.search(r"~a:(\d+)", uid)
+                aid = m_aid.group(1) if m_aid else str(c.get("id") or "")
+                league = (c.get("defaultLeagueSlug") or "").strip()
+                if not league and espn_code in ESPN_INDIVIDUAL_SPORT_LEAGUES:
+                    league = ESPN_INDIVIDUAL_SPORT_LEAGUES[espn_code][0]
+                if aid and aid.isdigit() and c_sport and league:
+                    ath_hit = (c_sport, league, aid)
+                    break
+        if ath_hit:
+            break
+
+    if not ath_hit:
+        return []
+
+    c_sport, league, aid = ath_hit
+    try:
+        ov_url = f"https://site.web.api.espn.com/apis/common/v3/sports/{c_sport}/{league}/athletes/{aid}/overview"
+        req = urllib.request.Request(ov_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            ov = json.loads(r.read().decode())
+    except Exception:
+        return []
+
+    raw_items = []
+    for block in (ov.get("recentTournaments") or []):
+        for es in (block.get("eventsStats") or []):
+            raw_items.append((es, block.get("displayName") or league.upper()))
+    nt_ev = ov.get("nextTournament")
+    if isinstance(nt_ev, dict) and nt_ev.get("date"):
+        raw_items.append((nt_ev, league.upper()))
+    ng_ev = ov.get("nextGame")
+    if isinstance(ng_ev, dict) and ng_ev.get("date"):
+        raw_items.append((ng_ev, league.upper()))
+
+    out = []
+    seen = set()
+    for ev, blk_lbl in raw_items:
+        ev_id = str(ev.get("id") or "")
+        d_str = ev.get("date")
+        if not d_str:
+            continue
+        clean_d = d_str.replace("Z", "").split(".")[0].split("+")[0]
+        dt = None
+        for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d"):
+            try:
+                dt = datetime.datetime.strptime(clean_d[:19], fmt)
+                break
+            except Exception:
+                continue
+        if not dt:
+            continue
+        diff = (dt - now_utc).total_seconds() / 86400.0
+        if diff < -days_back or diff > 60:
+            continue
+        if ev_id and ev_id in seen:
+            continue
+        if ev_id:
+            seen.add(ev_id)
+
+        ev_name = ev.get("name") or ev.get("shortName") or blk_lbl
+        state = "post" if diff < -0.15 else "pre"
+        res_str = None
+        player_stats = None
+        tags = [get_tournament_tag(player_name, sport_name or c_sport, ev_name, league.upper()) or ev_name]
+
+        comps = ev.get("competitions") or []
+        if comps and comps[0].get("competitors"):
+            c0 = comps[0]["competitors"][0]
+            sc_disp = (c0.get("score") or {}).get("displayValue") if isinstance(c0.get("score"), dict) else None
+            ls = [str(int(it["value"])) for it in ((c0.get("linescores") or {}).get("items") or []) if isinstance(it, dict) and it.get("value") is not None]
+            pos = (c0.get("status") or {}).get("position", {}).get("displayName")
+            parts = []
+            if pos:
+                parts.append(f"Hạng {pos}")
+            if sc_disp:
+                parts.append(f"Điểm {sc_disp}")
+            if ls:
+                parts.append("Vòng: " + "-".join(ls))
+            if parts:
+                player_stats = " • ".join(parts)
+                res_str = f"{ev_name}: {player_stats}"
+                state = "post"
+
+        dt_vn = dt + datetime.timedelta(hours=7)
+        out.append({
+            "match_name": ev_name,
+            "raw_match_name": ev_name,
+            "match_date_utc": dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "date_vn": dt_vn.strftime("%d/%m %H:%M"),
+            "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
+            "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
+            "time_only_vn": dt_vn.strftime("%H:%M"),
+            "competition": ev_name,
+            "event_id": f"espn_ov_{ev_id}" if ev_id else None,
+            "match_state": state,
+            "match_result": res_str,
+            "status_detail": res_str or dt_vn.strftime("%d/%m • %H:%M"),
+            "has_played": bool(res_str),
+            "diff_days": diff,
+            "player_team": league.upper(),
+            "player_stats": player_stats,
+            "tags": tags,
+        })
+    return out
 
 def fetch_tennis_schedule(player_or_team_name: str) -> dict:
     upcoming = fetch_espn_individual_upcoming_30d(player_or_team_name, "Quần vợt", "tennis", days_back=1, days_fwd=30)
@@ -1112,8 +1279,14 @@ def fetch_player_upcoming_schedule_30d(
     if is_player_retired(player_name, team_name):
         return []
 
+    from backend.core.config import resolve_flashscore_sport_slug
     espn_code = resolve_espn_sport_code(sport_name)
-    is_team_sport = espn_code in {"soccer", "basketball", "baseball", "hockey", "football", "rugby", "cricket", "lacrosse"}
+    fs_slug = resolve_flashscore_sport_slug(sport_name)
+    _FS_INDIV_ONLY = {"badminton", "tennis", "table-tennis", "boxing", "mma", "snooker", "darts"}
+    is_team_sport = (
+        (bool(espn_code) and espn_code not in ESPN_INDIVIDUAL_SPORT_LEAGUES and espn_code != "boxing")
+        or (fs_slug is not None and fs_slug not in _FS_INDIV_ONLY)
+    )
     effective_gender = (gender or "Men").lower()
     if "(nữ)" in str(team_name).lower() or "(w)" in str(team_name).lower() or "women" in str(team_name).lower():
         gender = "Women"
@@ -1192,42 +1365,53 @@ def _fetch_player_upcoming_schedule_30d_impl(
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     matches = []
 
+    from backend.core.config import resolve_flashscore_sport_slug
     espn_code = resolve_espn_sport_code(sport_name)
+    fs_slug = resolve_flashscore_sport_slug(sport_name)
+
+    def _try_universal_flashscore():
+        try:
+            from backend.modules.players.services.racket_volleyball_service import fetch_racket_or_volleyball_schedule
+            return fetch_racket_or_volleyball_schedule(
+                player_name=player_name or "",
+                team_name=team_name or "",
+                sport_name=sport_name or "",
+                country_name=country_name,
+                gender=gender,
+                include_deep_history=include_deep_history,
+            )
+        except Exception:
+            return []
+
     if espn_code in ESPN_INDIVIDUAL_SPORT_LEAGUES:
         days_b = 120 if include_deep_history else 14
         indiv_list = fetch_espn_individual_upcoming_30d(player_name or team_name, sport_name, espn_code, days_back=days_b, days_fwd=30)
+        if fs_slug is not None:
+            fs_list = _try_universal_flashscore()
+            seen_sig = {(m.get("date_only_vn"), (m.get("match_name") or "").lower()) for m in indiv_list}
+            for fm in fs_list:
+                sig = (fm.get("date_only_vn"), (fm.get("match_name") or "").lower())
+                if sig not in seen_sig:
+                    seen_sig.add(sig)
+                    indiv_list.append(fm)
+            indiv_list.sort(key=lambda x: str(x.get("match_date_utc") or ""))
         SCHEDULE_30D_CACHE[cache_key] = (now_ts, indiv_list)
         _save_team_sched_cache()
         return indiv_list
 
-    # Các môn chưa có trên ESPN Scoreboard / Teams (Bóng bàn WTT, Cầu lông BWF, Bóng chuyền)
+    # Universal non-ESPN / Flashscore / WTT multi-sport resolution (works for ALL 27 Flashscore sports & Table Tennis)
     if not espn_code:
-        s_norm = str(sport_name or "").lower()
-        if any(k in s_norm for k in ["bóng bàn", "bong ban", "table tennis", "cầu lông", "cau long", "badminton", "bóng chuyền", "bong chuyen", "volleyball"]):
-            try:
-                from backend.modules.players.services.racket_volleyball_service import fetch_racket_or_volleyball_schedule
-                rv_list = fetch_racket_or_volleyball_schedule(
-                    player_name=player_name or "",
-                    team_name=team_name or "",
-                    sport_name=sport_name or "",
-                    country_name=country_name,
-                    gender=gender,
-                    include_deep_history=include_deep_history,
-                )
-                if include_deep_history:
-                    _DEEP_NON_ESPN_FETCHED.add(cache_key)
-                SCHEDULE_30D_CACHE[cache_key] = (now_ts, rv_list)
-                _save_team_sched_cache()
-                return rv_list
-            except Exception:
-                pass
-
-        team_info_probe = get_espn_team_info(team_name, sport_name, api_team_id=api_team_id, gender=gender)
-        if not team_info_probe:
-            SCHEDULE_30D_CACHE[cache_key] = (now_ts, [])
+        if fs_slug is not None or any(k in str(sport_name or "").lower() for k in ["bóng bàn", "bong ban", "table tennis", "cầu lông", "cau long", "badminton", "bóng chuyền", "bong chuyen", "volleyball"]):
+            rv_list = _try_universal_flashscore()
+            if include_deep_history:
+                _DEEP_NON_ESPN_FETCHED.add(cache_key)
+            SCHEDULE_30D_CACHE[cache_key] = (now_ts, rv_list)
             _save_team_sched_cache()
-            return []
-        team_info = team_info_probe
+            return rv_list
+
+        SCHEDULE_30D_CACHE[cache_key] = (now_ts, [])
+        _save_team_sched_cache()
+        return []
     else:
         team_info = None
         if api_team_id and str(api_team_id).strip().isdigit():
@@ -1242,6 +1426,12 @@ def _fetch_player_upcoming_schedule_30d_impl(
                 SCHEDULE_30D_CACHE[cache_key] = (now_ts, fm_matches)
                 _save_team_sched_cache()
                 return fm_matches
+        if fs_slug is not None:
+            rv_list = _try_universal_flashscore()
+            if rv_list:
+                SCHEDULE_30D_CACHE[cache_key] = (now_ts, rv_list)
+                _save_team_sched_cache()
+                return rv_list
         SCHEDULE_30D_CACHE[cache_key] = (now_ts, [])
         _save_team_sched_cache()
         return []
@@ -2547,21 +2737,42 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         tag_name = "Dự bị (Không thi đấu)" if match_state == "post" else "Dự bị"
                     return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False}
 
-            # 4. ESPN INDIVIDUAL SPORTS (Tennis, Golf, Racing/F1, MMA/UFC) - chỉ lấy thông số thực từ Scoreboard
+            # 4. ESPN INDIVIDUAL SPORTS (Tennis, Golf, Racing/F1, MMA/UFC) - chỉ lấy thông số thực từ Scoreboard/Overview
             elif espn_sport in ESPN_INDIVIDUAL_SPORT_LEAGUES:
-                real_events = fetch_espn_individual_upcoming_30d(player_name, sport_name, espn_sport, days_back=60, days_fwd=30)
+                real_events = fetch_espn_individual_upcoming_30d(player_name, sport_name, espn_sport, days_back=90, days_fwd=30)
                 matched_ev = next((ev for ev in real_events if str(ev.get("event_id")) == str(event_id)), None)
-                if matched_ev and matched_ev.get("match_result"):
-                    tags_ind = ["Đang thi đấu"] if match_state == "in" else ["Hoàn thành"]
-                    if matched_ev.get("competition"):
-                        tags_ind.append(matched_ev["competition"])
+                if matched_ev and (matched_ev.get("match_result") or matched_ev.get("player_stats") or matched_ev.get("match_state") in ("post", "in")):
+                    tags_ind = list(matched_ev.get("tags") or [])
+                    if not tags_ind:
+                        tags_ind = ["Đang thi đấu"] if match_state == "in" else ["Hoàn thành"]
+                        if matched_ev.get("competition"):
+                            tags_ind.append(matched_ev["competition"])
                     return {
-                        "stats_text": matched_ev["match_result"],
+                        "stats_text": matched_ev.get("player_stats") or matched_ev.get("match_result") or "Đã thi đấu",
                         "rating": None,
                         "tags": tags_ind,
                         "has_played": True,
-                        "match_result": matched_ev["match_result"],
+                        "match_result": matched_ev.get("match_result"),
                     }
+
+            # 5. GENERIC ESPN TEAM SPORT BOXSCORE (NHL Hockey, NFL, Rugby, Cricket, Lacrosse, etc.)
+            elif espn_sport not in {"soccer", "basketball", "baseball"} and str(event_id).isdigit():
+                t_info = get_espn_team_info(team_name, sport_name)
+                lg_slug = (t_info or {}).get("league") or {"hockey": "nhl", "football": "nfl"}.get(espn_sport, "all")
+                sum_url = f"https://site.api.espn.com/apis/site/v2/sports/{espn_sport}/{lg_slug}/summary?event={event_id}"
+                data = fetch_espn_summary(sum_url, event_id)
+                if data:
+                    boxscore = data.get("boxscore", {})
+                    for t in boxscore.get("players", []):
+                        for stat_grp in t.get("statistics", []):
+                            labels = stat_grp.get("labels", []) or stat_grp.get("names", []) or []
+                            for ath in stat_grp.get("athletes", []):
+                                ath_name = ath.get("athlete", {}).get("displayName", "")
+                                if _matches_athlete(ath_name):
+                                    vals = ath.get("stats", [])
+                                    pairs = [f"{lbl}: {val}" for lbl, val in zip(labels, vals) if str(val).strip() not in ("", "0", "0.0", "--", "-")]
+                                    st_txt = ", ".join(pairs[:5]) or "Đã thi đấu"
+                                    return {"stats_text": st_txt, "rating": None, "tags": ["Đã thi đấu"], "has_played": True}
 
         except Exception:
             pass
@@ -2591,7 +2802,7 @@ def fetch_match_recap_news(event_id: str, sport_name: str, team_name: str, playe
     if cache_key in MATCH_RECAP_CACHE:
         return MATCH_RECAP_CACHE[cache_key]
 
-    espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
+    espn_sport = resolve_espn_sport_code(sport_name)
     articles = []
 
     # Fast path: check pre-fetched ESPN summary cache in memory without outbound network latency

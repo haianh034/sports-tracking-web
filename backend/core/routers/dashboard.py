@@ -599,11 +599,12 @@ def _compute_dashboard_data(
     # Prefetch recent past ESPN event summaries in parallel ONLY if not already locked in DB
     # Giai đoạn 1 (is_full_load=False): Khung D-7 đến D
     # Giai đoạn 2 (is_full_load=True): Toàn bộ mùa giải từ đầu (-300.0 <= diff_d < -0.05)
+    from backend.core.config import resolve_espn_sport_code
     diff_lower_limit = -300.0 if is_full_load else -7.0
     unique_past_events = set()
     for p, team_name, sport_name, _ in player_data_tuples:
-        espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
-        if espn_sport:
+        espn_sport = resolve_espn_sport_code(sport_name)
+        if espn_sport and espn_sport not in {"tennis", "golf", "racing", "mma", "boxing"}:
             for m in sched_map.get(p.id, []):
                 diff_d = m.get("diff_days", 999.0)
                 ev_id = m.get("event_id")
@@ -615,14 +616,14 @@ def _compute_dashboard_data(
                 elif m_date_vn and (p.id, str(m_date_vn)) in perf_by_player_date:
                     has_in_db = True
 
-                if not has_in_db and ev_id and diff_lower_limit <= diff_d < -0.05 and not str(ev_id).startswith("non_espn_"):
+                if not has_in_db and ev_id and diff_lower_limit <= diff_d < -0.05 and not str(ev_id).startswith(("non_espn_", "wtt_", "fs_", "fm_", "espn_ov_")):
                     cache_k = f"{p.name}_{ev_id}_post"
                     if cache_k not in MATCH_STATS_CACHE:
                         unique_past_events.add((espn_sport, str(ev_id)))
 
     def _prefetch_summary(item):
         espn_sport, ev_id = item
-        league = "all" if espn_sport == "soccer" else ("nba" if espn_sport == "basketball" else "mlb")
+        league = {"soccer": "all", "basketball": "nba", "baseball": "mlb", "hockey": "nhl", "football": "nfl"}.get(espn_sport, "all")
         url = f"https://site.api.espn.com/apis/site/v2/sports/{espn_sport}/{league}/summary?event={ev_id}"
         fetch_espn_summary(url, ev_id)
 
@@ -700,7 +701,7 @@ def _compute_dashboard_data(
             })
             continue
 
-        espn_sport = {"Bóng đá": "soccer", "Bóng rổ": "basketball", "Bóng chày": "baseball"}.get(sport_name)
+        espn_sport = resolve_espn_sport_code(sport_name)
         all_matches_raw = list(sched_map.get(p.id, []))
         # Merge valid archived past DB matches (retains sliding-window Flashscore/older WTT matches permanently)
         archived_perfs = db_past_perfs_by_player.get(p.id, [])

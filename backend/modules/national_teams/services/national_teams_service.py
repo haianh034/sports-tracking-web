@@ -965,16 +965,49 @@ def get_national_team_tournament_tag(comp_name: str, match_name: str = "", sport
     if any(k in c_low or k in m for k in friendly_keywords):
         return "Giao hữu"
     
-    # 2. FIFA World Cup & Age-group World Cups
+    is_soccer = ("bóng đá" in s_low or "soccer" in s_low)
+    is_baseball = ("bóng chày" in s_low or "baseball" in s_low)
+
+    # 2. Baseball Tournaments
+    if any(k in c_low for k in ["wbc", "world baseball classic"]):
+        return "WBC"
+    if any(k in c_low for k in ["premier12", "premier 12"]):
+        return "WBSC Premier12"
+    if any(k in c_low for k in ["u-23 baseball world cup", "u23 baseball world cup"]) or (is_baseball and "world cup" in c_low and ("u23" in c_low or "u-23" in c_low)):
+        return "WBSC U-23 World Cup"
+    if any(k in c_low for k in ["u-18 baseball world cup", "u18 baseball world cup", "u18 baseball"]) or (is_baseball and "world cup" in c_low and ("u18" in c_low or "u-18" in c_low)):
+        return "WBSC U-18 World Cup"
+
+    # 3. Basketball Tournaments
+    if any(k in c_low for k in ["fiba u19", "fiba u-19", "u19 world cup"]) and ("bóng rổ" in s_low or "basketball" in s_low or "fiba" in c_low):
+        return "FIBA U19 World Cup"
+    if any(k in c_low for k in ["fiba u17", "fiba u-17", "u17 world cup"]) and ("bóng rổ" in s_low or "basketball" in s_low or "fiba" in c_low):
+        return "FIBA U17 World Cup"
+    if any(k in c_low for k in ["fiba world cup", "basketball world cup"]):
+        return "FIBA World Cup"
+    if any(k in c_low for k in ["fiba asia cup", "asia cup basketball"]):
+        return "FIBA Asia Cup"
+
+    # 4. Volleyball Tournaments
+    if any(k in c_low for k in ["vnl", "volleyball nations league"]):
+        return "VNL"
+    if any(k in c_low for k in ["fivb world championship", "world championship"]) and ("volleyball" in s_low or "chuyền" in s_low):
+        return "FIVB World Championship"
+    if any(k in c_low for k in ["u21 asian", "asian championship"]) and ("volleyball" in s_low or "chuyền" in s_low):
+        return "U21 Asian Championship"
+    if "avc" in c_low:
+        return "AVC Cup"
+
+    # 5. FIFA World Cup & Age-group World Cups (Soccer only for generic "World Cup")
     if any(k in c_low for k in ["under-17 world cup", "u-17 world cup", "u17 world cup"]):
         return "FIFA U-17 World Cup"
     if any(k in c_low for k in ["under-20 world cup", "u-20 world cup", "u20 world cup"]):
         return "FIFA U-20 World Cup"
     if any(k in c_low for k in ["women's world cup", "fifa women", "world cup nữ"]):
         return "FIFA Women's World Cup"
-    if any(k in c_low for k in ["qualifying", "qualification", "vòng loại world cup", "world cup qualifiers", "wcq"]):
+    if any(k in c_low for k in ["qualifying", "qualification", "vòng loại world cup", "world cup qualifiers", "wcq"]) and is_soccer:
         return "Vòng loại World Cup"
-    if any(k in c_low for k in ["fifa world cup", "world cup"]):
+    if "fifa world cup" in c_low or (is_soccer and "world cup" in c_low):
         return "FIFA World Cup"
     
     # 3. Olympic Games & Qualifiers
@@ -1001,37 +1034,7 @@ def get_national_team_tournament_tag(comp_name: str, match_name: str = "", sport
     if any(k in c_low for k in ["copa america", "copa américa"]):
         return "Copa América"
 
-    # 5. Baseball Tournaments
-    if any(k in c_low for k in ["wbc", "world baseball classic"]):
-        return "WBC"
-    if any(k in c_low for k in ["premier12", "premier 12"]):
-        return "WBSC Premier12"
-    if any(k in c_low for k in ["u-23 baseball world cup", "u23 baseball world cup"]):
-        return "WBSC U-23 World Cup"
-    if any(k in c_low for k in ["u-18 baseball world cup", "u18 baseball world cup", "u18 baseball"]):
-        return "WBSC U-18 World Cup"
-
-    # 6. Basketball Tournaments
-    if any(k in c_low for k in ["fiba u19", "fiba u-19", "u19 world cup"]):
-        return "FIBA U19 World Cup"
-    if any(k in c_low for k in ["fiba u17", "fiba u-17", "u17 world cup"]):
-        return "FIBA U17 World Cup"
-    if any(k in c_low for k in ["fiba world cup", "basketball world cup"]):
-        return "FIBA World Cup"
-    if any(k in c_low for k in ["fiba asia cup", "asia cup basketball"]):
-        return "FIBA Asia Cup"
-
-    # 7. Volleyball Tournaments
-    if any(k in c_low for k in ["vnl", "volleyball nations league"]):
-        return "VNL"
-    if any(k in c_low for k in ["fivb world championship", "world championship"]) and ("volleyball" in s_low or "chuyền" in s_low):
-        return "FIVB World Championship"
-    if any(k in c_low for k in ["u21 asian", "asian championship"]) and ("volleyball" in s_low or "chuyền" in s_low):
-        return "U21 Asian Championship"
-    if "avc" in c_low:
-        return "AVC Cup"
-
-    # 8. Badminton & Table Tennis
+    # 7. Badminton & Table Tennis
     if any(k in c_low for k in ["thomas cup", "uber cup", "thomas & uber"]):
         return "Thomas & Uber Cup"
     if any(k in c_low for k in ["sudirman cup", "sudirman"]):
@@ -1233,6 +1236,12 @@ def fetch_national_team_schedule(team) -> list:
                 return refreshed_m
 
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    old_cached_matches = []
+    for k_cand in ([cache_key, t_id] if t_id else [cache_key]):
+        if k_cand in NATIONAL_TEAM_SCHED_CACHE:
+            old_cached_matches = NATIONAL_TEAM_SCHED_CACHE[k_cand][1] or []
+            break
+
     matches = []
     seen_keys = set()
 
@@ -1243,8 +1252,15 @@ def fetch_national_team_schedule(team) -> list:
     if espn_code == "soccer" and t_api_id and str(t_api_id).isdigit():
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule?fixture=true",
-            f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule"
+            f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule",
         ]
+        # Youth teams (U23, U20, U17...) often require explicit season query on ESPN
+        if t_tier and t_tier.lower() != "senior":
+            cur_yr = now_utc.year
+            urls.extend([
+                f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule?season={cur_yr}",
+                f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/{t_api_id}/schedule?season={cur_yr - 1}",
+            ])
     elif espn_code == "baseball" and t_api_id and str(t_api_id).isdigit():
         urls = [
             f"https://site.api.espn.com/apis/site/v2/sports/baseball/world-baseball-classic/teams/{t_api_id}/schedule"
@@ -1372,7 +1388,74 @@ def fetch_national_team_schedule(team) -> list:
         except Exception:
             pass
 
-    matches.sort(key=lambda x: x["match_date_utc"])
+    # 2. Flashscore universal NT & Youth Team fallback/supplement (Baseball APBC/U23 WC, Soccer youth friendlies, Basketball, Volleyball, Handball, Hockey, Rugby, Cricket...)
+    try:
+        from backend.modules.players.services.racket_volleyball_service import fetch_flashscore_national_team_schedule
+        fs_nt_matches = fetch_flashscore_national_team_schedule(
+            t_sport, t_country, tier=t_tier, gender=t_gender
+        )
+        for fm in fs_nt_matches:
+            d_vn = fm.get("date_only_vn") or ""
+            opp_name = fm.get("match_name") or ""
+            opp_core = re.sub(r"^(vs|@)\s+", "", opp_name, flags=re.I).strip().lower()
+            is_dup = False
+            try:
+                d_fm = datetime.datetime.strptime(d_vn, "%Y-%m-%d").date() if d_vn else None
+            except Exception:
+                d_fm = None
+            for k_d, k_opp in seen_keys:
+                k_core = re.sub(r"^(vs|@)\s+", "", k_opp, flags=re.I).strip().lower()
+                opp_same = (k_opp == opp_name.lower()) or (opp_core and k_core and (opp_core == k_core or opp_core in k_core or k_core in opp_core))
+                if not opp_same:
+                    continue
+                if k_d == d_vn:
+                    is_dup = True
+                    break
+                if d_fm and k_d:
+                    try:
+                        d_k = datetime.datetime.strptime(k_d, "%Y-%m-%d").date()
+                        if abs((d_fm - d_k).days) <= 1:
+                            is_dup = True
+                            break
+                    except Exception:
+                        pass
+            if is_dup:
+                continue
+            seen_keys.add((d_vn, opp_name.lower()))
+            comp_raw = fm.get("competition") or ""
+            clean_tourn = get_national_team_tournament_tag(comp_raw, opp_name, t_sport, t_tier)
+            m_item = {
+                "match_name": opp_name,
+                "raw_match_name": fm.get("raw_match_name") or f"{t_short} {opp_name}",
+                "match_date_utc": fm.get("match_date_utc"),
+                "date_vn": fm.get("date_vn"),
+                "date_full_vn": fm.get("date_full_vn"),
+                "date_only_vn": d_vn,
+                "competition": clean_tourn,
+                "raw_competition": comp_raw,
+                "match_state": fm.get("match_state", "pre"),
+                "match_result": fm.get("match_result"),
+                "player_stats": fm.get("player_stats"),
+                "is_past": fm.get("match_state") == "post" or (fm.get("diff_days", 0) < -0.1),
+                "event_id": fm.get("event_id"),
+                "diff_days": fm.get("diff_days", 0.0),
+            }
+            m_item["tags"] = format_national_team_match_tags(t_country, t_sport, t_tier, m_item)
+            matches.append(m_item)
+    except Exception:
+        pass
+
+    # 3. Retain historical past Flashscore NT matches across rolling 7-day windows
+    for old_m in old_cached_matches:
+        ev_s = str(old_m.get("event_id") or "")
+        if ev_s.startswith("fs_") and old_m.get("match_state") == "post":
+            d_vn = old_m.get("date_only_vn") or ""
+            opp_name = (old_m.get("match_name") or "").lower()
+            if (d_vn, opp_name) not in seen_keys:
+                seen_keys.add((d_vn, opp_name))
+                matches.append(old_m)
+
+    matches.sort(key=lambda x: str(x.get("match_date_utc") or ""))
     NATIONAL_TEAM_SCHED_CACHE[cache_key] = (now_ts, matches)
     _save_nt_sched_cache()
     return matches

@@ -7,6 +7,27 @@ from backend.core.config import EN_TO_VI_MAP, normalize_player_name
 
 _WIKI_HEADERS = {'User-Agent': 'SportsTrackingWeb/2.1 (https://github.com/sports-tracking; contact@sportstracker.local)'}
 _WIKI_CACHE = {}
+_WD_LABEL_CACHE = {}
+
+def _get_wikidata_entity_label(qid: str) -> tuple[str, str]:
+    """Fetch (vi_label, en_label) dynamically for any Wikidata QID so unknown sports/countries resolve automatically."""
+    if not qid:
+        return ("", "")
+    if qid in _WD_LABEL_CACHE:
+        return _WD_LABEL_CACHE[qid]
+    try:
+        u = f"https://www.wikidata.org/w/api.php?action=wbgetentities&ids={urllib.parse.quote(qid)}&props=labels&languages=vi|en&format=json"
+        req = urllib.request.Request(u, headers=_WIKI_HEADERS)
+        with urllib.request.urlopen(req, timeout=4) as r:
+            ent = json.loads(r.read().decode()).get("entities", {}).get(qid, {})
+        labels = ent.get("labels", {})
+        vi_l = (labels.get("vi") or {}).get("value", "")
+        en_l = (labels.get("en") or {}).get("value", "")
+        _WD_LABEL_CACHE[qid] = (vi_l, en_l)
+        return (vi_l, en_l)
+    except Exception:
+        _WD_LABEL_CACHE[qid] = ("", "")
+        return ("", "")
 
 _EVENT_TITLE_RE = re.compile(
     r'\b(at the \d{4}|olympics?|paralympics?|asian games|youth olympic|championships?|world cup|universiade|'
@@ -30,7 +51,8 @@ _NON_ATHLETE_DESC_RE = re.compile(
 _SPORT_HINT_RE = re.compile(
     r'\b(footballer|football|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|guard|forward|'
     r'volleyball|badminton|table tennis|ping pong|tennis|golfer|golf|racing|formula|motorsport|swimmer|swimming|'
-    r'athlete|athletics|boxer|boxing|mixed martial|mma|ufc|figure skater|gymnast|cyclist|hockey|cricket|rugby|player)\b',
+    r'athlete|athletics|boxer|boxing|mixed martial|mma|ufc|figure skater|gymnast|cyclist|hockey|cricket|rugby|'
+    r'handball|snooker|darts|futsal|judoka|judo|wrestler|wrestling|fencer|fencing|archer|esports|player)\b',
     re.IGNORECASE
 )
 
@@ -237,7 +259,7 @@ def _fetch_from_wikidata(player_name: str) -> dict:
         p21_ids = [c.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for c in claims.get("P21", [])]
         gender = "Women" if "Q6581072" in p21_ids else "Men"
 
-        # Sport (ưu tiên Wikidata claims P641 / P106 rồi mới đến description)
+        # Sport (ưu tiên Wikidata claims P641 / P106 rồi mới đến description & dynamic QID lookup)
         p641_ids = [c.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for c in claims.get("P641", [])]
         p106_ids = [c.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for c in claims.get("P106", [])]
         wd_sport_map = {
@@ -249,6 +271,21 @@ def _fetch_from_wikidata(player_name: str) -> dict:
             "Q1734": "Bóng chuyền", "Q15117302": "Bóng chuyền",
             "Q847": "Quần vợt", "Q10833314": "Quần vợt",
             "Q5377": "Golf", "Q13156709": "Golf",
+            "Q41466": "Khúc côn cầu", "Q11774891": "Khúc côn cầu",
+            "Q32112": "Quyền anh", "Q11338576": "Quyền anh",
+            "Q43663": "MMA / UFC", "Q11303721": "MMA / UFC",
+            "Q8418": "Bóng ném", "Q12840545": "Bóng ném",
+            "Q5375": "Cricket", "Q12299841": "Cricket",
+            "Q5378": "Bóng bầu dục", "Q13415036": "Bóng bầu dục",
+            "Q41323": "Bóng bầu dục Mỹ", "Q19204627": "Bóng bầu dục Mỹ",
+            "Q110145": "Billiards / Snooker", "Q16062369": "Billiards / Snooker",
+            "Q131439": "Phi tiêu (Darts)",
+            "Q1968": "Đua xe F1", "Q10841764": "Đua xe F1",
+            "Q31920": "Bơi lội", "Q10843402": "Bơi lội",
+            "Q542": "Điền kinh", "Q11513337": "Điền kinh",
+            "Q11420": "Judo", "Q6665249": "Judo",
+            "Q38108": "Trượt băng nghệ thuật", "Q13219587": "Trượt băng nghệ thuật",
+            "Q300920": "Esports", "Q4379701": "Esports",
         }
         sport = "Môn khác"
         for qid in (p641_ids + p106_ids):
@@ -256,13 +293,27 @@ def _fetch_from_wikidata(player_name: str) -> dict:
                 sport = wd_sport_map[qid]
                 break
 
+        # Dynamic Wikidata P641 label lookup for any sport not in map
+        if sport == "Môn khác" and p641_ids:
+            for qid in p641_ids[:2]:
+                vi_l, en_l = _get_wikidata_entity_label(qid)
+                if en_l and en_l.lower() in EN_TO_VI_MAP and isinstance(EN_TO_VI_MAP[en_l.lower()], str):
+                    sport = EN_TO_VI_MAP[en_l.lower()]
+                    break
+                if vi_l:
+                    sport = vi_l[:1].upper() + vi_l[1:]
+                    break
+                if en_l:
+                    sport = en_l[:1].upper() + en_l[1:]
+                    break
+
         all_desc_low = all_desc.lower()
         if sport == "Môn khác":
             if any(k in all_desc_low for k in ["badminton", "バドミントン", "배드민턴", "羽毛球"]):
                 sport = "Cầu lông"
             elif any(k in all_desc_low for k in ["table tennis", "卓球", "탁구", "乒乓球"]):
                 sport = "Bóng bàn"
-            elif any(k in all_desc_low for k in ["football", "soccer", "サッカー", "축구", "足球"]):
+            elif any(k in all_desc_low for k in ["football", "soccer", "サッカー", "축구", "足球"]) and "american football" not in all_desc_low:
                 sport = "Bóng đá"
             elif any(k in all_desc_low for k in ["baseball", "野球", "야구", "棒球"]):
                 sport = "Bóng chày"
@@ -275,7 +326,9 @@ def _fetch_from_wikidata(player_name: str) -> dict:
             else:
                 m_sp = _SPORT_HINT_RE.search(desc_en.lower())
                 if m_sp:
-                    sport = EN_TO_VI_MAP.get(m_sp.group(1).lower(), m_sp.group(1).capitalize())
+                    val_sp = EN_TO_VI_MAP.get(m_sp.group(1).lower(), m_sp.group(1).capitalize())
+                    if isinstance(val_sp, str):
+                        sport = val_sp
 
         # Country (ưu tiên P27 trước khi đọc description/sitelink)
         p27_ids = [c.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for c in claims.get("P27", [])]
@@ -300,6 +353,20 @@ def _fetch_from_wikidata(player_name: str) -> dict:
             if cid in wd_country_map:
                 country_name, tz, flag = wd_country_map[cid]
                 break
+
+        if country_name == "Quốc tế" and p27_ids:
+            for cid in p27_ids[:2]:
+                vi_c, en_c = _get_wikidata_entity_label(cid)
+                if en_c and en_c.lower() in EN_TO_VI_MAP and isinstance(EN_TO_VI_MAP[en_c.lower()], dict):
+                    tr_c = EN_TO_VI_MAP[en_c.lower()]
+                    country_name, tz, flag = tr_c["name"], tr_c["tz"], tr_c["flag"]
+                    break
+                if vi_c:
+                    country_name = vi_c
+                    break
+                if en_c:
+                    country_name = en_c
+                    break
 
         if country_name == "Quốc tế":
             for eng_k, trans in EN_TO_VI_MAP.items():
@@ -498,7 +565,8 @@ def fetch_free_player_info(player_name: str) -> dict:
                                 has_native_alias = True
                                 raw_aliases.extend(_split_japanese_name_clean(pn_clean))
 
-            # Nếu Wikipedia EN thiếu tên bản địa (ví dụ trang cầu thủ Nhật/Hàn chưa có langlinks), hỏi thêm Wikidata
+            # Nếu Wikipedia EN thiếu tên bản địa HOẶC chưa rõ môn/quốc gia, hỏi thêm Wikidata
+            wd_extra = None
             if not has_native_alias:
                 try:
                     wd_extra = _fetch_from_wikidata(clean_page_title or player_name)
@@ -509,22 +577,24 @@ def fetch_free_player_info(player_name: str) -> dict:
 
             aliases_str = build_clean_player_aliases(player_name, raw_aliases)
 
+            en_to_vi_low = {k.lower(): v for k, v in EN_TO_VI_MAP.items() if isinstance(k, str)}
+
             country_name = "Quốc tế"
             tz = "UTC"
             flag = "🌐"
 
             nat_team_match = re.search(r'(?:represents|plays for) the ([a-z\-]+(?: [a-z]+)?) national', summary)
             if nat_team_match:
-                raw_nat = nat_team_match.group(1).strip()
-                trans = EN_TO_VI_MAP.get(raw_nat)
+                raw_nat = nat_team_match.group(1).strip().lower()
+                trans = en_to_vi_low.get(raw_nat)
                 if isinstance(trans, dict):
                     country_name, tz, flag = trans["name"], trans["tz"], trans["flag"]
 
             if country_name == "Quốc tế":
-                nat_match = re.search(r'is a(?:n)? (?:former )?(.*?)\s*(?:professional\s+)?(?:footballer|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|guard|volleyball|badminton|tennis|golfer|racing driver|formula one|swimmer|athlete|boxer|mixed martial artist|mma fighter|figure skater|gymnast|cyclist|hockey|cricket|player)', summary)
+                nat_match = re.search(r'is a(?:n)? (?:former )?(.*?)\s*(?:professional\s+)?(?:footballer|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|guard|quarterback|volleyball|handball|badminton|table tennis|tennis|golfer|racing driver|formula one|swimmer|athlete|boxer|mixed martial artist|mma fighter|figure skater|gymnast|cyclist|hockey|cricket|snooker|rugby|player)', summary)
                 if nat_match:
-                    raw_nat = nat_match.group(1).strip()
-                    trans = EN_TO_VI_MAP.get(raw_nat)
+                    raw_nat = nat_match.group(1).strip().lower()
+                    trans = en_to_vi_low.get(raw_nat)
                     if isinstance(trans, dict):
                         country_name, tz, flag = trans["name"], trans["tz"], trans["flag"]
 
@@ -536,7 +606,7 @@ def fetch_free_player_info(player_name: str) -> dict:
 
             sport = "Môn khác"
             sport_match = re.search(
-                r'\b(football(?:er)?|soccer|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|mlb|nba|npb|volleyball|table tennis|ping pong|badminton|tennis|golf(?:er)?|formula one|formula 1|\bf1\b|racing|motorsport|mixed martial arts|mma|ufc|box(?:ing|er)|ice hockey|hockey|nhl|american football|nfl|rugby|cricket|swimm(?:ing|er)|athletics|track and field|gymnast(?:ics)?|figure skat(?:ing|er)|cycl(?:ing|ist)|esports|snooker|billiards)\b',
+                r'\b(american football|\bnfl\b|ice hockey|\bnhl\b|field hockey|table tennis|ping pong|beach volleyball|beach soccer|water polo|australian rules football|aussie rules|formula one|formula 1|\bf1\b|mixed martial arts|track and field|figure skat(?:ing|er)|handball|futsal|darts|floorball|bandy|kabaddi|netball|badminton|volleyball|basketball|baseball|pitcher|infielder|outfielder|batter|catcher|mlb|nba|npb|tennis|golf(?:er)?|hockey|rugby|cricket|snooker|billiards|racing|motorsport|mma|ufc|box(?:ing|er)|swimm(?:ing|er)|athletics|gymnast(?:ics)?|cycl(?:ing|ist)|judo|judoka|wrestling|fencing|archery|shooting|weightlifting|taekwondo|karate|esports|football(?:er)?|soccer)\b',
                 summary
             )
             if sport_match:
@@ -545,9 +615,26 @@ def fetch_free_player_info(player_name: str) -> dict:
                     "golfer": "golf", "racing": "racing", "boxer": "boxing",
                     "swimmer": "swimming", "gymnast": "gymnastics",
                     "figure skater": "figure skating", "cyclist": "cycling",
+                    "footballer": "football",
                 }
                 raw_sport = sport_alias_fix.get(raw_sport, raw_sport)
-                sport = EN_TO_VI_MAP.get(raw_sport, raw_sport.capitalize())
+                mapped_sp = en_to_vi_low.get(raw_sport)
+                sport = mapped_sp if isinstance(mapped_sp, str) else raw_sport.capitalize()
+
+            # Bổ sung từ Wikidata có cấu trúc nếu môn thể thao hoặc quốc gia chưa xác định được từ Wikipedia summary
+            if (sport == "Môn khác" or country_name == "Quốc tế"):
+                try:
+                    if wd_extra is None:
+                        wd_extra = _fetch_from_wikidata(clean_page_title or player_name)
+                    if wd_extra and wd_extra.get("found"):
+                        if sport == "Môn khác" and wd_extra.get("sport_name") not in (None, "", "Môn khác"):
+                            sport = wd_extra["sport_name"]
+                        if country_name == "Quốc tế" and wd_extra.get("country_name") not in (None, "", "Quốc tế"):
+                            country_name = wd_extra["country_name"]
+                            tz = wd_extra.get("timezone", tz)
+                            flag = wd_extra.get("country_flag", flag)
+                except Exception:
+                    pass
 
             team_name = "Tự do"
             if re.search(r'\bis a former\b|\bretired\b', summary[:180]):

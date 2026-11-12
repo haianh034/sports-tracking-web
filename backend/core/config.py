@@ -123,6 +123,32 @@ EN_TO_VI_MAP = {
     "esports": "Esports",
     "snooker": "Billiards / Snooker",
     "billiards": "Billiards / Snooker",
+    "handball": "Bóng ném",
+    "futsal": "Futsal",
+    "darts": "Phi tiêu (Darts)",
+    "water polo": "Bóng nước",
+    "field hockey": "Khúc côn cầu trên cỏ",
+    "floorball": "Floorball",
+    "bandy": "Bandy",
+    "beach volleyball": "Bóng chuyền bãi biển",
+    "beach soccer": "Bóng đá bãi biển",
+    "netball": "Bóng lưới",
+    "kabaddi": "Kabaddi",
+    "rugby union": "Bóng bầu dục",
+    "rugby league": "Bóng bầu dục",
+    "australian rules football": "Bóng bầu dục Úc",
+    "aussie rules": "Bóng bầu dục Úc",
+    "judo": "Judo",
+    "judoka": "Judo",
+    "wrestling": "Đấu vật",
+    "fencing": "Đấu kiếm",
+    "archery": "Bắn cung",
+    "shooting": "Bắn súng",
+    "weightlifting": "Cử tạ",
+    "taekwondo": "Taekwondo",
+    "karate": "Karate",
+    "badminton player": "Cầu lông",
+    "table tennis player": "Bóng bàn",
 }
 
 SPORT_TO_ESPN = {
@@ -146,6 +172,7 @@ SPORT_TO_ESPN = {
     "Bóng bầu dục": "rugby",
     "Cricket": "cricket",
     "Bóng vợt": "lacrosse",
+    "Bóng bầu dục Úc": "australian-football",
 }
 
 ESPN_INDIVIDUAL_SPORT_LEAGUES = {
@@ -154,6 +181,86 @@ ESPN_INDIVIDUAL_SPORT_LEAGUES = {
     "racing": ["f1", "irl", "nascar-premier"],
     "mma": ["ufc"],
 }
+
+# Flashscore.mobi supported sport slugs (covers 27 live sports)
+FLASHSCORE_SPORT_SLUGS = {
+    "soccer": "",
+    "football": "",
+    "bóng đá": "",
+    "hockey": "hockey",
+    "ice hockey": "hockey",
+    "khúc côn cầu": "hockey",
+    "khúc côn cầu trên băng": "hockey",
+    "tennis": "tennis",
+    "quần vợt": "tennis",
+    "basketball": "basketball",
+    "bóng rổ": "basketball",
+    "handball": "handball",
+    "bóng ném": "handball",
+    "volleyball": "volleyball",
+    "bóng chuyền": "volleyball",
+    "baseball": "baseball",
+    "bóng chày": "baseball",
+    "american football": "american-football",
+    "am. football": "american-football",
+    "bóng bầu dục mỹ": "american-football",
+    "rugby": "rugby-union",
+    "rugby union": "rugby-union",
+    "bóng bầu dục": "rugby-union",
+    "rugby league": "rugby-league",
+    "aussie rules": "aussie-rules",
+    "australian rules football": "aussie-rules",
+    "bóng bầu dục úc": "aussie-rules",
+    "badminton": "badminton",
+    "cầu lông": "badminton",
+    "bandy": "bandy",
+    "beach soccer": "beach-soccer",
+    "bóng đá bãi biển": "beach-soccer",
+    "beach volleyball": "beach-volleyball",
+    "bóng chuyền bãi biển": "beach-volleyball",
+    "boxing": "boxing",
+    "quyền anh": "boxing",
+    "cricket": "cricket",
+    "darts": "darts",
+    "phi tiêu": "darts",
+    "phi tiêu (darts)": "darts",
+    "field hockey": "field-hockey",
+    "khúc côn cầu trên cỏ": "field-hockey",
+    "floorball": "floorball",
+    "futsal": "futsal",
+    "kabaddi": "kabaddi",
+    "mma": "mma",
+    "mma / ufc": "mma",
+    "ufc": "mma",
+    "netball": "netball",
+    "bóng lưới": "netball",
+    "snooker": "snooker",
+    "billiards": "snooker",
+    "billiards / snooker": "snooker",
+    "table tennis": "table-tennis",
+    "ping pong": "table-tennis",
+    "bóng bàn": "table-tennis",
+    "water polo": "water-polo",
+    "bóng nước": "water-polo",
+}
+
+def resolve_flashscore_sport_slug(sport_name: str) -> str | None:
+    """Resolve an arbitrary Vietnamese/English sport name to its Flashscore.mobi slug ('' means football)."""
+    if not sport_name:
+        return None
+    s_low = sport_name.strip().lower()
+    if s_low in FLASHSCORE_SPORT_SLUGS:
+        return FLASHSCORE_SPORT_SLUGS[s_low]
+    for k, slug in FLASHSCORE_SPORT_SLUGS.items():
+        if k in s_low or s_low in k:
+            return slug
+    # Dynamic slug normalization for arbitrary English sport names (e.g. "Beach soccer" -> "beach-soccer")
+    ascii_s = unicodedata.normalize("NFKD", s_low).encode("ASCII", "ignore").decode("utf-8")
+    candidate = re.sub(r"[^a-z0-9]+", "-", ascii_s).strip("-")
+    valid_slugs = set(FLASHSCORE_SPORT_SLUGS.values()) - {""}
+    if candidate in valid_slugs:
+        return candidate
+    return None
 
 def resolve_espn_sport_code(sport_name: str) -> str | None:
     """Resolve an arbitrary Vietnamese/English sport name to its ESPN sport slug, or None if not an ESPN sport."""
@@ -172,9 +279,9 @@ def resolve_espn_sport_code(sport_name: str) -> str | None:
         return "basketball"
     if any(k in s_low for k in ["bóng chày", "baseball", "mlb", "npb", "kbo"]):
         return "baseball"
-    if any(k in s_low for k in ["khúc côn cầu", "hockey", "nhl"]):
+    if any(k in s_low for k in ["khúc côn cầu trên băng", "khúc côn cầu", "hockey", "nhl"]) and "cỏ" not in s_low and "field" not in s_low:
         return "hockey"
-    if any(k in s_low for k in ["quần vợt", "tennis"]):
+    if any(k in s_low for k in ["quần vợt", "tennis"]) and "bàn" not in s_low and "table" not in s_low:
         return "tennis"
     if "golf" in s_low:
         return "golf"
@@ -190,6 +297,8 @@ def resolve_espn_sport_code(sport_name: str) -> str | None:
         return "cricket"
     if "rugby" in s_low:
         return "rugby"
+    if any(k in s_low for k in ["lacrosse", "bóng vợt"]):
+        return "lacrosse"
     return None
 
 LEAGUE_SLUG_MAP = {

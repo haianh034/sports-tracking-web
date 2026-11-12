@@ -37,11 +37,16 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
                     raw_sport = (c.get("sport", "") or "").lower()
 
                     sport = "Môn khác"
-                    if "baseball" in raw_sport or "mlb" in league_slug or "mlb" in desc.lower():
+                    desc_l = desc.lower()
+                    if raw_sport in ("football", "american football", "american-football") or "nfl" in league_slug or "american football" in desc_l:
+                        sport = "Bóng bầu dục Mỹ"
+                    elif "baseball" in raw_sport or "mlb" in league_slug or "mlb" in desc_l:
                         sport = "Bóng chày"
-                    elif "basketball" in raw_sport or "nba" in league_slug or "nba" in desc.lower():
+                    elif "basketball" in raw_sport or "nba" in league_slug or "nba" in desc_l or "wnba" in league_slug:
                         sport = "Bóng rổ"
-                    elif any(k in (desc.lower() + " " + raw_sport + " " + league_slug) for k in ["laliga", "premier", "soccer", "fifa", "afc", "uefa", "bundesliga", "serie a", "ligue 1", "mls", "champions", "football"]):
+                    elif "hockey" in raw_sport or "nhl" in league_slug or "nhl" in desc_l:
+                        sport = "Khúc côn cầu"
+                    elif any(k in (desc_l + " " + raw_sport + " " + league_slug) for k in ["laliga", "premier", "soccer", "fifa", "afc", "uefa", "bundesliga", "serie a", "ligue 1", "mls", "champions league"]):
                         sport = "Bóng đá"
                     elif raw_sport:
                         mapped_sp = EN_TO_VI_MAP.get(raw_sport)
@@ -334,8 +339,8 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
         except Exception:
             pass
 
-    sport_order = {"Bóng đá": 1, "Bóng chày": 2, "Bóng rổ": 3, "Bóng chuyền": 4, "Cầu lông": 5, "Quần vợt": 6, "Bóng bàn": 7, "Môn khác": 8}
-    candidates.sort(key=lambda x: (-x.get("score", 0), sport_order.get(x["sport"], 99)))
+    sport_order = {"Bóng đá": 1, "Bóng chày": 2, "Bóng rổ": 3, "Bóng chuyền": 4, "Cầu lông": 5, "Quần vợt": 6, "Bóng bàn": 7, "Golf": 8, "Môn khác": 999}
+    candidates.sort(key=lambda x: (-x.get("score", 0), sport_order.get(x["sport"], 50)))
 
     # Deduplicate candidates across ESPN, FotMob, Wikipedia
     unique_candidates = []
