@@ -790,11 +790,32 @@ def _compute_dashboard_data(
                 m["nt_callup_tag"] = nt_tag
                 m["nt_callup_reason"] = nt_reason
 
+        # Đánh dấu các trận CLB diễn ra trong đợt VĐV đang tập trung ĐTQG (vd: giao hữu CLB giữa kỳ FIFA Days)
+        called_up_nt_dts = []
+        for m in all_matches_raw:
+            if m.get("nt_callup_status") == "called_up" and m.get("match_date_utc"):
+                try:
+                    called_up_nt_dts.append(datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S"))
+                except Exception:
+                    pass
+        if called_up_nt_dts:
+            for m in all_matches_raw:
+                is_nt_m2 = bool(m.get("is_national_team") or m.get("is_nt_match") or str(m.get("event_id") or "").startswith("espn_nt_"))
+                if not is_nt_m2 and m.get("match_date_utc"):
+                    try:
+                        m_dt2 = datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S")
+                        if any(-4.0 <= (m_dt2 - nt_dt).total_seconds() / 86400.0 <= 1.0 for nt_dt in called_up_nt_dts):
+                            m["absent_due_to_nt_duty"] = True
+                    except Exception:
+                        pass
+
         # XÁC ĐỊNH CHÍNH XÁC TRẬN ĐẤU TRONG KHUNG 48H (HÔM NAY VÀ HÔM QUA) TỪ LỊCH ĐẤU THỰC TẾ
         sched_today_match = None
         candidate_matches = []
         for m in all_matches_raw:
             if m.get("nt_callup_status") in ("not_called_up", "injured_withdrawal"):
+                continue
+            if m.get("absent_due_to_nt_duty") and (m.get("match_state", "pre") == "pre" or not m.get("has_played")):
                 continue
             m_dvn = m.get("date_only_vn")
             if not m_dvn and m.get("match_date_utc"):
@@ -1557,6 +1578,12 @@ def _compute_dashboard_data(
                     m_tags_cur.append("Vắng mặt ĐTQG (Chấn thương)")
                 m["has_played"] = False
                 m["rating"] = None
+            elif m.get("absent_due_to_nt_duty") and (m.get("match_state", "pre") == "pre" or not m.get("has_played")):
+                m_tags_cur = [t for t in m_tags_cur if "không đăng ký" not in t.lower() and "không thi đấu" not in t.lower()]
+                if "Tập trung ĐTQG" not in m_tags_cur:
+                    m_tags_cur.append("Tập trung ĐTQG")
+                m["has_played"] = False
+                m["rating"] = None
             m["tags"] = m_tags_cur
 
             # Trận đấu trong vòng 7 ngày (1 tuần) hoặc trận tương lai: Giữ nguyên trọn vẹn toàn bộ bài báo theo trận
@@ -1566,7 +1593,7 @@ def _compute_dashboard_data(
             m["news_count"] = len(m_news)
             all_matches.append(m)
 
-            if 0 <= diff_d <= 30 and not is_m_past and m.get("match_state") != "post" and m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
+            if 0 <= diff_d <= 30 and not is_m_past and m.get("match_state") != "post" and m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal") and not m.get("absent_due_to_nt_duty"):
                 upcoming_matches_30d.append(m)
 
         all_upcoming_matches = [
