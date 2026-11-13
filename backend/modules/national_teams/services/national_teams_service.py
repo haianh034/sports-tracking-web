@@ -847,17 +847,20 @@ def get_catalog_with_status(db: Session) -> list:
     return catalog_res
 
 
-def get_matching_national_team_for_player(sport_name: str, country_name: str, gender: str = "Men") -> dict:
+def get_matching_national_teams_for_player(sport_name: str, country_name: str, gender: str = "Men") -> list:
     """
-    Tự động tìm kiếm Đội tuyển Quốc gia tương ứng cho VĐV dựa trên Môn thể thao, Quốc gia và Giới tính.
+    Tự động tìm kiếm danh sách Đội tuyển Quốc gia & Đội tuyển Trẻ tương ứng cho VĐV 
+    dựa trên Môn thể thao, Quốc gia và Giới tính (Senior, U23, U20...).
     Phục vụ cho luồng tích hợp lịch thi đấu Athlete-Centric Timeline.
     """
     s_low = (sport_name or "").lower().strip()
     c_low = (country_name or "").lower().strip()
     g_low = (gender or "Men").lower().strip()
     
+    results = []
     for item in NATIONAL_TEAMS_CATALOG:
-        if item.get("tier") != "Senior":
+        # Chỉ ghép ĐTQG chính (Senior) và Tuyển Olympic / U23 (gồm các lứa U21/U23 thi đấu quốc tế) cho VĐV chuyên nghiệp
+        if item.get("tier") not in {"Senior", "U23"}:
             continue
         if item.get("sport", "").lower() == s_low:
             c_match = ("nhật" in c_low and "nhật" in item.get("country", "").lower()) or \
@@ -865,7 +868,17 @@ def get_matching_national_team_for_player(sport_name: str, country_name: str, ge
             if c_match:
                 item_g = item.get("gender", "Men").lower()
                 if item_g == g_low or item_g == "mixed":
-                    return item
+                    results.append(item)
+    return results
+
+def get_matching_national_team_for_player(sport_name: str, country_name: str, gender: str = "Men") -> dict:
+    """
+    Tự động tìm kiếm Đội tuyển Quốc gia tương ứng cho VĐV dựa trên Môn thể thao, Quốc gia và Giới tính.
+    Trả về đội hình ĐTQG cao nhất (Senior).
+    """
+    for item in get_matching_national_teams_for_player(sport_name, country_name, gender):
+        if item.get("tier") == "Senior":
+            return item
     return None
 
 def search_national_teams_catalog(query: str, db: Session) -> list:
@@ -1102,19 +1115,18 @@ def extract_national_team_result_tags(team_country: str, match_name: str, match_
 
         if match_state == "in":
             tags.append("Đang thi đấu")
-            tags.append(f"Tỉ số {our_score}-{opp_score}")
         else:
             diff = our_score - opp_score
             if diff > 0:
-                tags.append(f"Thắng {our_score}-{opp_score}")
+                tags.append("Thắng")
                 if opp_score == 0 and any(k in sport.lower() for k in ["bóng đá", "soccer", "football"]):
                     tags.append("Giữ sạch lưới")
                 if diff >= 3 and any(k in sport.lower() for k in ["bóng đá", "soccer", "football"]):
                     tags.append("Thắng đậm")
             elif diff == 0:
-                tags.append(f"Hòa {our_score}-{opp_score}")
+                tags.append("Hòa")
             else:
-                tags.append(f"Thua {our_score}-{opp_score}")
+                tags.append("Thua")
     else:
         if match_state == "post":
             tags.append("Đã kết thúc")
@@ -1122,11 +1134,7 @@ def extract_national_team_result_tags(team_country: str, match_name: str, match_
     return tags
 
 def extract_venue_tag(match_name: str) -> str:
-    m = match_name.strip()
-    if m.startswith("vs ") or m.startswith("vs."):
-        return "Sân nhà"
-    elif m.startswith("@ "):
-        return "Sân khách"
+    # Bỏ tag sân nhà / sân khách theo yêu cầu người dùng
     return ""
 
 def format_national_team_match_tags(team_country: str, sport_name: str, tier: str, match: dict, recent_news_titles: list = None) -> list:
@@ -1149,18 +1157,13 @@ def format_national_team_match_tags(team_country: str, sport_name: str, tier: st
     if stage_tag and stage_tag not in tags:
         tags.append(stage_tag)
 
-    # 3. Match Outcome / Result Tags (Thắng 2-0, Hòa 1-1, Thua 0-1, Giữ sạch lưới, Thắng đậm...)
+    # 3. Match Outcome / Result Tags (Thắng, Hòa, Thua, Giữ sạch lưới, Thắng đậm...)
     res_tags = extract_national_team_result_tags(team_country, m_name, res, st, sport=sport_name)
     for rt in res_tags:
         if rt not in tags:
             tags.append(rt)
 
-    # 4. Venue Tag (Sân nhà / Sân khách)
-    venue = extract_venue_tag(m_name)
-    if venue and venue not in tags:
-        tags.append(venue)
-
-    # 5. Pre-match status if upcoming
+    # 4. Pre-match status if upcoming
     if st == "pre" and not res_tags:
         diff_d = match.get("diff_days", 999.0)
         if 0 <= diff_d <= 2:
@@ -1728,18 +1731,25 @@ def fetch_national_team_squad_context(
             if is_women:
                 queries.append(("ja", "site:jfa.jp なでしこジャパン メンバー"))
                 queries.append(("ja", "なでしこジャパン 招集 OR メンバー"))
+            elif tier in {"U23", "U21", "U20", "U19", "U18", "U17", "Youth"}:
+                queries.append(("ja", "site:jfa.jp U-21日本代表 メンバー・スケジュール"))
+                queries.append(("ja", f"site:jfa.jp U-{tier[1:] if tier.startswith('U') else tier}日本代表 メンバー・スケジュール"))
+                queries.append(("ja", "site:jfa.jp U-23日本代表 メンバー・スケジュール"))
             else:
-                queries.append(("ja", "site:jfa.jp SAMURAI BLUE メンバー"))
+                queries.append(("ja", "site:jfa.jp SAMURAI BLUE メンバー・スケジュール"))
                 queries.append(("ja", "サッカー日本代表 メンバー 背番号 OR 招集"))
         else:
             queries.append(("en", f'"{country}" {"women " if is_women else ""}{sport} national team squad OR roster'))
     elif is_kr:
         if "bóng chày" in s_low or "baseball" in s_low:
-            queries.append(("ko", "야구 대표팀 명단 OR 엔트리"))
+            queries.append(("ko", "야구 대표팀 명단 OR 엔特리"))
             queries.append(("en", '"South Korea" baseball national team roster OR squad OR APBC'))
         elif "bóng đá" in s_low or "soccer" in s_low or "football" in s_low:
             if is_women:
                 queries.append(("ko", "여자축구 국가대표팀 명단 OR 소집"))
+            elif tier in {"U23", "U21", "U20", "U19", "U18", "U17", "Youth"}:
+                queries.append(("ko", f"U-{tier[1:] if tier.startswith('U') else tier} 축구대표팀 명단 OR 소집"))
+                queries.append(("ko", "site:kfa.or.kr 대표팀 명단"))
             else:
                 queries.append(("ko", "축구 국가대표팀 소집 명단 발표"))
                 queries.append(("en", '"South Korea" national football team squad OR called up'))
@@ -1777,9 +1787,23 @@ def fetch_national_team_squad_context(
     def _score_squad_article(t_str: str) -> int:
         tl = t_str.lower()
         sc = 0
+        req_tier = (tier or "Senior").lower()
+        if req_tier == "senior":
+            if any(k in tl for k in ["u-23", "u-21", "u-20", "u-19", "u-18", "u-17", "u23", "u21", "u20", "u19", "u17"]):
+                return -99
+        else:
+            tier_num = re.sub(r'[^0-9]', '', str(tier))
+            if any(k in tl for k in ["samurai blue", "a代表"]) and not any(k in tl for k in ["u-21", "u-23", "u-20", "u21", "u23", "u20"]):
+                return -99
+            if tier_num and f"u-{tier_num}" in tl:
+                sc += 10
+            elif any(k in tl for k in ["u-21", "u-23", "u-20"]):
+                sc += 6
+
         if "jfa" in tl or "kfa" in tl: sc += 5
-        if any(k in tl for k in ["招集メンバー", "メンバー・スケジュール", "소집 명단 발표", "명단 발표", "背番号", "official squad", "final roster"]): sc += 4
-        if any(k in tl for k in ["メンバー", "명단", "엔트리", "squad", "roster"]): sc += 2
+        if any(k in tl for k in ["メンバー・スケジュール", "招集メンバー", "소집 명단 발표", "명단 발표", "背番号", "official squad", "final roster"]): sc += 5
+        elif any(k in tl for k in ["メンバー", "명단", "엔트리", "squad", "roster"]): sc += 2
+        if any(k in tl for k in ["配信が決定", "放送", "テレビ", "チケット", "ticket", "broadcast"]): sc -= 6
         return sc
 
     ranked_articles = sorted(articles_meta, key=lambda x: -_score_squad_article(x[0]))
@@ -1791,7 +1815,7 @@ def fetch_national_team_squad_context(
     try:
         import httpx
         from googlenewsdecoder import gnewsdecoder
-        for art_title, art_link in ranked_articles[:3]:
+        for art_title, art_link in ranked_articles:
             if _score_squad_article(art_title) < 2 or not art_link:
                 continue
             try:
@@ -1805,7 +1829,8 @@ def fetch_national_team_squad_context(
                 raw_html = resp.text
                 # Strip HTML comments first so archived/commented-out old squads never pollute current roster
                 clean = re.sub(r"<!--.*?-->", " ", raw_html, flags=re.S)
-                clean = re.sub(r"<(?:script|style|nav|footer|header)[^>]*>.*?</(?:script|style|nav|footer|header)>", " ", clean, flags=re.S | re.I)
+                clean = re.sub(r"<(?:script|style|nav|footer|header|aside)[^>]*>.*?</(?:script|style|nav|footer|header|aside)>", " ", clean, flags=re.S | re.I)
+                clean = re.sub(r"<div[^>]*(?:sidebar|recommend|ranking|related|widget|banner)[^>]*>.*?</div>", " ", clean, flags=re.S | re.I)
                 clean = re.sub(r"<[^>]+>", " ", clean)
                 clean_space = re.sub(r"\s+", " ", clean).strip().lower()
                 clean_nospace = re.sub(r"\s+", "", clean).lower()
@@ -1873,10 +1898,10 @@ def evaluate_national_team_callup(
     nt_tier = str(nt_match.get("nt_tier") or nt_match.get("tier") or "Senior")
 
     # 1. Deterministic tournament eligibility (Youth or Domestic/U24 tournaments)
-    if nt_tier in {"U23", "U21", "U20", "U19", "U18", "U17", "Youth"} or any(
-        u in comp_low for u in ["u23", "u-23", "u21", "u20", "u-20", "u19", "u17"]
-    ):
-        return ("not_called_up", "Không lên tuyển", f"Giải trẻ ({nt_tier}) - không thuộc diện triệu tập")
+    is_youth_match = (
+        nt_tier in {"U23", "U21", "U20", "U19", "U18", "U17", "Youth"}
+        or any(u in comp_low for u in ["u23", "u-23", "u21", "u20", "u-20", "u19", "u17"])
+    )
 
     try:
         from backend.modules.players.services.sports_service import resolve_team_league
@@ -1884,13 +1909,15 @@ def evaluate_national_team_callup(
     except Exception:
         club_league = ""
 
-    is_apbc = any(k in comp_low for k in ["asia professional", "apbc", "raxus"])
-    if is_apbc and club_league == "MLB":
-        return (
-            "not_called_up",
-            "Không lên tuyển",
-            "Giải APBC dành cho cầu thủ NPB/KBO/CPBL (U24), các ngôi sao MLB không lên tuyển",
-        )
+    # Baseball: MLB players (Ohtani, Yamamoto, Suzuki, Imanaga, Yoshida, etc.) do NOT play in APBC, Premier12, U-23, or off-season friendlies
+    if "bóng chày" in sport_name.lower() or "baseball" in sport_name.lower():
+        is_wbc_or_olympic = any(k in comp_low for k in ["wbc", "world baseball classic", "olympic", "thế vận hội"])
+        if club_league == "MLB" and not is_wbc_or_olympic:
+            return (
+                "not_called_up",
+                "Không lên tuyển",
+                "Cầu thủ thuộc 40-man roster MLB không tham gia các giải giao hữu / APBC / U-23 ngoài WBC",
+            )
 
     is_eaff = any(k in comp_low for k in ["eaff", "e-1 championship"])
     if is_eaff and club_league in {"Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Eredivisie", "Championship", "MLS", "WSL"}:
@@ -1976,9 +2003,11 @@ def evaluate_national_team_callup(
                     in_roster = True
                     break
         if in_roster:
-            return ("called_up", "Được triệu tập", squad_ctx.get("squad_source_title") or "Có tên trong danh sách triệu tập ĐTQG")
+            return ("called_up", "Được triệu tập", squad_ctx.get("squad_source_title") or f"Có tên trong danh sách triệu tập {nt_tier}")
         if withdrawn_in_roster or has_recent_inj_news:
             return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Không có tên / rút lui khỏi danh sách triệu tập ĐTQG do chấn thương")
+        if is_youth_match:
+            return ("not_called_up", "Không lên tuyển", f"Không có tên trong danh sách đội tuyển trẻ ({nt_tier}) đợt này")
         return ("not_called_up", "Không lên tuyển", "Không có tên trong danh sách triệu tập ĐTQG đợt này")
 
     # 4. Fallback when no official squad roster page was parsed: check player & squad news headlines
@@ -1997,6 +2026,9 @@ def evaluate_national_team_callup(
                 return ("not_called_up", "Không lên tuyển", st)
             if any(k in stl for k in ["roster", "squad", "called", "招集", "メンバー", "代表", "명단", "발탁"]):
                 return ("called_up", "Được triệu tập", st)
+
+    if is_youth_match:
+        return ("not_called_up", "Không lên tuyển", f"Không có tên trong danh sách đội tuyển trẻ ({nt_tier})")
 
     if squad_ctx.get("is_domestic_or_u24_tournament") and club_league in {"MLB", "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "NBA"}:
         return ("not_called_up", "Không lên tuyển", "Giải đấu sử dụng đội hình nội địa / U24")

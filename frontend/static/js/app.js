@@ -483,16 +483,8 @@ function renderTagBadge(tag) {
         </span>`;
     }
 
-    if (tLow === 'sân nhà' || tLow.includes('sân nhà')) {
-        return `<span title="Thi đấu trên sân nhà" class="inline-flex items-center gap-1 bg-gray-900/90 text-gray-300 text-[11px] px-2 py-0.5 rounded-md border border-gray-700/70 font-medium shadow-sm">
-            <span>🏠</span><span>${escapeHtml(label)}</span>
-        </span>`;
-    }
-
-    if (tLow === 'sân khách' || tLow.includes('sân khách')) {
-        return `<span title="Thi đấu trên sân khách" class="inline-flex items-center gap-1 bg-gray-900/90 text-gray-300 text-[11px] px-2 py-0.5 rounded-md border border-gray-700/70 font-medium shadow-sm">
-            <span>✈️</span><span>${escapeHtml(label)}</span>
-        </span>`;
+    if (tLow === 'sân nhà' || tLow.includes('sân nhà') || tLow === 'sân khách' || tLow.includes('sân khách')) {
+        return '';
     }
 
     if (tLow.includes('triệu tập')) {

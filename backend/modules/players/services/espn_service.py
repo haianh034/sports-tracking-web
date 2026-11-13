@@ -1229,11 +1229,12 @@ def fetch_player_career_schedule(
     if country_name and sport_name:
         try:
             from backend.modules.national_teams.services.national_teams_service import (
-                get_matching_national_team_for_player, fetch_national_team_schedule
+                get_matching_national_teams_for_player, fetch_national_team_schedule
             )
-            nt_info = get_matching_national_team_for_player(sport_name, country_name, gender)
-            if nt_info:
-                nt_cache_k = (sport_name, country_name, gender)
+            matching_nts = get_matching_national_teams_for_player(sport_name, country_name, gender)
+            for nt_info in matching_nts:
+                tier = nt_info.get("tier", "Senior")
+                nt_cache_k = (sport_name, country_name, gender, tier)
                 if nt_sched_cache is not None and nt_cache_k in nt_sched_cache:
                     nt_matches = nt_sched_cache[nt_cache_k]
                 else:
@@ -1250,8 +1251,10 @@ def fetch_player_career_schedule(
                         m_copy = dict(m)
                         flag = nt_info.get("flag", "🌐")
                         comp = m_copy.get("competition") or "Quốc tế"
-                        m_copy["competition"] = f"{comp} • {flag} ĐTQG"
+                        tier_label = "ĐTQG" if tier == "Senior" else f"Tuyển trẻ {tier}"
+                        m_copy["competition"] = f"{comp} • {flag} {tier_label}"
                         m_copy["is_national_team"] = True
+                        m_copy["nt_tier"] = tier
                         all_matches.append(m_copy)
         except Exception:
             pass

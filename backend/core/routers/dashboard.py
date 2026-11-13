@@ -535,6 +535,22 @@ def _compute_dashboard_data(
     sports_list = [{"name": s} for s in sorted(active_sports_set)]
     countries_list = [{"name": c} for c in sorted(active_countries_set)]
 
+    def _clean_tags_helper(tag_list):
+        res = []
+        for t in (tag_list or []):
+            if not t:
+                continue
+            tl = str(t).strip().lower()
+            if tl in ("sân nhà", "sân khách"):
+                continue
+            m_sc = re.match(r'^(thắng|thua|hòa|tỉ số)\s+\d+\s*[-–:]\s*\d+', tl)
+            if m_sc:
+                k = m_sc.group(1)
+                t = k.capitalize() if k != "tỉ số" else None
+            if t and t not in res:
+                res.append(t)
+        return res
+
     active_players = []
     upcoming_players = []
     no_match_players = []
@@ -815,7 +831,7 @@ def _compute_dashboard_data(
         for m in all_matches_raw:
             if m.get("nt_callup_status") in ("not_called_up", "injured_withdrawal"):
                 continue
-            if m.get("absent_due_to_nt_duty") and (m.get("match_state", "pre") == "pre" or not m.get("has_played")):
+            if m.get("absent_due_to_nt_duty"):
                 continue
             m_dvn = m.get("date_only_vn")
             if not m_dvn and m.get("match_date_utc"):
@@ -851,7 +867,7 @@ def _compute_dashboard_data(
                 match_today = perf_by_player_event.get((p.id, ev_id_str))
             if not match_today and sched_today_match.get("date_only_vn"):
                 match_today = perf_by_player_date.get((p.id, str(sched_today_match.get("date_only_vn"))))
-        if not match_today:
+        if not match_today and not sched_today_match:
             match_today = today_perf_by_player.get(p.id)
 
         in_today_activity = False
@@ -877,18 +893,25 @@ def _compute_dashboard_data(
             comp_name = sched_today_match.get("competition") or ""
             
             if match_today:
-                if match_today.performance_rating is not None:
-                    rating = match_today.performance_rating
-                if match_today.player_stats:
-                    raw_stats = match_today.player_stats
-                if match_today.impression_tags:
-                    raw_tags = [t.strip() for t in match_today.impression_tags.split(",") if t.strip()]
-                if match_today.match_result and ("-" in str(match_today.match_result) or not match_result):
-                    match_result = match_today.match_result
                 if match_today.match_state and match_state == "pre":
                     match_state = match_today.match_state
                 elif sched_today_match.get("match_state") in ["post", "in"]:
                     match_state = sched_today_match.get("match_state")
+
+                if match_state != "pre":
+                    if match_today.performance_rating is not None:
+                        rating = match_today.performance_rating
+                    if match_today.player_stats:
+                        raw_stats = match_today.player_stats
+                    if match_today.impression_tags:
+                        raw_tags = [t.strip() for t in match_today.impression_tags.split(",") if t.strip()]
+                    if match_today.match_result and ("-" in str(match_today.match_result) or not match_result):
+                        match_result = match_today.match_result
+            
+            if match_state == "pre":
+                match_result = None
+                rating = None
+                raw_tags = []
 
             # Kiểm tra live_scores ngay để lấy tỉ số mới nhất theo thời gian thực
             clean_team_key = (team_name or "").lower().strip()
@@ -1566,25 +1589,42 @@ def _compute_dashboard_data(
                     m_tags_cur.append(outcome_tag)
 
             if m.get("nt_callup_status") == "not_called_up":
-                m_tags_cur = [t for t in m_tags_cur if not any(k in t.lower() for k in ["không đăng ký", "không thi đấu", "chấn thương"])]
+                m_tags_cur = [t for t in m_tags_cur if not any(k in t.lower() for k in ["không đăng ký", "không thi đấu", "chấn thương", "thắng", "hòa", "thua", "sạch lưới", "tỉ số"])]
                 if "Không lên tuyển" not in m_tags_cur:
                     m_tags_cur.append("Không lên tuyển")
                 m["has_played"] = False
                 m["rating"] = None
+                m["match_result"] = None
+                m["player_stats"] = None
                 m["is_not_called_up"] = True
             elif m.get("nt_callup_status") == "injured_withdrawal":
-                m_tags_cur = [t for t in m_tags_cur if "không đăng ký" not in t.lower()]
+                m_tags_cur = [t for t in m_tags_cur if not any(k in t.lower() for k in ["không đăng ký", "thắng", "hòa", "thua", "sạch lưới", "tỉ số"])]
                 if "Vắng mặt ĐTQG (Chấn thương)" not in m_tags_cur:
                     m_tags_cur.append("Vắng mặt ĐTQG (Chấn thương)")
                 m["has_played"] = False
                 m["rating"] = None
+                m["match_result"] = None
+                m["player_stats"] = None
             elif m.get("absent_due_to_nt_duty") and (m.get("match_state", "pre") == "pre" or not m.get("has_played")):
                 m_tags_cur = [t for t in m_tags_cur if "không đăng ký" not in t.lower() and "không thi đấu" not in t.lower()]
                 if "Tập trung ĐTQG" not in m_tags_cur:
                     m_tags_cur.append("Tập trung ĐTQG")
                 m["has_played"] = False
                 m["rating"] = None
-            m["tags"] = m_tags_cur
+
+            # Clean venue tags and score tags
+            m_tags_clean = []
+            for t in m_tags_cur:
+                tl = str(t).strip().lower()
+                if tl in ("sân nhà", "sân khách"):
+                    continue
+                m_sc = re.match(r'^(thắng|thua|hòa|tỉ số)\s+\d+\s*[-–:]\s*\d+', tl)
+                if m_sc:
+                    k = m_sc.group(1)
+                    t = k.capitalize() if k != "tỉ số" else None
+                if t and t not in m_tags_clean:
+                    m_tags_clean.append(t)
+            m["tags"] = m_tags_clean
 
             # Trận đấu trong vòng 7 ngày (1 tuần) hoặc trận tương lai: Giữ nguyên trọn vẹn toàn bộ bài báo theo trận
             # Trận cũ hơn 7 ngày (quá 1 tuần): Giới hạn tối đa 8 bài để tiết kiệm dung lượng JSON
@@ -1827,10 +1867,125 @@ def _compute_dashboard_data(
         }
         
         if in_today_activity:
+            player_item["tags"] = _clean_tags_helper(player_item.get("tags"))
             active_players.append(dict(player_item))
+            # Nếu VĐV thi đấu 2 ngày liên tiếp trong 48h (ví dụ hôm qua và hôm nay):
+            # Tạo thêm card độc lập cho trận đấu còn lại để hiển thị đầy đủ trong tab Hôm qua / Hôm nay
+            if len(candidate_matches) > 1:
+                for _, other_cand_m in candidate_matches[1:2]:
+                    other_dvn = other_cand_m.get("date_only_vn")
+                    if not other_dvn and other_cand_m.get("match_date_utc"):
+                        try:
+                            other_dvn = (datetime.datetime.strptime(other_cand_m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S") + datetime.timedelta(hours=7)).strftime("%Y-%m-%d")
+                        except Exception:
+                            pass
+                    if other_cand_m.get("event_id") and other_cand_m.get("event_id") == sched_today_match.get("event_id"):
+                        continue
+                    
+                    other_ev_id = str(other_cand_m.get("event_id") or "")
+                    other_match_db = perf_by_player_event.get((p.id, other_ev_id)) if other_ev_id else None
+                    if not other_match_db and other_dvn:
+                        other_match_db = perf_by_player_date.get((p.id, str(other_dvn)))
+
+                    other_state = other_cand_m.get("match_state", "pre")
+                    other_res = other_cand_m.get("match_result")
+                    other_rating = None
+                    other_stats = None
+                    other_det_stats = None
+                    other_tags = []
+                    
+                    if other_match_db:
+                        if other_match_db.match_state:
+                            other_state = other_match_db.match_state
+                        if other_match_db.match_result:
+                            other_res = other_match_db.match_result
+                        if other_state != "pre":
+                            other_rating = other_match_db.performance_rating
+                            other_s_text, other_det = unpack_stats(other_match_db.player_stats)
+                            other_stats = other_s_text
+                            other_det_stats = other_det
+                            if other_match_db.impression_tags:
+                                other_tags = [t.strip() for t in other_match_db.impression_tags.split(",") if t.strip()]
+
+                    other_time_vn = ""
+                    other_ts = 0.0
+                    other_tp = "today"
+                    other_tpl = "Hôm nay"
+                    other_tpb = "☀️ Hôm nay"
+                    other_utc = other_cand_m.get("match_date_utc")
+                    if other_utc:
+                        try:
+                            o_dt_utc = datetime.datetime.strptime(other_utc[:19], "%Y-%m-%dT%H:%M:%S")
+                            o_dt_vn = o_dt_utc + datetime.timedelta(hours=7)
+                            other_ts = o_dt_vn.timestamp()
+                            other_time_vn = o_dt_vn.strftime("%d/%m %H:%M")
+                            hm_s = o_dt_vn.strftime("%H:%M")
+                            if other_state == "in":
+                                other_tp = "live"
+                                other_tpl = "Đang trực tiếp"
+                                other_tpb = f"🔴 TRỰC TIẾP • {hm_s}"
+                            elif o_dt_vn.date() == today_ict:
+                                other_tp = "today"
+                                other_tpl = "Hôm nay"
+                                other_tpb = f"☀️ Hôm nay • {hm_s}"
+                            elif o_dt_vn.date() == yesterday_ict:
+                                if o_dt_vn.hour >= 18:
+                                    other_tp = "yesterday_evening"
+                                    other_tpl = "Tối hôm qua (18h-24h)"
+                                    other_tpb = f"🌙 Tối qua • {hm_s}"
+                                else:
+                                    other_tp = "yesterday_morning"
+                                    other_tpl = "Rạng sáng hôm qua"
+                                    other_tpb = f"⏳ Rạng sáng qua • {hm_s}"
+                        except Exception:
+                            pass
+
+                    clean_other_comp = get_tournament_tag(team_name, sport_name, other_cand_m.get("match_name", ""), other_cand_m.get("competition", ""))
+                    all_otags = [clean_other_comp] if clean_other_comp else []
+                    o_round = extract_round_stage_tag(other_cand_m.get("round_tag", "") or other_cand_m.get("competition", ""), other_cand_m.get("raw_match_name", ""))
+                    if o_round and o_round not in all_otags:
+                        all_otags.append(o_round)
+                    for ot in other_tags:
+                        if ot and ot not in all_otags:
+                            all_otags.append(ot)
+                    if other_state == "post" and other_res:
+                        o_out = extract_match_outcome_tag(other_res, team_name, other_cand_m.get("match_name", ""), player_name=p.name)
+                        if o_out and o_out not in all_otags:
+                            all_otags.append(o_out)
+                    
+                    all_otags = _clean_tags_helper(all_otags)
+
+                    other_item = dict(player_item)
+                    other_item["next_match"] = other_cand_m.get("match_name") or "Thi đấu"
+                    other_item["match_state"] = other_state
+                    other_item["match_result"] = other_res
+                    other_item["player_stats"] = other_stats
+                    other_item["detailed_stats"] = other_det_stats
+                    other_item["rating"] = other_rating
+                    other_item["tags"] = all_otags
+                    other_item["match_date_utc"] = other_utc
+                    other_item["next_match_date"] = other_cand_m.get("date_vn") or other_time_vn
+                    other_item["match_time_vn"] = other_time_vn
+                    other_item["match_timestamp"] = other_ts
+                    other_item["time_phase"] = other_tp
+                    other_item["time_phase_label"] = other_tpl
+                    other_item["time_phase_badge"] = other_tpb
+                    
+                    other_details = dict(other_item.get("details", {}))
+                    other_details["match"] = other_cand_m.get("match_name")
+                    other_details["match_date_utc"] = other_utc
+                    other_details["match_state"] = other_state
+                    other_details["match_result"] = other_res
+                    other_details["player_stats"] = other_stats
+                    other_details["detailed_stats"] = other_det_stats
+                    other_item["details"] = other_details
+
+                    active_players.append(other_item)
         elif len(upcoming_matches_30d) > 0:
+            player_item["tags"] = _clean_tags_helper(player_item.get("tags"))
             upcoming_players.append(dict(player_item))
         else:
+            player_item["tags"] = _clean_tags_helper(player_item.get("tags"))
             no_match_item = dict(player_item)
             no_match_players.append(no_match_item)
 
@@ -1838,14 +1993,9 @@ def _compute_dashboard_data(
         sched_item["tags"] = []
         sched_item["upcoming_3_matches"] = upcoming_matches_30d[:3]
         sched_item["earliest_match_utc"] = upcoming_matches_30d[0]["match_date_utc"] if upcoming_matches_30d else None
-        
-        # Nếu chưa có rating hôm nay, lấy rating của trận gần nhất đã thi đấu để hiển thị phong độ ở tab Schedule
-        if not sched_item.get("rating"):
-            for m_past in reversed(all_matches):
-                if (m_past.get("is_past") or m_past.get("match_state") == "post") and m_past.get("rating") and m_past.get("has_played", True):
-                    sched_item["rating"] = m_past.get("rating")
-                    sched_item["is_fallback_rating"] = m_past.get("is_fallback_rating", False)
-                    break
+        # Tab Schedule KHÔNG hiển thị rating theo yêu cầu người dùng
+        sched_item["rating"] = None
+        sched_item["is_fallback_rating"] = False
 
         sched_details = dict(sched_item.get("details", {}))
         sched_details.pop("news", None)
@@ -2156,6 +2306,7 @@ def _compute_dashboard_data(
             }
         }
 
+        nt_item["tags"] = _clean_tags_helper(nt_item.get("tags"))
         if in_today:
             active_players.append(dict(nt_item))
         elif len(nt_upcoming_30d) > 0:
@@ -2166,19 +2317,31 @@ def _compute_dashboard_data(
         sched_nt = dict(nt_item)
         sched_nt["upcoming_3_matches"] = nt_upcoming_30d[:3]
         sched_nt["earliest_match_utc"] = nt_upcoming_30d[0]["match_date_utc"] if nt_upcoming_30d else None
+        sched_nt["rating"] = None
+        sched_nt["is_fallback_rating"] = False
         sched_nt_details = dict(sched_nt.get("details", {}))
         sched_nt_details.pop("news", None)
         sched_nt_details.pop("all_matches", None)
         sched_nt["details"] = sched_nt_details
         schedule_players.append(sched_nt)
             
-    # Sắp xếp: Ưu tiên có rating lên trước (từ cao đến thấp), rồi mới đến số lượng báo
+    # Sắp xếp: Ưu tiên có rating lên trước (từ cao đến thấp) => đã/đang thi đấu => số lượng báo
     def sort_active_today_players(p):
-        news_count = len(p.get("details", {}).get("news", []))
+        news_count = len(p.get("details", {}).get("news", [])) or p.get("news_24h_count", 0)
         rating_val = p.get("rating")
         has_rating = 1 if (isinstance(rating_val, (int, float)) and rating_val > 0) else 0
         rating_score = float(rating_val) if has_rating else 0.0
-        return (has_rating, rating_score, news_count)
+
+        m_state = str(p.get("match_state") or "pre").lower()
+        has_res = bool(p.get("match_result"))
+        if m_state == "in":
+            status_score = 2
+        elif m_state == "post" or has_res:
+            status_score = 1
+        else:
+            status_score = 0
+
+        return (has_rating, rating_score, status_score, news_count)
 
     def sort_by_news_and_time(p):
         news_count = len(p.get("details", {}).get("news", []))
