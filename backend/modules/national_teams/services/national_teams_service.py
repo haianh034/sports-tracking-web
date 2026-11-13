@@ -981,6 +981,8 @@ def get_national_team_tournament_tag(comp_name: str, match_name: str = "", sport
     is_baseball = ("bóng chày" in s_low or "baseball" in s_low)
 
     # 2. Baseball Tournaments
+    if any(k in c_low for k in ["asia professional baseball", "apbc", "asia professional championship"]) or (is_baseball and "asia professional" in c_low):
+        return "Asia Professional Baseball Championship"
     if any(k in c_low for k in ["wbc", "world baseball classic"]):
         return "WBC"
     if any(k in c_low for k in ["premier12", "premier 12"]):
@@ -1373,7 +1375,7 @@ def fetch_national_team_schedule(team) -> list:
                         m_item = {
                             "match_name": opp_name,
                             "raw_match_name": f"{t_short} {opp_name}",
-                            "match_date_utc": dt.isoformat(),
+                            "match_date_utc": dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
                             "date_vn": dt_vn.strftime("%d/%m %H:%M"),
                             "date_full_vn": dt_vn.strftime("%d/%m/%Y %H:%M"),
                             "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
@@ -1426,10 +1428,13 @@ def fetch_national_team_schedule(team) -> list:
             seen_keys.add((d_vn, opp_name.lower()))
             comp_raw = fm.get("competition") or ""
             clean_tourn = get_national_team_tournament_tag(comp_raw, opp_name, t_sport, t_tier)
+            fm_utc = fm.get("match_date_utc")
+            if fm_utc and isinstance(fm_utc, str) and not fm_utc.endswith("Z") and not ("+" in fm_utc or "-" in fm_utc[10:]):
+                fm_utc = fm_utc + "Z"
             m_item = {
                 "match_name": opp_name,
                 "raw_match_name": fm.get("raw_match_name") or f"{t_short} {opp_name}",
-                "match_date_utc": fm.get("match_date_utc"),
+                "match_date_utc": fm_utc,
                 "date_vn": fm.get("date_vn"),
                 "date_full_vn": fm.get("date_full_vn"),
                 "date_only_vn": d_vn,

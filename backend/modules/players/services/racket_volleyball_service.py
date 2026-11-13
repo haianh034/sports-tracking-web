@@ -523,6 +523,7 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
             match_res = None
             stats_text = ""
 
+            calc_rating = None
             if m_state == "post" and has_score:
                 win_str = "Thắng" if my_sets > opp_sets else ("Thua" if opp_sets > my_sets else "Hoàn thành")
                 game_str = ", ".join(pairs)
@@ -530,22 +531,32 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
                 match_res = f"{my_display} {my_sets} - {opp_sets} {opp_display} (FT) • {game_str}"
                 stats_text = f"{win_str} {my_sets}-{opp_sets} ({game_str})"
                 tags.append(win_str)
+                # Điểm số hiệu suất thi đấu thực tế theo diễn biến trận đấu bóng bàn (thang điểm 10)
+                if my_sets > opp_sets:
+                    if opp_sets == 0:
+                        calc_rating = 9.0  # Thắng trắng áp đảo 3-0 hoặc 4-0
+                    elif opp_sets == 1:
+                        calc_rating = 8.4  # Thắng cách biệt 3-1 hoặc 4-1
+                    else:
+                        calc_rating = 7.9  # Thắng kịch tính set quyết định 3-2 hoặc 4-3
+                elif opp_sets > my_sets:
+                    if my_sets >= 2:
+                        calc_rating = 6.6  # Thua sát nút
+                    elif my_sets == 1:
+                        calc_rating = 6.2
+                    else:
+                        calc_rating = 5.8  # Thua trắng
             elif m_state == "post":
                 match_res = "Đã kết thúc (FT)"
 
             if round_lbl and round_lbl not in tags:
                 tags.append(round_lbl)
-            if is_doubles:
-                if "Mixed" in sub_ev or "XDOUBLES" in dc:
-                    tags.append("Đôi nam nữ")
-                else:
-                    tags.append("Đôi")
 
             WTT_MATCH_STATS_LOOKUP[ev_key] = {
                 "has_played": (m_state == "post" and has_score),
                 "stats_text": stats_text,
                 "tags": tags,
-                "rating": None,
+                "rating": calc_rating,
                 "match_result": match_res,
             }
 
@@ -567,6 +578,7 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
                 "player_team": clean_comp,
                 "player_stats": stats_text,
                 "tags": tags,
+                "rating": calc_rating,
             })
 
     return matches
@@ -916,6 +928,7 @@ def _fetch_flashscore_matches(
         tags = []
 
         is_walkover = bool(re.search(r'\b(wo|w/o|walkover|ret|retired)\b', f"{sc} {cls}", re.I))
+        calc_rating = None
         if m_state in ("post", "in") and sc:
             set_part = f" • {sets_str}" if sets_str else ""
             state_lbl = "LIVE" if m_state == "in" else "FT"
@@ -930,16 +943,27 @@ def _fetch_flashscore_matches(
                     wl = "Thắng" if our_s > opp_s else ("Thua" if opp_s > our_s else "Hòa")
                     if m_state == "post":
                         tags.append(wl)
+                        # Điểm số đánh giá hiệu suất thực tế cho Cầu lông, Bóng bàn, Quần vợt, Bóng chuyền
+                        if our_s > opp_s:
+                            if opp_s == 0:
+                                calc_rating = 8.8  # Thắng áp đảo không để thua set nào (2-0, 3-0)
+                            elif opp_s == 1 and our_s >= 3:
+                                calc_rating = 8.4  # Thắng 3-1
+                            else:
+                                calc_rating = 8.0  # Thắng set quyết định (2-1, 3-2)
+                        elif opp_s > our_s:
+                            if our_s >= 1:
+                                calc_rating = 6.6  # Thua nhưng giành được set thắng
+                            else:
+                                calc_rating = 6.0  # Thua trắng
                     stats_text = f"{wl} {our_s}-{opp_s}" + (f" ({sets_str})" if sets_str else "")
         elif m_state == "post":
             match_res = "Đã kết thúc (FT)"
 
         comp_clean = _clean_fs_comp(row["comp"], sport_slug)
-        fs_round_tag = extract_round_stage_tag(row["comp"], comp_clean)
+        fs_round_tag = extract_round_stage_tag(row["comp"], comp_clean, date_vn_str=dt_vn.strftime("%Y-%m-%d"))
         if fs_round_tag and fs_round_tag not in tags:
             tags.append(fs_round_tag)
-        if not is_team_mode and "/" in our_side:
-            tags.append("Đánh đôi")
 
         ev_id = f"fs_{sport_slug}_{row['mid']}"
         has_p = (m_state == "post" and bool(sc) and not is_walkover)
@@ -947,7 +971,7 @@ def _fetch_flashscore_matches(
             "has_played": has_p,
             "stats_text": stats_text,
             "tags": tags,
-            "rating": None,
+            "rating": calc_rating,
             "match_result": match_res,
         }
 
@@ -968,9 +992,10 @@ def _fetch_flashscore_matches(
             "status_detail": match_res or dt_vn.strftime("%d/%m • %H:%M"),
             "has_played": has_p,
             "diff_days": diff,
-            "player_team": team_name or comp_clean,
+            "player_team": our_side if not is_team_mode else "",
             "player_stats": stats_text,
             "tags": tags,
+            "rating": calc_rating,
         })
 
     results.sort(key=lambda x: str(x.get("match_date_utc") or ""))

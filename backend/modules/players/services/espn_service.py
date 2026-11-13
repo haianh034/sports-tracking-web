@@ -1880,6 +1880,14 @@ def _save_match_stats_cache():
         pass
 
 def fetch_player_match_stats(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
+    if event_id:
+        try:
+            from backend.modules.players.services.racket_volleyball_service import WTT_MATCH_STATS_LOOKUP
+            if str(event_id) in WTT_MATCH_STATS_LOOKUP:
+                return dict(WTT_MATCH_STATS_LOOKUP[str(event_id)])
+        except Exception:
+            pass
+
     cache_key = f"{player_name}_{event_id}_{match_state}" if event_id else None
     if cache_key and cache_key in MATCH_STATS_CACHE:
         cached_entry = MATCH_STATS_CACHE[cache_key]
@@ -2034,6 +2042,14 @@ def _fetch_fotmob_match_summary(player_name: str, team_name: str, event_id: str,
         return None
 
 def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
+    if event_id:
+        try:
+            from backend.modules.players.services.racket_volleyball_service import WTT_MATCH_STATS_LOOKUP
+            if str(event_id) in WTT_MATCH_STATS_LOOKUP:
+                return dict(WTT_MATCH_STATS_LOOKUP[str(event_id)])
+        except Exception:
+            pass
+
     espn_sport = resolve_espn_sport_code(sport_name) or (sport_name or "").lower()
 
     norm_target = normalize_player_name(player_name)

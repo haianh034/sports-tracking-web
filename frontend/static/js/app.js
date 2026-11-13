@@ -58,9 +58,33 @@ function renderCardNewsBadges(p, customNewsList = null, customMatch = null) {
     </span>`;
 }
 
+const IANA_TZ_MAP = {
+    'JST': 'Asia/Tokyo',
+    'KST': 'Asia/Seoul',
+    'ICT': 'Asia/Ho_Chi_Minh',
+    'VN': 'Asia/Ho_Chi_Minh',
+    'CET': 'Europe/Paris',
+    'CEST': 'Europe/Berlin',
+    'BST': 'Europe/London',
+    'EDT': 'America/New_York',
+    'EST': 'America/New_York',
+    'PDT': 'America/Los_Angeles',
+    'PST': 'America/Los_Angeles',
+    'CDT': 'America/Chicago',
+    'CST': 'America/Chicago',
+    'ART': 'America/Argentina/Buenos_Aires',
+    'BRT': 'America/Sao_Paulo',
+};
+
 function formatMatchTimezones(utcDateStr, targetTz, flagStr) {
     if (!utcDateStr) return { vnTime: 'N/A', localTime: 'N/A', tzLabel: 'Giờ bản địa', countryFlag: flagStr || '📍' };
-    const d = new Date(utcDateStr);
+    
+    // Đảm bảo định dạng UTC chuẩn ISO-8601 (có hậu tố Z) để trình duyệt không diễn giải nhầm thành giờ địa phương
+    let s = String(utcDateStr).trim();
+    if (!s.endsWith('Z') && !/[+-]\d{2}(:\d{2})?$/.test(s)) {
+        s += 'Z';
+    }
+    const d = new Date(s);
     if (isNaN(d.getTime())) return { vnTime: 'N/A', localTime: 'N/A', tzLabel: 'Giờ bản địa', countryFlag: flagStr || '📍' };
 
     const vnTime = new Intl.DateTimeFormat('vi-VN', {
@@ -70,13 +94,15 @@ function formatMatchTimezones(utcDateStr, targetTz, flagStr) {
         hour12: false
     }).format(d);
 
-    let tzLabel = `Giờ ${targetTz.split('/').pop().replace('_', ' ')}`;
+    const tzKey = (targetTz || '').trim();
+    const resolvedIana = IANA_TZ_MAP[tzKey] || (tzKey.includes('/') ? tzKey : 'Asia/Ho_Chi_Minh');
+    let tzLabel = `Giờ ${tzKey ? tzKey.split('/').pop().replace('_', ' ') : 'bản địa'}`;
     let countryFlag = flagStr || '📍';
     
     let localTime = 'N/A';
     try {
         localTime = new Intl.DateTimeFormat('vi-VN', {
-            timeZone: targetTz,
+            timeZone: resolvedIana,
             hour: '2-digit', minute: '2-digit',
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour12: false
@@ -325,6 +351,9 @@ function renderTagBadge(tag) {
     }
 
     const tLow = label.toLowerCase();
+    if (['đánh đôi', 'đôi', 'đôi nam nữ', 'sân nhà', 'sân khách'].includes(tLow)) {
+        return '';
+    }
 
     // 1. Chấn thương (Phân biệt rõ nhẹ vs nặng theo NBA, MLB, Bóng đá với Tooltip chi tiết)
     const isInjury = (
@@ -1436,13 +1465,14 @@ function getMatchVnDateOnly(m) {
     if (m.date_only_vn) return m.date_only_vn;
     if (m.match_date_utc) {
         try {
-            const dt = new Date(m.match_date_utc);
-            const utcMs = dt.getTime() + (dt.getTimezoneOffset() * 60000);
-            const vnDate = new Date(utcMs + (7 * 3600000));
-            const yyyy = vnDate.getFullYear();
-            const mm = String(vnDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(vnDate.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            let s = String(m.match_date_utc).trim();
+            if (!s.endsWith('Z') && !/[+-]\d{2}(:\d{2})?$/.test(s)) s += 'Z';
+            const dt = new Date(s);
+            const vnFormatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            });
+            return vnFormatter.format(dt);
         } catch (e) {}
     }
     return '';

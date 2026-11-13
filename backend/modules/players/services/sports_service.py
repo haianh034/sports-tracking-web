@@ -2,6 +2,7 @@ import urllib.request
 import urllib.parse
 import json
 import re
+import datetime
 from backend.config import LEAGUE_SLUG_MAP
 
 TEAM_LEAGUE_CACHE = {}
@@ -153,6 +154,9 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
     m_lower = (match_name or "").lower()
     t_lower = (team_name or "").lower()
     s_lower = (sport_name or "").lower()
+
+    if "•" in raw_c and any(k in raw_c.lower() for k in ["đtqg", "tuyển trẻ", "u23", "u20", "u19", "u18", "u17"]):
+        return raw_c
 
     if any(k in c_lower or k in m_lower for k in ["friendly", "giao hữu", "club friendly", "international friendly", "exhibition"]):
         return "Giao hữu"
@@ -401,7 +405,7 @@ def get_tournament_tag(team_name: str, sport_name: str, match_name: str = "", co
 
     return ""
 
-def extract_round_stage_tag(raw_stage: str = "", competition: str = "", match_name: str = "") -> str:
+def extract_round_stage_tag(raw_stage: str = "", competition: str = "", match_name: str = "", date_vn_str: str = "") -> str:
     """Chuẩn hóa thông tin vòng đấu thực tế từ API (Vòng 1, Vòng 2..., Tứ kết, Bán kết, Chung kết)."""
     text = f"{raw_stage or ''} {competition or ''} {match_name or ''}".strip()
     if not text:
@@ -416,11 +420,11 @@ def extract_round_stage_tag(raw_stage: str = "", competition: str = "", match_na
         return "Bán kết"
     if any(k in tl for k in ["tứ kết", "quarterfinal", "quarter-final", "quarter final"]):
         return "Tứ kết"
-    if any(k in tl for k in ["vòng 1/8", "round of 16", "last 16", "1/8-finals", "1/8 final"]):
+    if any(k in tl for k in ["vòng 1/8", "round of 16", "last 16", "1/8-finals", "1/8 final", "r16"]):
         return "Vòng 1/8"
-    if any(k in tl for k in ["vòng 1/16", "round of 32", "last 32", "1/16-finals", "1/16 final"]):
+    if any(k in tl for k in ["vòng 1/16", "round of 32", "last 32", "1/16-finals", "1/16 final", "r32"]):
         return "Vòng 1/16"
-    if any(k in tl for k in ["vòng 1/32", "round of 64", "last 64", "1/32-finals", "1/32 final"]):
+    if any(k in tl for k in ["vòng 1/32", "round of 64", "last 64", "1/32-finals", "1/32 final", "r64"]):
         return "Vòng 1/32"
     if any(k in tl for k in ["tranh hạng 3", "3rd place", "third place", "bronze"]):
         return "Tranh hạng 3"
@@ -444,6 +448,26 @@ def extract_round_stage_tag(raw_stage: str = "", competition: str = "", match_na
     raw_s = (raw_stage or "").strip()
     if raw_s.isdigit() and 1 <= int(raw_s) <= 60:
         return f"Vòng {int(raw_s)}"
+
+    # Suy luận vòng đấu theo lịch trình tiêu chuẩn của các giải đấu loại trực tiếp (BWF World Tour, Masters, Open, Grand Slam, WTT)
+    if any(k in tl for k in ["masters", "open", "bwf", "wtt", "grand slam", "championship", "cup", "cúp"]) and date_vn_str:
+        try:
+            d_parts = str(date_vn_str)[:10].split("-")
+            if len(d_parts) == 3:
+                dt_obj = datetime.date(int(d_parts[0]), int(d_parts[1]), int(d_parts[2]))
+                wd = dt_obj.weekday()  # 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+                if wd in (1, 2):  # Thứ Ba, Thứ Tư
+                    return "Vòng 1/16"
+                elif wd == 3:     # Thứ Năm
+                    return "Vòng 1/8"
+                elif wd == 4:     # Thứ Sáu
+                    return "Tứ kết"
+                elif wd == 5:     # Thứ Bảy
+                    return "Bán kết"
+                elif wd == 6:     # Chủ Nhật
+                    return "Chung kết"
+        except Exception:
+            pass
 
     return ""
 
