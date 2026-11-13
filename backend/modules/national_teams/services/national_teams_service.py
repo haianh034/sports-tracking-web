@@ -847,39 +847,38 @@ def get_catalog_with_status(db: Session) -> list:
     return catalog_res
 
 
-def get_matching_national_teams_for_player(sport_name: str, country_name: str, gender: str = "Men") -> list:
+def get_matching_national_team_for_player(sport_name: str, country_name: str, gender: str = "Men") -> dict:
     """
-    Tự động tìm kiếm danh sách Đội tuyển Quốc gia & Đội tuyển Trẻ tương ứng cho VĐV 
-    dựa trên Môn thể thao, Quốc gia và Giới tính (Senior, U23, U20...).
-    Phục vụ cho luồng tích hợp lịch thi đấu Athlete-Centric Timeline.
+    Tự động tìm kiếm Đội tuyển Quốc gia tương ứng cho VĐV dựa trên Môn thể thao, Quốc gia và Giới tính.
+    Luôn trả về ĐTQG cao nhất (Senior) của quốc gia đó.
     """
     s_low = (sport_name or "").lower().strip()
     c_low = (country_name or "").lower().strip()
     g_low = (gender or "Men").lower().strip()
     
-    results = []
     for item in NATIONAL_TEAMS_CATALOG:
-        # Chỉ ghép ĐTQG chính (Senior) và Tuyển Olympic / U23 (gồm các lứa U21/U23 thi đấu quốc tế) cho VĐV chuyên nghiệp
-        if item.get("tier") not in {"Senior", "U23"}:
+        if item.get("tier") != "Senior":
             continue
         if item.get("sport", "").lower() == s_low:
-            c_match = ("nhật" in c_low and "nhật" in item.get("country", "").lower()) or \
-                      ("hàn" in c_low and "hàn" in item.get("country", "").lower())
+            item_c = item.get("country", "").lower()
+            c_match = (
+                (("nhật" in c_low or "japan" in c_low) and ("nhật" in item_c or "japan" in item_c)) or
+                (("hàn" in c_low or "korea" in c_low) and ("hàn" in item_c or "korea" in item_c)) or
+                c_low == item_c
+            )
             if c_match:
                 item_g = item.get("gender", "Men").lower()
                 if item_g == g_low or item_g == "mixed":
-                    results.append(item)
-    return results
-
-def get_matching_national_team_for_player(sport_name: str, country_name: str, gender: str = "Men") -> dict:
-    """
-    Tự động tìm kiếm Đội tuyển Quốc gia tương ứng cho VĐV dựa trên Môn thể thao, Quốc gia và Giới tính.
-    Trả về đội hình ĐTQG cao nhất (Senior).
-    """
-    for item in get_matching_national_teams_for_player(sport_name, country_name, gender):
-        if item.get("tier") == "Senior":
-            return item
+                    return item
     return None
+
+def get_matching_national_teams_for_player(sport_name: str, country_name: str, gender: str = "Men") -> list:
+    """
+    Tự động tìm kiếm danh sách Đội tuyển Quốc gia tương ứng cho VĐV.
+    Đối với dòng thời gian của VĐV chuyên nghiệp, chỉ liên kết với ĐTQG Senior chính thức.
+    """
+    nt = get_matching_national_team_for_player(sport_name, country_name, gender)
+    return [nt] if nt else []
 
 def search_national_teams_catalog(query: str, db: Session) -> list:
     """Searches catalog and existing teams for user keyword."""
@@ -1946,33 +1945,14 @@ def evaluate_national_team_callup(
     last_tok = p_tokens[-1] if p_tokens else ""
     first_tok = p_tokens[0] if p_tokens else ""
 
-    def _mentions_player(text_low: str, text_nospace: str = "") -> bool:
-        for nv in name_variants_low:
-            if nv in text_low:
-                return True
-        if text_nospace:
-            for cv in cjk_variants_nospace:
-                if cv in text_nospace:
-                    return True
-        if last_tok and first_tok and last_tok in text_low and first_tok in text_low:
-            return True
-        return False
-
     p_titles = [str(t) for t in (player_news_titles or []) if t]
     has_recent_inj_news = False
     for title in p_titles[:15]:
         tl = title.lower()
         if any(k in tl for k in ["injury", "injured", "hamstring", "ankle", "knee", "負傷", "怪我", "戦線復帰", "負傷離脱", "부상", "chấn thương"]):
             has_recent_inj_news = True
-        if any(k in tl for k in ["withdraw", "withdrew", "pulled out", "ruled out", "辞退", "負傷離脱", "부상 낙마", "소집 해제", "rút lui", "lỡ hẹn"]):
-            if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "world cup", "friendly"]):
-                return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", title)
-        if any(k in tl for k in ["left out", "omitted", "snubbed", "not called", "選外", "招集外", "不選出", "제외", "명단 제외", "không được triệu tập"]):
-            return ("not_called_up", "Không lên tuyển", title)
 
-    if official_injury or recent_club_injury:
-        return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Đang chấn thương tại CLB nên vắng mặt đợt tập trung ĐTQG")
-
+    # 3. Check official/decoded squad roster text FIRST (highest accuracy, eliminates speculative article titles!)
     squad_ctx = fetch_national_team_squad_context(
         country_name,
         sport_name,
@@ -1982,7 +1962,6 @@ def evaluate_national_team_callup(
         opponent_name=str(nt_match.get("match_name") or ""),
     )
 
-    # 3. Check official/decoded squad roster text FIRST (highest accuracy, avoids speculative article titles!)
     sq_text = squad_ctx.get("squad_articles_text") or ""
     sq_nospace = squad_ctx.get("squad_articles_nospace") or ""
     if squad_ctx.get("has_official_squad_roster"):
@@ -2004,13 +1983,23 @@ def evaluate_national_team_callup(
                     break
         if in_roster:
             return ("called_up", "Được triệu tập", squad_ctx.get("squad_source_title") or f"Có tên trong danh sách triệu tập {nt_tier}")
-        if withdrawn_in_roster or has_recent_inj_news:
+        if withdrawn_in_roster or (official_injury or recent_club_injury or has_recent_inj_news):
             return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Không có tên / rút lui khỏi danh sách triệu tập ĐTQG do chấn thương")
         if is_youth_match:
             return ("not_called_up", "Không lên tuyển", f"Không có tên trong danh sách đội tuyển trẻ ({nt_tier}) đợt này")
         return ("not_called_up", "Không lên tuyển", "Không có tên trong danh sách triệu tập ĐTQG đợt này")
 
-    # 4. Fallback when no official squad roster page was parsed: check player & squad news headlines
+    # 4. Fallback when no official squad roster page was parsed: check player injuries & news headlines
+    if official_injury or recent_club_injury:
+        return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", "Đang chấn thương tại CLB nên vắng mặt đợt tập trung ĐTQG")
+
+    for title in p_titles[:15]:
+        tl = title.lower()
+        if any(k in tl for k in ["withdraw", "withdrew", "pulled out", "ruled out", "辞退", "負傷離脱", "부상 낙마", "소집 해制", "소집 해제", "rút lui", "lỡ hẹn"]):
+            if any(k in tl for k in ["japan", "korea", "samurai", "national", "đtqg", "tuyển", "대표", "代表", "world cup", "friendly"]):
+                return ("injured_withdrawal", "Vắng mặt ĐTQG (Chấn thương)", title)
+        if any(k in tl for k in ["left out", "omitted", "snubbed", "not called", "選外", "招集外", "不選出", "제외", "명단 제외", "không được triệu tập"]):
+            return ("not_called_up", "Không lên tuyển", title)
     for title in p_titles[:15]:
         tl = title.lower()
         if any(k in tl for k in ["called up", "named in", "squad", "roster", "招集", "代表選出", "メンバー入り", "발탁", "명단 포함", "triệu tập", "lên tuyển"]):

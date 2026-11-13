@@ -867,7 +867,7 @@ def _compute_dashboard_data(
                 match_today = perf_by_player_event.get((p.id, ev_id_str))
             if not match_today and sched_today_match.get("date_only_vn"):
                 match_today = perf_by_player_date.get((p.id, str(sched_today_match.get("date_only_vn"))))
-        if not match_today and not sched_today_match:
+        if not match_today and not sched_today_match and not called_up_nt_dts:
             match_today = today_perf_by_player.get(p.id)
 
         in_today_activity = False
@@ -931,7 +931,7 @@ def _compute_dashboard_data(
 
             # Nếu trận trong khung 48h đã kết thúc (post), cập nhật thông số và điểm số chính thức
             # Kể cả cầu thủ KHÔNG ra sân, vẫn phải cập nhật tỉ số và lưu trạng thái đã kết thúc
-            if match_state == "post":
+            if match_state == "post" and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                 ev_id = sched_today_match.get("event_id")
                 try:
                     fresh_stats = fetch_player_match_stats(
@@ -971,7 +971,7 @@ def _compute_dashboard_data(
                                     other_t = right_t if is_same_team(team_name, left_t) else left_t
                                     m_name = f"vs {other_t}" if is_same_team(team_name, left_t) else f"@ {other_t}"
 
-                        if not match_today:
+                        if not match_today and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                             # Tránh tạo trùng lặp row nếu đã tồn tại bản ghi trong ngày hoặc event_id
                             if sched_today_match.get("date_only_vn"):
                                 match_today = db.query(MatchPerformance).filter(
@@ -984,7 +984,7 @@ def _compute_dashboard_data(
                                     MatchPerformance.event_id == str(ev_id)
                                 ).first()
 
-                        if not match_today:
+                        if not match_today and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                             match_today = MatchPerformance(
                                 player_id=p.id,
                                 match_name=m_name,
@@ -1025,7 +1025,7 @@ def _compute_dashboard_data(
             match_date_ict = match_ict.date()
             diff_days = (match_date_ict - today_ict).days
             match_date_utc = match_today.match_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-            if diff_days == 0 or diff_days == -1:
+            if (diff_days == 0 or diff_days == -1) and not called_up_nt_dts:
                 in_today_activity = True
                 is_within_month = True
                 next_match_text = match_today.match_name
@@ -1388,7 +1388,7 @@ def _compute_dashboard_data(
                     # Giai đoạn 2 (is_full_load=True): Cào thông số cho toàn bộ quá khứ của mùa giải (-300.0 <= diff_d <= 0)
                     stats_lower_limit = -300.0 if is_full_load else -7.0
                     is_rv_match = bool(ev_id and str(ev_id).startswith(("wtt_", "fs_")))
-                    if ev_id and (stats_lower_limit <= diff_d <= 0 or is_rv_match):
+                    if ev_id and (stats_lower_limit <= diff_d <= 0 or is_rv_match) and m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                         try:
                             real_stats = fetch_player_match_stats(
                                 p.name, sport_name, match_team, event_id=ev_id, match_state="post", news_titles=p_news_titles,
@@ -1436,34 +1436,35 @@ def _compute_dashboard_data(
                         m["tags"] = m_tags
 
                         # Lock into Database permanently
-                        try:
-                            m_dt = None
-                            if m.get("match_date_utc"):
-                                try:
-                                    m_dt = datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S")
-                                except Exception:
-                                    pass
-                            new_perf = MatchPerformance(
-                                player_id=p.id,
-                                match_name=m.get("match_name"),
-                                match_date=m_dt,
-                                has_played=has_p,
-                                performance_rating=p_rating,
-                                impression_tags=",".join(raw_tags_list),
-                                match_state="post",
-                                match_result=m.get("match_result"),
-                                player_stats=p_stats,
-                                competition=clean_comp,
-                                event_id=str(ev_id) if ev_id else None,
-                                date_str=m_date_vn
-                            )
-                            db.add(new_perf)
-                            if ev_id:
-                                perf_by_player_event[(p.id, str(ev_id))] = new_perf
-                            if m_date_vn:
-                                perf_by_player_date[(p.id, str(m_date_vn))] = new_perf
-                        except Exception:
-                            pass
+                        if m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
+                            try:
+                                m_dt = None
+                                if m.get("match_date_utc"):
+                                    try:
+                                        m_dt = datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S")
+                                    except Exception:
+                                        pass
+                                new_perf = MatchPerformance(
+                                    player_id=p.id,
+                                    match_name=m.get("match_name"),
+                                    match_date=m_dt,
+                                    has_played=has_p,
+                                    performance_rating=p_rating,
+                                    impression_tags=",".join(raw_tags_list),
+                                    match_state="post",
+                                    match_result=m.get("match_result"),
+                                    player_stats=p_stats,
+                                    competition=clean_comp,
+                                    event_id=str(ev_id) if ev_id else None,
+                                    date_str=m_date_vn
+                                )
+                                db.add(new_perf)
+                                if ev_id:
+                                    perf_by_player_event[(p.id, str(ev_id))] = new_perf
+                                if m_date_vn:
+                                    perf_by_player_date[(p.id, str(m_date_vn))] = new_perf
+                            except Exception:
+                                pass
                     else:
                         m["rating"] = None
                         m["player_stats"] = None
