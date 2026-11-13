@@ -1767,6 +1767,9 @@ function renderCalendarCards(dateStr) {
     (window.calendarAllPlayers || []).forEach(p => {
         const allMatches = p.all_matches || p.matches_60d || (p.details && (p.details.all_matches || p.details.upcoming_matches_30d)) || [];
         allMatches.forEach(m => {
+            if (m.nt_callup_status === 'not_called_up' || m.nt_callup_status === 'injured_withdrawal' || m.is_not_called_up) {
+                return;
+            }
             const mDate = getMatchVnDateOnly(m);
             if (mDate === dateStr) {
                 const uniqueKey = `${p.id}_${m.match_name}_${mDate}`;

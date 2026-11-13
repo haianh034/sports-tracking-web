@@ -162,9 +162,10 @@
   },
   "Kenta Nishimoto_fs_badminton_Q5aOnOJN_post": {
     "stats_text": "Thua 1-2 (21-13, 6-21, 21-11)",
-    "rating": null,
+    "rating": 6.6,
     "tags": [
-      "Thua"
+      "Thua",
+      "Vòng 1/8"
     ],
     "has_played": true,
     "match_result": "Farhan A. (Ina) 2-1 Nishimoto K. (Jpn) (FT) • 21-13, 6-21, 21-11"
@@ -325,9 +326,10 @@
   },
   "Kodai Naraoka_fs_badminton_hleJiwFs_post": {
     "stats_text": "Thua 1-2 (21-15, 11-21, 21-18)",
-    "rating": null,
+    "rating": 6.6,
     "tags": [
-      "Thua"
+      "Thua",
+      "Vòng 1/8"
     ],
     "has_played": true,
     "match_result": "Srikanth K. (Ind) 2-1 Naraoka K. (Jpn) (FT) • 21-15, 11-21, 21-18"
@@ -344,9 +346,10 @@
   },
   "Yoo Tae-bin_fs_badminton_4bXgNbP1_post": {
     "stats_text": "Thua 0-2 (19-21, 14-21)",
-    "rating": null,
+    "rating": 6.0,
     "tags": [
-      "Thua"
+      "Thua",
+      "Vòng 1/8"
     ],
     "has_played": true,
     "match_result": "Yoo T. B. (Kor) 0-2 Vitidsarn K. (Tha) (FT) • 19-21, 14-21"
@@ -16854,20 +16857,20 @@
   },
   "Seo Seung-jae_fs_badminton_vm8cidje_post": {
     "stats_text": "Thua 0-2 (19-21, 15-21)",
-    "rating": null,
+    "rating": 6.0,
     "tags": [
       "Thua",
-      "Đánh đôi"
+      "Vòng 1/8"
     ],
     "has_played": true,
     "match_result": "Kim W. H./Seo S. J. 0-2 Jin Y./Jo S. H. (FT) • 19-21, 15-21"
   },
   "Kim Won-ho_fs_badminton_vm8cidje_post": {
     "stats_text": "Thua 0-2 (19-21, 15-21)",
-    "rating": null,
+    "rating": 6.0,
     "tags": [
       "Thua",
-      "Đánh đôi"
+      "Vòng 1/8"
     ],
     "has_played": true,
     "match_result": "Kim W. H./Seo S. J. 0-2 Jin Y./Jo S. H. (FT) • 19-21, 15-21"
@@ -17766,9 +17769,10 @@
   },
   "Akane Yamaguchi_fs_badminton_Es6e01m1_post": {
     "stats_text": "Thắng 2-0 (21-13, 21-12)",
-    "rating": null,
+    "rating": 8.8,
     "tags": [
-      "Thắng"
+      "Thắng",
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Yamaguchi A. (Jpn) 2-0 Gunji R. (Jpn) (FT) • 21-13, 21-12"
@@ -18709,69 +18713,70 @@
   },
   "Wang Chan_fs_badminton_OASFmO3e_post": {
     "stats_text": "Thắng 2-0 (18-21, 16-21)",
-    "rating": null,
+    "rating": 8.8,
     "tags": [
       "Thắng",
-      "Đánh đôi"
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Jin Y./Jo S. H. 0-2 Wang C./Xie H. N. (FT) • 18-21, 16-21"
   },
   "Takuro Hoki_fs_badminton_OKcg70s2_post": {
     "stats_text": "Thắng 2-1 (18-21, 21-12, 21-15)",
-    "rating": null,
+    "rating": 8.0,
     "tags": [
       "Thắng",
-      "Đánh đôi"
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Hoki T./Kobayashi Y. 2-1 Lane B./Vendy S. (FT) • 18-21, 21-12, 21-15"
   },
   "Yugo Kobayashi_fs_badminton_OKcg70s2_post": {
     "stats_text": "Thắng 2-1 (18-21, 21-12, 21-15)",
-    "rating": null,
+    "rating": 8.0,
     "tags": [
       "Thắng",
-      "Đánh đôi"
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Hoki T./Kobayashi Y. 2-1 Lane B./Vendy S. (FT) • 18-21, 21-12, 21-15"
   },
   "Akira Koga_fs_badminton_bcpRzHWs_post": {
     "stats_text": "Thắng 2-1 (15-21, 21-19, 16-21)",
-    "rating": null,
+    "rating": 8.0,
     "tags": [
       "Thắng",
-      "Đánh đôi"
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Wu H./Yang C. Y. 1-2 Koga A./Saito N. (FT) • 15-21, 21-19, 16-21"
   },
   "Watanabe Yuzuno_fs_badminton_pG7E9vYr_post": {
     "stats_text": "Thắng 2-0 (18-21, 14-21)",
-    "rating": null,
+    "rating": 8.8,
     "tags": [
       "Thắng",
-      "Đánh đôi"
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Ye H. W./Chan N. G. 0-2 Watanabe Y./Taguchi M. (FT) • 18-21, 14-21"
   },
   "Nozomi Okuhara_fs_badminton_YsmXELJi_post": {
     "stats_text": "Thua 1-2 (17-21, 21-19, 8-21)",
-    "rating": null,
+    "rating": 6.6,
     "tags": [
-      "Thua"
+      "Thua",
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Okuhara N. (Jpn) 1-2 Wang Z. Y. (Chn) (FT) • 17-21, 21-19, 8-21"
   },
   "Lee Yu-lim_fs_badminton_6H2m2NIl_post": {
     "stats_text": "Thua 0-2 (21-14, 21-14)",
-    "rating": null,
+    "rating": 6.0,
     "tags": [
       "Thua",
-      "Đánh đôi"
+      "Tứ kết"
     ],
     "has_played": true,
     "match_result": "Kim H. J./Lee Y. W. 2-0 Kim Y. J./Lee Y. L. (FT) • 21-14, 21-14"

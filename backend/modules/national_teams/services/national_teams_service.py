@@ -1394,7 +1394,7 @@ def fetch_national_team_schedule(team) -> list:
 
     # 2. Flashscore universal NT & Youth Team fallback/supplement (Baseball APBC/U23 WC, Soccer youth friendlies, Basketball, Volleyball, Handball, Hockey, Rugby, Cricket...)
     try:
-        from backend.modules.players.services.racket_volleyball_service import fetch_flashscore_national_team_schedule
+        from backend.modules.players.services.multi_sport_service import fetch_flashscore_national_team_schedule
         fs_nt_matches = fetch_flashscore_national_team_schedule(
             t_sport, t_country, tier=t_tier, gender=t_gender
         )

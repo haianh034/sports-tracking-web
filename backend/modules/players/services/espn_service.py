@@ -1392,8 +1392,8 @@ def _fetch_player_upcoming_schedule_30d_impl(
 
     def _try_universal_flashscore():
         try:
-            from backend.modules.players.services.racket_volleyball_service import fetch_racket_or_volleyball_schedule
-            return fetch_racket_or_volleyball_schedule(
+            from backend.modules.players.services.multi_sport_service import fetch_multi_sport_schedule
+            return fetch_multi_sport_schedule(
                 player_name=player_name or "",
                 team_name=team_name or "",
                 sport_name=sport_name or "",
@@ -1882,7 +1882,7 @@ def _save_match_stats_cache():
 def fetch_player_match_stats(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
     if event_id:
         try:
-            from backend.modules.players.services.racket_volleyball_service import WTT_MATCH_STATS_LOOKUP
+            from backend.modules.players.services.multi_sport_service import WTT_MATCH_STATS_LOOKUP
             if str(event_id) in WTT_MATCH_STATS_LOOKUP:
                 return dict(WTT_MATCH_STATS_LOOKUP[str(event_id)])
         except Exception:
@@ -2044,7 +2044,7 @@ def _fetch_fotmob_match_summary(player_name: str, team_name: str, event_id: str,
 def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
     if event_id:
         try:
-            from backend.modules.players.services.racket_volleyball_service import WTT_MATCH_STATS_LOOKUP
+            from backend.modules.players.services.multi_sport_service import WTT_MATCH_STATS_LOOKUP
             if str(event_id) in WTT_MATCH_STATS_LOOKUP:
                 return dict(WTT_MATCH_STATS_LOOKUP[str(event_id)])
         except Exception:
@@ -2105,8 +2105,8 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
             if ev_id_str.startswith(("wtt_", "fs_")):
                 rv_stats = None
                 try:
-                    from backend.modules.players.services.racket_volleyball_service import get_racket_or_volleyball_match_stats
-                    rv_stats = get_racket_or_volleyball_match_stats(ev_id_str)
+                    from backend.modules.players.services.multi_sport_service import get_multi_sport_match_stats
+                    rv_stats = get_multi_sport_match_stats(ev_id_str)
                 except Exception:
                     pass
                 if not rv_stats:

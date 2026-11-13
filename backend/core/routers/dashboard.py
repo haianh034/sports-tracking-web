@@ -180,6 +180,8 @@ def _filter_cached_dashboard(base_data: dict, entity_type: str = None) -> dict:
         p_matches = p_item.get("all_matches") or p_item.get("details", {}).get("all_matches", [])
         seen_dates = set()
         for m in p_matches:
+            if m.get("nt_callup_status") in ("not_called_up", "injured_withdrawal") or m.get("is_not_called_up"):
+                continue
             d_key = m.get("date_only_vn")
             if not d_key and m.get("match_date_utc"):
                 try:
@@ -824,6 +826,12 @@ def _compute_dashboard_data(
                             m["absent_due_to_nt_duty"] = True
                     except Exception:
                         pass
+
+        # Loại bỏ triệt để các trận ĐTQG mà cầu thủ/VĐV KHÔNG được triệu tập (hoặc rút lui vì chấn thương)
+        all_matches_raw = [
+            m for m in all_matches_raw
+            if m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal")
+        ]
 
         # XÁC ĐỊNH CHÍNH XÁC TRẬN ĐẤU TRONG KHUNG 48H (HÔM NAY VÀ HÔM QUA) TỪ LỊCH ĐẤU THỰC TẾ
         sched_today_match = None
@@ -2507,6 +2515,8 @@ def _compute_dashboard_data(
         p_matches = p_item.get("all_matches") or p_item.get("details", {}).get("all_matches", [])
         seen_dates_for_player = set()
         for m in p_matches:
+            if m.get("nt_callup_status") in ("not_called_up", "injured_withdrawal") or m.get("is_not_called_up"):
+                continue
             d_key = m.get("date_only_vn")
             if not d_key and m.get("match_date_utc"):
                 try:
