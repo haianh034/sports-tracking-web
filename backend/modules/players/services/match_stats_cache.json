@@ -19645,5 +19645,74 @@
       ],
       "fun_facts": []
     }
+  },
+  "Wang Chan_fs_badminton_0O7NlOef_post": {
+    "stats_text": "Thua 1-2 (15-21, 21-19, 17-21)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Bán kết"
+    ],
+    "has_played": true,
+    "match_result": "Wang C./Xie H. N. 1-2 Hoki T./Kobayashi Y. (FT) • 15-21, 21-19, 17-21"
+  },
+  "Koki Watanabe_fs_badminton_hb4FjpRs_post": {
+    "stats_text": "Thắng 2-1 (14-21, 21-11, 23-21)",
+    "rating": 8.0,
+    "tags": [
+      "Thắng",
+      "Bán kết"
+    ],
+    "has_played": true,
+    "match_result": "Watanabe K. (Jpn) 2-1 Vitidsarn K. (Tha) (FT) • 14-21, 21-11, 23-21"
+  },
+  "Takuro Hoki_fs_badminton_0O7NlOef_post": {
+    "stats_text": "Thua 1-2 (15-21, 21-19, 17-21)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Bán kết"
+    ],
+    "has_played": true,
+    "match_result": "Wang C./Xie H. N. 1-2 Hoki T./Kobayashi Y. (FT) • 15-21, 21-19, 17-21"
+  },
+  "Yugo Kobayashi_fs_badminton_0O7NlOef_post": {
+    "stats_text": "Thua 1-2 (15-21, 21-19, 17-21)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Bán kết"
+    ],
+    "has_played": true,
+    "match_result": "Wang C./Xie H. N. 1-2 Hoki T./Kobayashi Y. (FT) • 15-21, 21-19, 17-21"
+  },
+  "Akira Koga_fs_badminton_YipANoce_post": {
+    "stats_text": "Thua 1-2 (19-21, 21-7, 21-18)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Bán kết"
+    ],
+    "has_played": true,
+    "match_result": "Gao J. X./Wu M. Y. 2-1 Koga A./Saito N. (FT) • 19-21, 21-7, 21-18"
+  },
+  "Watanabe Yuzuno_fs_badminton_nFGMqxEc_post": {
+    "stats_text": "Thua 0-2 (21-9, 21-17)",
+    "rating": 6.0,
+    "tags": [
+      "Thua",
+      "Bán kết"
+    ],
+    "has_played": true,
+    "match_result": "Jiang Z. B./Wei Y. X. 2-0 Watanabe Y./Taguchi M. (FT) • 21-9, 21-17"
+  },
+  "Akane Yamaguchi_fs_badminton_EaTFAZhf_post": {
+    "stats_text": "Hòa 1-1 (18-21, 21-8, 11-4)",
+    "rating": null,
+    "tags": [
+      "Bỏ cuộc / Walkover (WO)"
+    ],
+    "has_played": false,
+    "match_result": "Yamaguchi A. (Jpn) 1-1 Chen Y. F. (Chn) RETIRED (FT) • 18-21, 21-8, 11-4"
   }
 }

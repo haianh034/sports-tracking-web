@@ -906,10 +906,10 @@ def _compute_dashboard_data(
                 raw_stats = sched_today_match.get("player_stats")
 
             if match_today:
-                if match_today.match_state and match_state == "pre":
-                    match_state = match_today.match_state
-                elif sched_today_match.get("match_state") in ["post", "in"]:
+                if sched_today_match.get("match_state") in ["post", "in"]:
                     match_state = sched_today_match.get("match_state")
+                elif match_today.match_state:
+                    match_state = match_today.match_state
 
                 if match_state != "pre":
                     if match_today.performance_rating is not None:
@@ -1361,6 +1361,9 @@ def _compute_dashboard_data(
                         clean_match_team = (match_team or "").lower().strip()
                         if clean_match_team in live_scores and live_scores[clean_match_team].get("match_result"):
                             m["match_result"] = live_scores[clean_match_team]["match_result"]
+                    if db_perf.match_state and db_perf.match_state in ["post", "in"]:
+                        m["match_state"] = db_perf.match_state
+                        m["is_past"] = (db_perf.match_state == "post" or diff_d < -0.05)
                     
                     # Chỉ gắn nhãn ước tính khi: Môn Bóng đá + Trong 3 ngày gần đây + Chưa có FotMob
                     # Tất cả các môn khác (Bóng chuyền, Bóng rổ, Bóng chày...) và các trận quá 3 ngày đều là ĐIỂM CHÍNH THỨC ĐÃ LƯU CỨNG

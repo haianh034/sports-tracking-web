@@ -261,6 +261,21 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
             if m_name:
                 actual_played = stats_info.get("has_played", h_played)
                 m_date_str = (m_date + datetime.timedelta(hours=7)).strftime("%Y-%m-%d") if m_date else None
+                # Không lưu kết quả thi đấu hay rating vào các trận tương lai
+                now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+                is_future = bool(m_date and m_date >= now_utc)
+                if is_future:
+                    m_state = "pre"
+                    m_res = None
+                    actual_played = False
+                    p_rating = None
+                    p_stats = None
+                    p_tags = [m_comp] if m_comp else []
+                else:
+                    p_rating = stats_info.get("rating")
+                    p_stats = stats_info.get("stats_text")
+                    p_tags = stats_info.get("tags", [])
+
                 perf = db.query(MatchPerformance).filter(
                     MatchPerformance.player_id == p_id,
                     MatchPerformance.match_name == m_name
@@ -274,9 +289,9 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                         match_state=m_state,
                         match_result=m_res,
                         has_played=actual_played,
-                        performance_rating=stats_info.get("rating"),
-                        player_stats=stats_info.get("stats_text"),
-                        impression_tags=", ".join(stats_info.get("tags", [])),
+                        performance_rating=p_rating,
+                        player_stats=p_stats,
+                        impression_tags=", ".join(p_tags),
                         competition=m_comp
                     )
                     db.add(perf)
@@ -287,9 +302,9 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                     perf.match_state = m_state
                     perf.match_result = m_res
                     perf.has_played = actual_played
-                    perf.performance_rating = stats_info.get("rating")
-                    perf.player_stats = stats_info.get("stats_text")
-                    perf.impression_tags = ", ".join(stats_info.get("tags", []))
+                    perf.performance_rating = p_rating
+                    perf.player_stats = p_stats
+                    perf.impression_tags = ", ".join(p_tags)
                     perf.competition = m_comp
 
             if news_entries:
