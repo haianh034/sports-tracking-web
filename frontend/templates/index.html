@@ -159,7 +159,7 @@
             </div>
 
             <!-- THANH CUỘN NGANG TẤT CẢ CÁC NGÀY TRONG NĂM ĐÃ CHỌN (01/01 -> 31/12) -->
-            <div id="topDateStripContainer" class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+            <div id="topDateStripContainer" class="flex gap-2 overflow-x-auto pb-2 scroll-snap-x">
                 <!-- Rendered dynamically via JS -->
             </div>
         </div>
@@ -350,8 +350,8 @@
     </div>
 
     <!-- MODAL CHI TIẾT (VĐV & ĐỘI TUYỂN) -->
-    <div id="detailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-all duration-200" onclick="handleBackdropClick(event)">
-        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative text-gray-200 max-h-[90vh] flex flex-col">
+    <dialog id="detailModal" class="p-0 border-0 bg-transparent text-gray-200 m-auto focus:outline-none" aria-labelledby="modalPlayerName" onclick="handleBackdropClick(event)">
+        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-xl w-[92vw] sm:w-[36rem] p-6 shadow-2xl relative text-gray-200 max-h-[90vh] flex flex-col">
             <div class="flex items-start justify-between pb-3 border-b border-gray-800">
                 <div>
                     <h3 id="modalPlayerName" class="text-xl font-bold text-white flex items-center gap-2"></h3>
@@ -465,11 +465,11 @@
                 <button onclick="closeModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg transition">Đóng</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- MODAL THÊM THEO DÕI: VẬN ĐỘNG VIÊN & ĐỘI TUYỂN / ĐỘI TRẺ -->
-    <div id="addPlayerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-all duration-200" onclick="handleAddBackdropClick(event)">
-        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-2xl sm:max-w-3xl w-full p-6 sm:p-7 shadow-2xl relative text-gray-200 max-h-[92vh] flex flex-col">
+    <dialog id="addPlayerModal" class="p-0 border-0 bg-transparent text-gray-200 m-auto focus:outline-none" aria-label="Thêm theo dõi" onclick="handleAddBackdropClick(event)">
+        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-2xl sm:max-w-3xl w-[92vw] sm:w-[48rem] p-6 sm:p-7 shadow-2xl relative text-gray-200 max-h-[92vh] flex flex-col">
             <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-4">
                 <div class="flex items-center gap-3">
                     <span class="text-xl">⚡</span>
@@ -656,11 +656,11 @@
                 </div>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- MODAL CHỌN CHÍNH XÁC CLB & GIẢI ĐẤU (TEAM & LEAGUE DISAMBIGUATION) -->
-    <div id="teamSelectModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60] transition-all duration-200" onclick="handleTeamBackdropClick(event)">
-        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-lg w-full p-5 shadow-2xl relative text-gray-200 max-h-[90vh] flex flex-col">
+    <dialog id="teamSelectModal" class="p-0 border-0 bg-transparent text-gray-200 m-auto focus:outline-none" aria-label="Chọn CLB và Giải đấu" onclick="handleTeamBackdropClick(event)">
+        <div class="bg-gray-900 border border-gray-700/80 rounded-2xl max-w-lg w-[92vw] sm:w-[32rem] p-5 shadow-2xl relative text-gray-200 max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-3">
                 <div class="flex items-center gap-2.5">
                     <span class="text-xl">🏟️</span>
@@ -731,7 +731,7 @@
                 <button type="button" onclick="closeTeamSelectModal()" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium rounded-lg transition">Đóng</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <script src="/static/js/app.js?v={{ app_version|default('16.0') }}"></script>
 </body>

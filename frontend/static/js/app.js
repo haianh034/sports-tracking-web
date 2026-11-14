@@ -114,107 +114,134 @@ function formatMatchTimezones(utcDateStr, targetTz, flagStr) {
     return { vnTime, localTime, tzLabel, countryFlag };
 }
 
+// Modal Helpers complying with HTML dialog standard (modern-web-guidance)
+function showNativeModal(el) {
+    if (!el) return;
+    if (typeof el.showModal === 'function') {
+        if (!el.open) el.showModal();
+    } else {
+        el.classList.remove('hidden');
+    }
+}
+
+function closeNativeModal(el) {
+    if (!el) return;
+    if (typeof el.close === 'function') {
+        if (el.open) el.close();
+    } else {
+        el.classList.add('hidden');
+    }
+}
+
 let currentActiveTab = 'active';
 
 function switchTab(tab) {
-    currentActiveTab = tab;
-    
-    // Clear date filter results panel
-    const dateResults = document.getElementById('dateFilteredResultsPanel');
-    if (dateResults && !dateResults.classList.contains('hidden')) {
-        dateResults.classList.add('hidden');
-    }
-    const badgeLabel = document.getElementById('activeDateBadgeLabel');
-
-    if (tab === 'active') {
-        // When clicking Today's Activities, date filter jumps directly to Today
-        const todayStr = getTodayVNDateStr();
-        const todayParts = todayStr.split('-');
-        const todayYear = parseInt(todayParts[0], 10) || 2026;
-
-        selectedCalendarDate = todayStr;
-        if (selectedCalendarYear !== todayYear) {
-            selectedCalendarYear = todayYear;
-            renderCalendarTimeline();
+    const applyTabSwitch = () => {
+        currentActiveTab = tab;
+        
+        // Clear date filter results panel
+        const dateResults = document.getElementById('dateFilteredResultsPanel');
+        if (dateResults && !dateResults.classList.contains('hidden')) {
+            dateResults.classList.add('hidden');
         }
+        const badgeLabel = document.getElementById('activeDateBadgeLabel');
 
-        const picker = document.getElementById('topDatePicker');
-        if (picker) picker.value = todayStr;
-        const displayInput = document.getElementById('topDatePickerDisplay');
-        if (displayInput) displayInput.value = `${todayParts[2]}/${todayParts[1]}/${todayParts[0]}`;
-        const yearSelect = document.getElementById('calendarYearSelect');
-        if (yearSelect) yearSelect.value = String(todayYear);
+        if (tab === 'active') {
+            // When clicking Today's Activities, date filter jumps directly to Today
+            const todayStr = getTodayVNDateStr();
+            const todayParts = todayStr.split('-');
+            const todayYear = parseInt(todayParts[0], 10) || 2026;
 
-        if (badgeLabel) {
-            badgeLabel.innerText = `Hôm nay: ${todayParts[2]}/${todayParts[1]}/${todayParts[0]}`;
-            badgeLabel.classList.remove('hidden');
-        }
+            selectedCalendarDate = todayStr;
+            if (selectedCalendarYear !== todayYear) {
+                selectedCalendarYear = todayYear;
+                renderCalendarTimeline();
+            }
 
-        const container = document.getElementById('topDateStripContainer');
-        if (container) {
-            container.querySelectorAll('button').forEach(btn => {
-                const btnDate = btn.getAttribute('data-date');
-                const isToday = (btnDate === todayStr);
-                btn.className = isToday 
-                    ? "shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-emerald-500 bg-emerald-950/80 ring-2 ring-emerald-500/50 shadow-md shadow-emerald-500/20"
-                    : "shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-gray-800 bg-gray-900/60 hover:border-gray-700 hover:bg-gray-800/80";
-            });
-            const activeBtn = document.getElementById(`topDateBtn_${todayStr}`);
-            if (activeBtn) {
-                activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            const picker = document.getElementById('topDatePicker');
+            if (picker) picker.value = todayStr;
+            const displayInput = document.getElementById('topDatePickerDisplay');
+            if (displayInput) displayInput.value = `${todayParts[2]}/${todayParts[1]}/${todayParts[0]}`;
+            const yearSelect = document.getElementById('calendarYearSelect');
+            if (yearSelect) yearSelect.value = String(todayYear);
+
+            if (badgeLabel) {
+                badgeLabel.innerText = `Hôm nay: ${todayParts[2]}/${todayParts[1]}/${todayParts[0]}`;
+                badgeLabel.classList.remove('hidden');
+            }
+
+            const container = document.getElementById('topDateStripContainer');
+            if (container) {
+                container.querySelectorAll('button').forEach(btn => {
+                    const btnDate = btn.getAttribute('data-date');
+                    const isToday = (btnDate === todayStr);
+                    btn.className = isToday 
+                        ? "scroll-snap-item shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-emerald-500 bg-emerald-950/80 ring-2 ring-emerald-500/50 shadow-md shadow-emerald-500/20"
+                        : "scroll-snap-item shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-gray-800 bg-gray-900/60 hover:border-gray-700 hover:bg-gray-800/80";
+                });
+                const activeBtn = document.getElementById(`topDateBtn_${todayStr}`);
+                if (activeBtn) {
+                    activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+            }
+        } else {
+            if (badgeLabel) badgeLabel.classList.add('hidden');
+            selectedCalendarDate = null;
+            const picker = document.getElementById('topDatePicker');
+            if (picker) picker.value = '';
+            const displayInput = document.getElementById('topDatePickerDisplay');
+            if (displayInput) displayInput.value = '';
+
+            const container = document.getElementById('topDateStripContainer');
+            if (container) {
+                container.querySelectorAll('button').forEach(btn => {
+                    const isToday = btn.getAttribute('data-today') === 'true';
+                    btn.className = isToday 
+                        ? "scroll-snap-item shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-emerald-500/80 bg-gray-900/90 hover:bg-gray-800" 
+                        : "scroll-snap-item shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-gray-800 bg-gray-900/60 hover:border-gray-700 hover:bg-gray-800/80";
+                });
             }
         }
-    } else {
-        if (badgeLabel) badgeLabel.classList.add('hidden');
-        selectedCalendarDate = null;
-        const picker = document.getElementById('topDatePicker');
-        if (picker) picker.value = '';
-        const displayInput = document.getElementById('topDatePickerDisplay');
-        if (displayInput) displayInput.value = '';
 
-        const container = document.getElementById('topDateStripContainer');
-        if (container) {
-            container.querySelectorAll('button').forEach(btn => {
-                const isToday = btn.getAttribute('data-today') === 'true';
-                btn.className = isToday 
-                    ? "shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-emerald-500/80 bg-gray-900/90 hover:bg-gray-800" 
-                    : "shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer border-gray-800 bg-gray-900/60 hover:border-gray-700 hover:bg-gray-800/80";
-            });
+        const activeTabBtn = document.getElementById('tabActiveBtn');
+        const upcomingTabBtn = document.getElementById('tabUpcomingBtn');
+        const noMatchTabBtn = document.getElementById('tabNoMatchBtn');
+        const scheduleTabBtn = document.getElementById('tabScheduleBtn');
+        const news24hTabBtn = document.getElementById('tabNews24hBtn');
+
+        const activePanel = document.getElementById('activeTabPanel');
+        const upcomingPanel = document.getElementById('upcomingTabPanel');
+        const noMatchPanel = document.getElementById('noMatchTabPanel');
+        const schedulePanel = document.getElementById('scheduleTabPanel');
+        const news24hPanel = document.getElementById('news24hTabPanel');
+
+        const activeClass = "tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-blue-500 text-blue-400 transition-colors duration-150";
+        const inactiveClass = "tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150";
+
+        if (activeTabBtn) activeTabBtn.className = tab === 'active' ? activeClass : inactiveClass;
+        if (upcomingTabBtn) upcomingTabBtn.className = tab === 'upcoming' ? activeClass : inactiveClass;
+        if (noMatchTabBtn) noMatchTabBtn.className = tab === 'no_match' ? activeClass : inactiveClass;
+        if (scheduleTabBtn) scheduleTabBtn.className = tab === 'schedule' ? activeClass : inactiveClass;
+        if (news24hTabBtn) news24hTabBtn.className = tab === 'news24h' ? activeClass : inactiveClass;
+
+        [activePanel, upcomingPanel, noMatchPanel, schedulePanel, news24hPanel].forEach(p => {
+            if (p) p.classList.add('hidden');
+        });
+
+        if (tab === 'active' && activePanel) activePanel.classList.remove('hidden');
+        else if (tab === 'upcoming' && upcomingPanel) upcomingPanel.classList.remove('hidden');
+        else if (tab === 'no_match' && noMatchPanel) noMatchPanel.classList.remove('hidden');
+        else if (tab === 'schedule' && schedulePanel) schedulePanel.classList.remove('hidden');
+        else if (tab === 'news24h' && news24hPanel) {
+            news24hPanel.classList.remove('hidden');
+            renderNews24hTab();
         }
-    }
+    };
 
-    const activeTabBtn = document.getElementById('tabActiveBtn');
-    const upcomingTabBtn = document.getElementById('tabUpcomingBtn');
-    const noMatchTabBtn = document.getElementById('tabNoMatchBtn');
-    const scheduleTabBtn = document.getElementById('tabScheduleBtn');
-    const news24hTabBtn = document.getElementById('tabNews24hBtn');
-
-    const activePanel = document.getElementById('activeTabPanel');
-    const upcomingPanel = document.getElementById('upcomingTabPanel');
-    const noMatchPanel = document.getElementById('noMatchTabPanel');
-    const schedulePanel = document.getElementById('scheduleTabPanel');
-    const news24hPanel = document.getElementById('news24hTabPanel');
-
-    const activeClass = "tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-blue-500 text-blue-400 transition-colors duration-150";
-    const inactiveClass = "tab-btn py-3 px-1 border-b-2 font-semibold text-sm flex items-center gap-2 border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors duration-150";
-
-    if (activeTabBtn) activeTabBtn.className = tab === 'active' ? activeClass : inactiveClass;
-    if (upcomingTabBtn) upcomingTabBtn.className = tab === 'upcoming' ? activeClass : inactiveClass;
-    if (noMatchTabBtn) noMatchTabBtn.className = tab === 'no_match' ? activeClass : inactiveClass;
-    if (scheduleTabBtn) scheduleTabBtn.className = tab === 'schedule' ? activeClass : inactiveClass;
-    if (news24hTabBtn) news24hTabBtn.className = tab === 'news24h' ? activeClass : inactiveClass;
-
-    [activePanel, upcomingPanel, noMatchPanel, schedulePanel, news24hPanel].forEach(p => {
-        if (p) p.classList.add('hidden');
-    });
-
-    if (tab === 'active' && activePanel) activePanel.classList.remove('hidden');
-    else if (tab === 'upcoming' && upcomingPanel) upcomingPanel.classList.remove('hidden');
-    else if (tab === 'no_match' && noMatchPanel) noMatchPanel.classList.remove('hidden');
-    else if (tab === 'schedule' && schedulePanel) schedulePanel.classList.remove('hidden');
-    else if (tab === 'news24h' && news24hPanel) {
-        news24hPanel.classList.remove('hidden');
-        renderNews24hTab();
+    if (document.startViewTransition) {
+        document.startViewTransition(applyTabSwitch);
+    } else {
+        applyTabSwitch();
     }
 }
 
@@ -1665,7 +1692,15 @@ function selectCalendarDate(dateStr) {
         }
     }
 
-    renderCalendarCards(dateStr);
+    const performCalendarRender = () => {
+        renderCalendarCards(dateStr);
+    };
+
+    if (document.startViewTransition) {
+        document.startViewTransition(performCalendarRender);
+    } else {
+        performCalendarRender();
+    }
 }
 
 let selectedCalendarYear = 2026;
@@ -1728,7 +1763,7 @@ function renderCalendarTimeline() {
         // Định dạng dd/mm (01/01 đến 31/12), không dài dòng có /2026 ở sau
         html += `
             <button id="topDateBtn_${dStr}" data-date="${dStr}" data-today="${isToday}" onclick="selectCalendarDate('${dStr}')"
-                class="shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer ${borderClass}">
+                class="scroll-snap-item shrink-0 flex flex-col items-center justify-center min-w-[58px] sm:min-w-[62px] p-2 rounded-xl border text-center transition-all cursor-pointer ${borderClass}">
                 <span class="text-[10px] font-semibold uppercase ${isToday ? 'text-emerald-400 font-bold' : (isSelected ? 'text-blue-300 font-bold' : 'text-gray-400')}">
                     ${isToday ? 'Hôm nay' : dayName}
                 </span>
@@ -2295,7 +2330,7 @@ function openModal(player, resetFilter = true, customMatch = null) {
 
     const apiMeta = document.getElementById('modalApiMeta');
     if (apiMeta) apiMeta.innerText = player.api_player_id ? `API ID: ${player.api_player_id}` : '';
-    document.getElementById('detailModal').classList.remove('hidden');
+    showNativeModal(document.getElementById('detailModal'));
 }
 
 function updateModalStatsAfterLazyLoad(player, customMatch) {
@@ -2850,7 +2885,7 @@ async function copyAllNewsLinks() {
 }
 
 function closeModal() {
-    document.getElementById('detailModal').classList.add('hidden');
+    closeNativeModal(document.getElementById('detailModal'));
 }
 
 function handleBackdropClick(event) {
@@ -2859,13 +2894,13 @@ function handleBackdropClick(event) {
 
 function openAddPlayerModal() {
     document.getElementById('inputPlayerName').value = '';
-    document.getElementById('addPlayerModal').classList.remove('hidden');
+    showNativeModal(document.getElementById('addPlayerModal'));
     setTimeout(() => document.getElementById('inputPlayerName').focus(), 100);
 }
 
 function closeAddPlayerModal() {
     const modal = document.getElementById('addPlayerModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) closeNativeModal(modal);
     const input = document.getElementById('inputPlayerName');
     if (input) input.value = '';
     const box = document.getElementById('disambiguationBox');
@@ -3213,7 +3248,7 @@ function openTeamSelectForCandidate(index) {
     if (manualSp) manualSp.value = cand.sport || '';
     document.getElementById('manualLeagueName').value = cand.team_league || '';
     
-    document.getElementById('teamSelectModal').classList.remove('hidden');
+    showNativeModal(document.getElementById('teamSelectModal'));
     renderDynamicTeamSportPills();
     fetchAndRenderTeamOptions(teamInput.value, window._currentTeamSportFilter);
 }
@@ -3232,13 +3267,13 @@ function openTeamSelectFromDetail() {
     if (manualSp) manualSp.value = player.sport || '';
     document.getElementById('manualLeagueName').value = player.competition || '';
     
-    document.getElementById('teamSelectModal').classList.remove('hidden');
+    showNativeModal(document.getElementById('teamSelectModal'));
     renderDynamicTeamSportPills();
     fetchAndRenderTeamOptions(teamInput.value, window._currentTeamSportFilter);
 }
 
 function closeTeamSelectModal() {
-    document.getElementById('teamSelectModal').classList.add('hidden');
+    closeNativeModal(document.getElementById('teamSelectModal'));
     window.currentTeamSelectTarget = null;
 }
 
@@ -3556,7 +3591,7 @@ window.onload = initApp;
 function openAddModal() {
     const modal = document.getElementById('addPlayerModal');
     if (!modal) return;
-    modal.classList.remove('hidden');
+    showNativeModal(modal);
     switchAddModalTab('player');
     const input = document.getElementById('inputPlayerName');
     if (input) {

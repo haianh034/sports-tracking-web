@@ -19585,5 +19585,65 @@
     "has_played": true,
     "match_result": null,
     "no_lineup_data": true
+  },
+  "Rui Hachimura_401909304_post": {
+    "stats_text": "{\"summary\": \"7 PTS, 11 REB, 3 AST (32 phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 7.4, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"7 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"11 REB\", \"highlight\": true}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"3 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"2-9\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"1-6\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"2-2\"}, {\"label\": \"Cướp bóng (STL)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"2 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"32 phút\"}], \"fun_facts\": []}}",
+    "rating": 7.4,
+    "tags": [
+      "Đội hình xuất phát (Starting 5)",
+      "32 phút",
+      "7 điểm",
+      "11 REB",
+      "3 AST",
+      "1 STL"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 7.4,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "7 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "11 REB",
+          "highlight": true
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "3 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "2-9"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "1-6"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "2-2"
+        },
+        {
+          "label": "Cướp bóng (STL)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "2 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "32 phút"
+        }
+      ],
+      "fun_facts": []
+    }
   }
 }
