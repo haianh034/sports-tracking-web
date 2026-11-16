@@ -19714,5 +19714,1034 @@
     ],
     "has_played": false,
     "match_result": "Yamaguchi A. (Jpn) 1-1 Chen Y. F. (Chn) RETIRED (FT) • 18-21, 21-8, 11-4"
+  },
+  "Rui Hachimura_401909987_post": {
+    "stats_text": "{\"summary\": \"4 PTS, 2 REB, 0 AST (22 phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 6.0, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"4 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"2 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"0 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"1-5\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"0-3\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"2-4\"}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"2 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"22 phút\"}], \"fun_facts\": []}}",
+    "rating": 6.0,
+    "tags": [
+      "Đội hình xuất phát (Starting 5)",
+      "22 phút",
+      "4 điểm",
+      "2 REB"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 6.0,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "4 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "2 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "0 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "1-5"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "0-3"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "2-4"
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "2 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "22 phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "Zion Suzuki_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"4 cứu thua, 2 bàn thua\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"58% chuyền (18/31)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"58% (18/31)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"38 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.0,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Phá kỷ lục"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.0,
+      "rating": 7.0,
+      "is_player_of_the_match": false,
+      "summary": "58% chuyền (18/31)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "58% (18/31)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "38 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Ao Tanaka_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"96% chuyền (50/52)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.6, \"rating\": 7.6, \"is_player_of_the_match\": false, \"summary\": \"96% chuyền (50/52)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"96% (50/52)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"6/11 (55%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"70 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"86 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the joint-most defensive contributions (10)\"], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 86, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.6,
+    "tags": [
+      "Đá chính",
+      "86 phút",
+      "Had the joint-most defensive contributions (10)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.6,
+      "rating": 7.6,
+      "is_player_of_the_match": false,
+      "summary": "96% chuyền (50/52)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "96% (50/52)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "6/11 (55%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "70 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "86 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the joint-most defensive contributions (10)"
+      ],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 86,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Keito Nakamura_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 bàn, 70% chuyền (16/23)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.1, \"rating\": 8.1, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 70% chuyền (16/23)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"70% (16/23)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/6 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"38 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"9 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 72, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 8.1,
+    "tags": [
+      "Đá chính",
+      "72 phút",
+      "1 bàn",
+      "Bàn mở tỉ số"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.1,
+      "rating": 8.1,
+      "is_player_of_the_match": false,
+      "summary": "1 bàn, 70% chuyền (16/23)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "70% (16/23)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/6 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "38 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "9 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "72 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 72,
+      "goals": 1,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Takefusa Kubo_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 bàn, 1 tạo cơ hội, 81% chuyền (21/26)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.6, \"rating\": 7.6, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 1 tạo cơ hội, 81% chuyền (21/26)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"81% (21/26)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/4 (25%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"35 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"62 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 62, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.6,
+    "tags": [
+      "Đá chính",
+      "62 phút",
+      "1 bàn",
+      "Bàn mở tỉ số"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.6,
+      "rating": 7.6,
+      "is_player_of_the_match": false,
+      "summary": "1 bàn, 1 tạo cơ hội, 81% chuyền (21/26)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "81% (21/26)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/4 (25%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "35 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "62 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 62,
+      "goals": 1,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Daichi Kamada_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"93% chuyền (38/41)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"93% chuyền (38/41)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"93% (38/41)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/5 (80%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.0,
+    "tags": [
+      "Đá chính",
+      "72 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.0,
+      "rating": 7.0,
+      "is_player_of_the_match": false,
+      "summary": "93% chuyền (38/41)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "93% (38/41)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/5 (80%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "49 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "72 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 72,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Hiroki Ito_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 sút, 83% chuyền (25/30)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 83% chuyền (25/30)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"83% (25/30)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"6/9 (67%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"56 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"86 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 86, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.8,
+    "tags": [
+      "Đá chính",
+      "86 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.8,
+      "rating": 6.8,
+      "is_player_of_the_match": false,
+      "summary": "1 sút, 83% chuyền (25/30)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "83% (25/30)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "6/9 (67%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "56 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "86 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 86,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Ritsu Doan_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 82% chuyền (14/17)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.5, \"rating\": 7.5, \"is_player_of_the_match\": false, \"summary\": \"1 kiến tạo, 1 tạo cơ hội, 82% chuyền (14/17)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"82% (14/17)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/9 (22%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"33 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 1, \"round_raw\": \"\"}}",
+    "rating": 7.5,
+    "tags": [
+      "Đá chính",
+      "72 phút",
+      "1 kiến tạo"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.5,
+      "rating": 7.5,
+      "is_player_of_the_match": false,
+      "summary": "1 kiến tạo, 1 tạo cơ hội, 82% chuyền (14/17)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "82% (14/17)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/9 (22%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "33 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "72 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 72,
+      "goals": 0,
+      "assists": 1,
+      "round_raw": ""
+    }
+  },
+  "Ko Itakura_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 chạm\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": null, \"rating\": null, \"is_player_of_the_match\": false, \"summary\": \"1 chạm\", \"metrics\": [{\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/1 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"4 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 4, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.5,
+    "tags": [
+      "Vào sân",
+      "4 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": null,
+      "rating": null,
+      "is_player_of_the_match": false,
+      "summary": "1 chạm",
+      "metrics": [
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/1 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "4 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 4,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Shio Fukuda_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Vắng mặt ĐTQG (Chấn thương)"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Takumi Minamino_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"67% chuyền (2/3)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.1, \"rating\": 6.1, \"is_player_of_the_match\": false, \"summary\": \"67% chuyền (2/3)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"67% (2/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/2 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"8 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"18 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 18, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.1,
+    "tags": [
+      "Vào sân",
+      "18 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.1,
+      "rating": 6.1,
+      "is_player_of_the_match": false,
+      "summary": "67% chuyền (2/3)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "67% (2/3)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/2 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "8 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "18 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 18,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Tsuyoshi Watanabe_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Dự bị (Không vào sân)"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Tatsuhiro Sakamoto_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 bàn, 100% chuyền (2/2)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.2, \"rating\": 7.2, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 100% chuyền (2/2)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"18 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 18, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.2,
+    "tags": [
+      "Vào sân",
+      "18 phút",
+      "1 bàn",
+      "Bàn ấn định tỉ số"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.2,
+      "rating": 7.2,
+      "is_player_of_the_match": false,
+      "summary": "1 bàn, 100% chuyền (2/2)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "100% (2/2)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "18 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 18,
+      "goals": 1,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Keisuke Goto_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Dự bị (Không vào sân)"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Koki Machida_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"94% chuyền (29/31)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.7, \"rating\": 6.7, \"is_player_of_the_match\": false, \"summary\": \"94% chuyền (29/31)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (29/31)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/7 (57%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"44 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"86 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the joint-most defensive contributions (10)\"], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 86, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.7,
+    "tags": [
+      "Đá chính",
+      "86 phút",
+      "Had the joint-most defensive contributions (10)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.7,
+      "rating": 6.7,
+      "is_player_of_the_match": false,
+      "summary": "94% chuyền (29/31)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "94% (29/31)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/7 (57%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "44 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "86 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the joint-most defensive contributions (10)"
+      ],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 86,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Koki Ogawa_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 80% chuyền (4/5)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.2, \"rating\": 6.2, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 80% chuyền (4/5)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (4/5)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"10 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"18 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 18, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.2,
+    "tags": [
+      "Vào sân",
+      "18 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.2,
+      "rating": 6.2,
+      "is_player_of_the_match": false,
+      "summary": "1 tạo cơ hội, 80% chuyền (4/5)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "80% (4/5)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "10 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "18 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 18,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Kodai Sano_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"1 kiến tạo, 1 sút, 80% chuyền (4/5)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": null, \"rating\": null, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 80% chuyền (4/5)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (4/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"7 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"4 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 4, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.5,
+    "tags": [
+      "Vào sân",
+      "4 phút",
+      "1 kiến tạo"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": null,
+      "rating": null,
+      "is_player_of_the_match": false,
+      "summary": "1 sút, 80% chuyền (4/5)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "80% (4/5)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "0/1 (0%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "7 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "4 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 4,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Ayumu Seko_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"91% chuyền (41/45)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.6, \"rating\": 6.6, \"is_player_of_the_match\": false, \"summary\": \"91% chuyền (41/45)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"91% (41/45)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"53 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"6 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.6,
+    "tags": [
+      "Đá chính",
+      "90 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.6,
+      "rating": 6.6,
+      "is_player_of_the_match": false,
+      "summary": "91% chuyền (41/45)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "91% (41/45)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "0/1 (0%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "53 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "6 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Yukinari Sugawara_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"67% chuyền (8/12)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"67% chuyền (8/12)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"67% (8/12)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/2 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"20 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"28 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 28, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.4,
+    "tags": [
+      "Vào sân",
+      "28 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.4,
+      "rating": 6.4,
+      "is_player_of_the_match": false,
+      "summary": "67% chuyền (8/12)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "67% (8/12)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/2 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "20 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "28 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 28,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Daizen Maeda_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"2 sút, 71% chuyền (5/7)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 71% chuyền (5/7)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"71% (5/7)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/7 (29%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"21 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.5,
+    "tags": [
+      "Đá chính",
+      "72 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.5,
+      "rating": 6.5,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 71% chuyền (5/7)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "71% (5/7)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/7 (29%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "21 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "72 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 72,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Kaishu Sano_espn_nt_401916337_post": {
+    "stats_text": "{\"summary\": \"100% chuyền (11/11)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"100% chuyền (11/11)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"100% (11/11)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/3 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"21 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"28 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 28, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 6.9,
+    "tags": [
+      "Vào sân",
+      "4 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.9,
+      "rating": 6.9,
+      "is_player_of_the_match": false,
+      "summary": "100% chuyền (11/11)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "100% (11/11)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (2/2)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/3 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "21 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "3 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "28 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6497224,
+      "opponent": "Brazil",
+      "minutes_played": 28,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Yuito Suzuki_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Dự bị (Không vào sân)"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Koki Watanabe_fs_badminton_ziVzRuQp_post": {
+    "stats_text": "Thua 1-2 (13-21, 21-18, 21-14)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Chung kết"
+    ],
+    "has_played": true,
+    "match_result": "Sen L. (Ind) 2-1 Watanabe K. (Jpn) (FT) • 13-21, 21-18, 21-14"
+  },
+  "Akane Yamaguchi_fs_badminton_MFuXkdId_post": {
+    "stats_text": "Thắng 2-0 (21-14, 22-20)",
+    "rating": 8.8,
+    "tags": [
+      "Thắng",
+      "Chung kết"
+    ],
+    "has_played": true,
+    "match_result": "Yamaguchi A. (Jpn) 2-0 Wang Z. Y. (Chn) (FT) • 21-14, 22-20"
+  },
+  "Takuro Hoki_fs_badminton_tIaaWAL6_post": {
+    "stats_text": "Thua 1-2 (21-16, 13-21, 15-21)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Chung kết"
+    ],
+    "has_played": true,
+    "match_result": "Hoki T./Kobayashi Y. 1-2 Tai A./Yap R. K. (FT) • 21-16, 13-21, 15-21"
+  },
+  "Yugo Kobayashi_fs_badminton_tIaaWAL6_post": {
+    "stats_text": "Thua 1-2 (21-16, 13-21, 15-21)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Chung kết"
+    ],
+    "has_played": true,
+    "match_result": "Hoki T./Kobayashi Y. 1-2 Tai A./Yap R. K. (FT) • 21-16, 13-21, 15-21"
   }
 }

@@ -1477,13 +1477,61 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
         return existing_news
 
     # Determine native & international query targets
-    cat_match = next((c for c in NATIONAL_TEAMS_CATALOG if c["name"].lower() == team.name.lower() or c["short_name"].lower() == team.short_name.lower()), None)
+    # KHỚP CHÍNH XÁC: Tên/Tên viết tắt + Môn thể thao (sport) + Lứa tuổi (tier)
+    sport_name = team.sport_name or ""
+    tier_label = team.tier if team.tier and team.tier != "Senior" else ""
+    cat_match = next((
+        c for c in NATIONAL_TEAMS_CATALOG 
+        if (c["name"].lower() == team.name.lower() or c["short_name"].lower() == team.short_name.lower())
+        and (not sport_name or c.get("sport", "").lower() == sport_name.lower())
+        and (not team.tier or c.get("tier", "Senior").lower() == (team.tier or "Senior").lower())
+    ), None)
+    if not cat_match:
+        # Fallback khớp theo Tên + Môn thể thao nếu không trùng tier
+        cat_match = next((
+            c for c in NATIONAL_TEAMS_CATALOG 
+            if (c["name"].lower() == team.name.lower() or c["short_name"].lower() == team.short_name.lower())
+            and (not sport_name or c.get("sport", "").lower() == sport_name.lower())
+        ), None)
     
     query_configs = []
     is_japan = ("nhật" in (team.country_name or "").lower() or "japan" in (team.country_name or "").lower())
     is_korea = ("hàn" in (team.country_name or "").lower() or "korea" in (team.country_name or "").lower())
-    tier_label = team.tier if team.tier and team.tier != "Senior" else ""
-    sport_name = team.sport_name or ""
+    is_soccer = any(k in sport_name.lower() for k in ["bóng đá", "soccer", "football"])
+
+    # Bản đồ dịch tên môn đa ngôn ngữ tự động (mở rộng linh hoạt cho bất kỳ môn thể thao mới nào)
+    SPORT_JA_MAP = {
+        "bóng đá": "サッカー", "bóng chày": "野球", "bóng rổ": "バスケ", "bóng chuyền": "バレーボール",
+        "bóng bàn": "卓球", "cầu lông": "バドミントン", "quần vợt": "テニス", "bơi lội": "水泳",
+        "bắn cung": "アーチェリー", "đấu kiếm": "フェンシング", "cờ vua": "チェス", "điền kinh": "陸上",
+        "futsal": "フットサル", "bóng nước": "水球", "khúc côn cầu": "ホッケー", "bóng ném": "ハンドボール",
+        "boxing": "ボクシング", "judo": "柔道", "karate": "空手", "taekwondo": "テコンドー", "golf": "ゴルフ"
+    }
+    SPORT_KO_MAP = {
+        "bóng đá": "축구", "bóng chày": "야구", "bóng rổ": "농구", "bóng chuyền": "배구",
+        "bóng bàn": "탁구", "cầu lông": "배드민턴", "quần vợt": "테니스", "bơi lội": "수영",
+        "bắn cung": "양궁", "đấu kiếm": "펜싱", "cờ vua": "체스", "điền kinh": "육상",
+        "futsal": "풋살", "bóng nước": "수구", "khúc côn cầu": "하키", "bóng ném": "핸드볼",
+        "boxing": "복싱", "judo": "유도", "karate": "가라테", "taekwondo": "태권도", "golf": "골프"
+    }
+    SPORT_EN_MAP = {
+        "bóng đá": "football", "bóng chày": "baseball", "bóng rổ": "basketball", "bóng chuyền": "volleyball",
+        "bóng bàn": "table tennis", "cầu lông": "badminton", "quần vợt": "tennis", "bơi lội": "swimming",
+        "bắn cung": "archery", "đấu kiếm": "fencing", "cờ vua": "chess", "điền kinh": "athletics",
+        "futsal": "futsal", "bóng nước": "water polo", "khúc côn cầu": "hockey", "bóng ném": "handball",
+        "boxing": "boxing", "judo": "judo", "karate": "karate", "taekwondo": "taekwondo", "golf": "golf"
+    }
+
+    # Tìm từ khóa bản địa cho môn thể thao (kể cả khi không có trong catalog)
+    sp_clean = sport_name.lower().strip()
+    ja_sport_word = SPORT_JA_MAP.get(sp_clean) or next((v for k, v in SPORT_JA_MAP.items() if k in sp_clean), sp_clean)
+    ko_sport_word = SPORT_KO_MAP.get(sp_clean) or next((v for k, v in SPORT_KO_MAP.items() if k in sp_clean), sp_clean)
+    en_sport_word = SPORT_EN_MAP.get(sp_clean) or next((v for k, v in SPORT_EN_MAP.items() if k in sp_clean), sp_clean)
+
+    # Bộ lọc phủ định tự động để chống tràn tin tức bóng đá sang các môn thể thao khác
+    neg_ja = " -サッカー" if not is_soccer else ""
+    neg_ko = " -축구" if not is_soccer else ""
+    neg_en = " -soccer -football" if not is_soccer else ""
 
     if is_japan:
         if cat_match and cat_match.get("query_native"):
@@ -1491,16 +1539,16 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
         elif getattr(team, "search_query", None) and any(ord(c) > 127 for c in team.search_query):
             native_q = team.search_query
         else:
-            if any(k in sport_name.lower() for k in ["bóng đá", "soccer", "football"]):
+            # Tự động sinh query tiếng Nhật chuẩn cho bất kỳ môn thể thao nào
+            if is_soccer:
                 native_q = f"{tier_label} サッカー日本代表".strip()
-            elif any(k in sport_name.lower() for k in ["bóng chày", "baseball"]):
-                native_q = f"{tier_label} 侍ジャパン 野球".strip()
-            elif any(k in sport_name.lower() for k in ["bóng rổ", "basketball"]):
-                native_q = f"{tier_label} バスケ日本代表".strip()
-            elif any(k in sport_name.lower() for k in ["bóng chuyền", "volleyball"]):
-                native_q = f"{tier_label} バレーボール日本代表".strip()
             else:
-                native_q = f"{team.name} 日本代表"
+                native_q = f"{tier_label} {ja_sport_word}日本代表".strip()
+        
+        # Bổ sung từ khóa phủ định nếu không phải bóng đá
+        if not is_soccer and "-サッカー" not in native_q:
+            native_q = f"{native_q}{neg_ja}"
+
         query_configs.append({
             "query": native_q,
             "hl": "ja",
@@ -1514,16 +1562,16 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
         elif getattr(team, "search_query", None) and any(ord(c) > 127 for c in team.search_query):
             native_q = team.search_query
         else:
-            if any(k in sport_name.lower() for k in ["bóng đá", "soccer", "football"]):
+            # Tự động sinh query tiếng Hàn chuẩn cho bất kỳ môn thể thao nào
+            if is_soccer:
                 native_q = f"대한민국 {tier_label} 축구 국가대표팀".strip()
-            elif any(k in sport_name.lower() for k in ["bóng chày", "baseball"]):
-                native_q = f"대한민국 {tier_label} 야구 대표팀".strip()
-            elif any(k in sport_name.lower() for k in ["bóng rổ", "basketball"]):
-                native_q = f"대한민국 {tier_label} 농구 국가대표팀".strip()
-            elif any(k in sport_name.lower() for k in ["bóng chuyền", "volleyball"]):
-                native_q = f"대한민국 {tier_label} 배구 국가대표팀".strip()
             else:
-                native_q = f"{team.name} 대한민국 대표팀"
+                native_q = f"대한민국 {tier_label} {ko_sport_word} 국가대표팀".strip()
+
+        # Bổ sung từ khóa phủ định nếu không phải bóng đá
+        if not is_soccer and "-축구" not in native_q:
+            native_q = f"{native_q}{neg_ko}"
+
         query_configs.append({
             "query": native_q,
             "hl": "ko",
@@ -1533,7 +1581,14 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
         })
 
     # International English query fallback
-    en_q = cat_match.get("query_en") if cat_match else f"{team.country_name} {tier_label} {team.sport_name} national team".strip()
+    if cat_match and cat_match.get("query_en"):
+        en_q = cat_match["query_en"]
+    else:
+        en_q = f"{team.country_name} {tier_label} {en_sport_word} national team".strip()
+    
+    if not is_soccer and "-soccer" not in en_q:
+        en_q = f"{en_q}{neg_en}"
+
     query_configs.append({
         "query": en_q,
         "hl": "en-US",
