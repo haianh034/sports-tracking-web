@@ -551,6 +551,12 @@ def _compute_dashboard_data(
                 t = k.capitalize() if k != "tỉ số" else None
             if t and t not in res:
                 res.append(t)
+        
+        # Enforce mutually exclusive outcome tags: a match can never have both Win and Loss
+        outcomes = [t for t in res if t.lower() in ("thắng", "thắng đậm", "thua", "hòa")]
+        if len(outcomes) > 1:
+            chosen = outcomes[-1]
+            res = [t for t in res if t.lower() not in ("thắng", "thắng đậm", "thua", "hòa")] + [chosen]
         return res
 
     active_players = []
@@ -2001,7 +2007,8 @@ def _compute_dashboard_data(
                             all_otags.append(ot)
                     if other_state == "post" and other_res:
                         o_out = extract_match_outcome_tag(other_res, team_name, other_cand_m.get("match_name", ""), player_name=p.name)
-                        if o_out and o_out not in all_otags:
+                        if o_out:
+                            all_otags = [t for t in all_otags if t.lower() not in ("thắng", "thắng đậm", "thua", "hòa")]
                             all_otags.append(o_out)
                     
                     all_otags = _clean_tags_helper(all_otags)
@@ -2424,7 +2431,8 @@ def _compute_dashboard_data(
                         o_tags = format_national_team_match_tags(nt["country_name"], nt["sport_name"], nt.get("tier"), other_cand_m, recent_news_titles=nt_news_titles)
                     if o_state == "post" and o_res:
                         o_out = extract_match_outcome_tag(o_res, nt["country_name"], o_name, player_name=nt["name"])
-                        if o_out and o_out not in o_tags:
+                        if o_out:
+                            o_tags = [t for t in o_tags if t.lower() not in ("thắng", "thắng đậm", "thua", "hòa")]
                             o_tags.append(o_out)
                     o_tags = _clean_tags_helper(o_tags)
 

@@ -694,23 +694,48 @@ def _fetch_flashscore_days(sport_slug: str, day_offsets: list) -> list:
     return collected
 
 
-def _fetch_fs_match_sets(href: str, mid: str) -> str:
+def _fetch_fs_match_sets(href: str, mid: str) -> dict:
     if mid in FS_DETAIL_CACHE:
-        return FS_DETAIL_CACHE[mid].get("sets", "")
+        val = FS_DETAIL_CACHE[mid]
+        if isinstance(val, dict):
+            return val
+        return {"sets": str(val or ""), "score": ""}
     try:
         with httpx.Client(timeout=6.0, headers=FS_HEADERS) as client:
             r = client.get(f"https://www.flashscore.mobi{href}")
             if r.status_code == 200:
-                m = re.search(r'<p[^>]*class="score"[^>]*>.*?\(([\d,\s-]+)\)', r.text, re.S)
+                html_txt = r.text
+                m = re.search(r'<p[^>]*class="score"[^>]*>.*?\(([\d,\s-]+)\)', html_txt, re.S)
                 if not m:
-                    m = re.search(r"\b\d+-\d+\s*\(([\d\s,-]+)\)", re.sub(r"<[^>]+>", " ", r.text))
+                    m = re.search(r"\b\d+-\d+\s*\(([\d\s,-]+)\)", re.sub(r"<[^>]+>", " ", html_txt))
                 sets_str = re.sub(r"\s+", "", m.group(1)).replace(",", ", ") if m else ""
-                FS_DETAIL_CACHE[mid] = {"sets": sets_str}
-                return sets_str
+
+                if not sets_str and "detail-tab-content" in html_txt:
+                    tab_idx = html_txt.find("detail-tab-content")
+                    tab_end = html_txt.find("</div>", tab_idx)
+                    if tab_idx != -1:
+                        tab_chunk = html_txt[tab_idx:tab_end if tab_end != -1 else tab_idx + 1000]
+                        sub_scores = re.findall(r'<b>(\d+\s*[-–:]\s*\d+)</b>', tab_chunk)
+                        if sub_scores:
+                            sets_str = ", ".join(s.replace(" ", "") for s in sub_scores)
+
+                main_score = ""
+                m_detail = re.search(r'<div class="detail"><b>(\d+\s*[-–:]\s*\d+)</b></div>', html_txt)
+                if m_detail:
+                    main_score = re.sub(r'\s+', '', m_detail.group(1))
+                else:
+                    m_title = re.search(r'<title>.*?(\b\d+\s*[-–:]\s*\d+\b).*?</title>', html_txt, re.I)
+                    if m_title:
+                        main_score = re.sub(r'\s+', '', m_title.group(1))
+
+                res_dict = {"sets": sets_str, "score": main_score}
+                FS_DETAIL_CACHE[mid] = res_dict
+                return res_dict
     except Exception:
         pass
-    FS_DETAIL_CACHE[mid] = {"sets": ""}
-    return ""
+    res_dict = {"sets": "", "score": ""}
+    FS_DETAIL_CACHE[mid] = res_dict
+    return res_dict
 
 
 def _match_fs_athlete_entrant(player_name: str, country_name: str, entrant_text: str) -> bool:
@@ -906,13 +931,18 @@ def _fetch_flashscore_matches(
         matched_raw.append((d_off, row, is_s1))
 
     # Fetch set details in parallel for finished matches (capped & cached)
-    fin_items = [r for _, r, _ in matched_raw if "fin" in r["cls"] or r["score"]]
+    fin_items = [r for d_off, r, _ in matched_raw if "fin" in r["cls"] or r["score"] or d_off < 0]
     if fin_items:
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(6, len(fin_items))) as ex:
             list(ex.map(lambda item: _fetch_fs_match_sets(item["href"], item["mid"]), fin_items))
 
     results = []
     for _, row, is_s1 in matched_raw:
+        dtl = FS_DETAIL_CACHE.get(row["mid"])
+        if isinstance(dtl, dict):
+            if not row.get("score") and dtl.get("score"):
+                row["score"] = dtl["score"]
+
         try:
             dt_cet = datetime.datetime.strptime(f"{row['date_cet']} {row['time']}", "%Y-%m-%d %H:%M")
         except Exception:
@@ -928,8 +958,9 @@ def _fetch_flashscore_matches(
         is_live = "live" in cls
         m_state = "post" if is_post else ("in" if is_live else ("post" if diff < -0.15 else "pre"))
 
-        sets_str = FS_DETAIL_CACHE.get(row["mid"], {}).get("sets", "")
-        sc = row["score"]
+        dtl_dict = FS_DETAIL_CACHE.get(row["mid"]) if isinstance(FS_DETAIL_CACHE.get(row["mid"]), dict) else {}
+        sets_str = dtl_dict.get("sets", "")
+        sc = row["score"] or dtl_dict.get("score", "")
         match_res = None
         stats_text = ""
         tags = []

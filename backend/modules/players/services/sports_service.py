@@ -472,6 +472,34 @@ def extract_round_stage_tag(raw_stage: str = "", competition: str = "", match_na
     return ""
 
 
+_COUNTRY_NAME_ALIASES = {
+    "nhật bản": ["japan", "japanese", "jpn"],
+    "nhật": ["japan", "japanese", "jpn"],
+    "hàn quốc": ["korea", "south korea", "korean", "kor"],
+    "hàn": ["korea", "south korea", "korean", "kor"],
+    "việt nam": ["vietnam", "vietnamese", "vie"],
+    "trung quốc": ["china", "chinese", "chn"],
+    "đài loan": ["taiwan", "chinese taipei", "tpe"],
+    "thái lan": ["thailand", "thai", "tha"],
+    "indonesia": ["indonesia", "ina", "idn"],
+    "malaysia": ["malaysia", "mas", "mys"],
+    "philippines": ["philippines", "phi"],
+    "úc": ["australia", "australian", "aus"],
+    "mỹ": ["usa", "united states", "america", "american"],
+    "hoa kỳ": ["usa", "united states", "america", "american"],
+    "pháp": ["france", "french", "fra"],
+    "đức": ["germany", "german", "ger"],
+    "anh": ["england", "great britain", "gbr"],
+    "tây ban nha": ["spain", "spanish", "esp"],
+    "ý": ["italy", "italian", "ita"],
+    "brazil": ["brazil", "brazilian", "bra"],
+    "argentina": ["argentina", "argentine", "arg"],
+    "mexico": ["mexico", "mexican", "mex"],
+    "paraguay": ["paraguay", "paraguayan", "par"],
+    "puerto rico": ["puerto rico", "pur"],
+}
+
+
 def extract_match_outcome_tag(match_result: str, team_name: str = "", match_name: str = "", sport_name: str = "", player_name: str = "") -> str:
     """Trả về 'Thắng', 'Thua' hoặc 'Hòa' dựa trên tỉ số thực tế của trận đã kết thúc."""
     res = (match_result or "").strip()
@@ -492,10 +520,16 @@ def extract_match_outcome_tag(match_result: str, team_name: str = "", match_name
         right_sc = int(m_pair.group(3))
         right_name = m_pair.group(4).strip()
 
+        stop = {
+            'fc', 'cf', 'sc', 'afc', 'ac', 'city', 'united', 'club', 'team', 'women', 'men', 'the',
+            'u15', 'u16', 'u17', 'u18', 'u19', 'u20', 'u21', 'u22', 'u23', 'u24',
+            'u-15', 'u-16', 'u-17', 'u-18', 'u-19', 'u-20', 'u-21', 'u-22', 'u-23', 'u-24',
+            'youth', 'nam', 'nu', 'nữ', 'national', 'đội', 'tuyển'
+        }
+
         def _same_side(a: str, b: str) -> bool:
             al = re.sub(r'[^a-z0-9\s]', ' ', (a or '').lower()).split()
             bl = re.sub(r'[^a-z0-9\s]', ' ', (b or '').lower()).split()
-            stop = {'fc', 'cf', 'sc', 'afc', 'ac', 'city', 'united', 'club', 'team', 'women', 'the'}
             at = [t for t in al if len(t) >= 3 and t not in stop]
             bt = [t for t in bl if len(t) >= 3 and t not in stop]
             return bool(at and bt and (set(at) & set(bt)))
@@ -505,13 +539,20 @@ def extract_match_outcome_tag(match_result: str, team_name: str = "", match_name
         if t_clean and t_clean not in ("tự do", "chưa rõ", "chưa rõ clb", "unknown", "atp", "wta", "pga", "golf"):
             l_low = left_name.lower()
             r_low = right_name.lower()
-            if t_clean in l_low or l_low in t_clean or _same_side(t_clean, left_name):
-                is_left_ours = True
-            elif t_clean in r_low or r_low in t_clean or _same_side(t_clean, right_name):
-                is_left_ours = False
+            t_candidates = [t_clean] + _COUNTRY_NAME_ALIASES.get(t_clean, [])
+            for cand in t_candidates:
+                if cand in l_low or l_low in cand or _same_side(cand, left_name):
+                    is_left_ours = True
+                    break
+                elif cand in r_low or r_low in cand or _same_side(cand, right_name):
+                    is_left_ours = False
+                    break
 
         if is_left_ours is None and player_name:
-            p_toks = [tok.lower() for tok in re.split(r'\s+', player_name.strip()) if len(tok) >= 3]
+            p_toks = [tok.lower() for tok in re.split(r'\s+', player_name.strip()) if len(tok) >= 3 and tok.lower() not in stop]
+            for c_vi, c_ens in _COUNTRY_NAME_ALIASES.items():
+                if c_vi in player_name.lower():
+                    p_toks.extend(c_ens)
             if p_toks:
                 l_low = left_name.lower()
                 r_low = right_name.lower()
@@ -528,10 +569,17 @@ def extract_match_outcome_tag(match_result: str, team_name: str = "", match_name
             if opp_clean:
                 l_low = left_name.lower()
                 r_low = right_name.lower()
-                if opp_clean in r_low or r_low in opp_clean or _same_side(opp_clean, right_name):
-                    is_left_ours = True
-                elif opp_clean in l_low or l_low in opp_clean or _same_side(opp_clean, left_name):
+                l_match = opp_clean in l_low or l_low in opp_clean
+                r_match = opp_clean in r_low or r_low in opp_clean
+                if l_match and not r_match:
                     is_left_ours = False
+                elif r_match and not l_match:
+                    is_left_ours = True
+                elif _same_side(opp_clean, left_name) and not _same_side(opp_clean, right_name):
+                    is_left_ours = False
+                elif _same_side(opp_clean, right_name) and not _same_side(opp_clean, left_name):
+                    is_left_ours = True
+
             if is_left_ours is None:
                 if mn.lower().startswith("vs "):
                     is_left_ours = True
