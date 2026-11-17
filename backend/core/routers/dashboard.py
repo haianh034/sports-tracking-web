@@ -69,6 +69,7 @@ from backend.modules.national_teams.services.national_teams_service import (
     fetch_national_team_schedule, fetch_national_team_news_feed,
     format_national_team_match_tags, get_national_team_tournament_tag
 )
+from backend.modules.players.routers.news import resolve_news_url
 
 router = APIRouter(tags=["dashboard"])
 templates = Jinja2Templates(directory="frontend/templates")
@@ -724,7 +725,7 @@ def _compute_dashboard_data(
                 "upcoming_30d_matches": [],
                 "news_count": len(all_player_news),
                 "recent_news": [
-                    {"title": n.title, "url": n.source_url, "news_type": n.news_type, "published_at": n.published_at_iso}
+                    {"title": n.title, "url": resolve_news_url(n.source_url), "news_type": n.news_type, "published_at": n.published_at_iso}
                     for n in all_player_news[:10]
                 ],
                 "entity_type": "player",
@@ -1521,7 +1522,7 @@ def _compute_dashboard_data(
                     m_news = [
                         {
                             "title": n.title,
-                            "url": n.source_url,
+                            "url": resolve_news_url(n.source_url),
                             "news_type": n.news_type,
                             "region": n.region or "US",
                             "published_at": n.published_at_iso
@@ -1840,7 +1841,7 @@ def _compute_dashboard_data(
         player_news_24h = [
             {
                 "title": n.title,
-                "url": n.source_url,
+                "url": resolve_news_url(n.source_url),
                 "news_type": n.news_type,
                 "region": n.region or "US",
                 "published_at": n.published_at_iso
@@ -1911,7 +1912,7 @@ def _compute_dashboard_data(
                 "all_news": [
                     {
                         "title": n.title,
-                        "url": n.source_url,
+                        "url": resolve_news_url(n.source_url),
                         "news_type": n.news_type,
                         "region": n.region or "US",
                         "published_at": n.published_at_iso
@@ -2161,7 +2162,7 @@ def _compute_dashboard_data(
                     m_news = [
                         {
                             "title": n.title,
-                            "url": n.source_url,
+                            "url": resolve_news_url(n.source_url),
                             "news_type": n.news_type,
                             "region": n.region or "US",
                             "published_at": n.published_at_iso
@@ -2359,7 +2360,7 @@ def _compute_dashboard_data(
                 "news_24h": [
                     {
                         "title": n.title,
-                        "url": n.source_url,
+                        "url": resolve_news_url(n.source_url),
                         "news_type": n.news_type,
                         "region": n.region or "US",
                         "published_at": n.published_at_iso
@@ -2371,7 +2372,7 @@ def _compute_dashboard_data(
                 "all_news": [
                     {
                         "title": n.title,
-                        "url": n.source_url,
+                        "url": resolve_news_url(n.source_url),
                         "news_type": n.news_type,
                         "region": n.region or "US",
                         "published_at": n.published_at_iso

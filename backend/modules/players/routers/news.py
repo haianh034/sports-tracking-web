@@ -20,7 +20,9 @@ DECODED_URL_CACHE = {}
 if os.path.exists(DECODED_CACHE_FILE):
     try:
         with open(DECODED_CACHE_FILE, "r", encoding="utf-8") as f:
-            DECODED_URL_CACHE = json.load(f)
+            raw_cache = json.load(f)
+            # Chỉ giữ các URL đã giải mã thành công (không phải news.google.com)
+            DECODED_URL_CACHE = {k: v for k, v in raw_cache.items() if v and "news.google.com" not in v}
     except Exception:
         DECODED_URL_CACHE = {}
 
@@ -30,6 +32,12 @@ def _save_decoded_cache():
             json.dump(DECODED_URL_CACHE, f, ensure_ascii=False)
     except Exception:
         pass
+
+def resolve_news_url(url: str) -> str:
+    """Trả về link báo gốc nếu đã giải mã, hoặc link hiện tại nếu chưa/không cần giải mã."""
+    if not url:
+        return ""
+    return DECODED_URL_CACHE.get(url, url)
 
 # Tái sử dụng HTTP client kết nối sẵn
 _HTTP_CLIENT = httpx.Client(
@@ -44,16 +52,20 @@ def _decode_single_url(url: str) -> tuple[str, str]:
     if not url or "news.google.com" not in url:
         return url, url
 
-    # Method 1: googlenewsdecoder
-    try:
-        from googlenewsdecoder import gnewsdecoder
-        res = gnewsdecoder(url)
-        if res.get("success") and res.get("decoded_url"):
-            decoded = res["decoded_url"]
-            if decoded and "news.google.com" not in decoded:
-                return url, decoded
-    except Exception as e:
-        logger.warning(f"gnewsdecoder failed for {url}: {e}")
+    # Method 1: googlenewsdecoder với 1 lần retry nhẹ nếu gặp lỗi mạng/thời gian chờ
+    for attempt in range(2):
+        try:
+            from googlenewsdecoder import gnewsdecoder
+            res = gnewsdecoder(url)
+            if res.get("success") and res.get("decoded_url"):
+                decoded = res["decoded_url"]
+                if decoded and "news.google.com" not in decoded:
+                    return url, decoded
+        except Exception as e:
+            logger.warning(f"gnewsdecoder attempt {attempt+1} failed for {url}: {e}")
+        if attempt == 0:
+            import time
+            time.sleep(0.4)
 
     # Method 2: HTTP fallback with persistent client
     try:
@@ -74,28 +86,45 @@ def decode_news_urls(payload: DecodeUrlsRequest):
     for u in payload.urls:
         if not u or "news.google.com" not in u:
             results.append(u)
-        elif u in DECODED_URL_CACHE:
+        elif u in DECODED_URL_CACHE and "news.google.com" not in DECODED_URL_CACHE[u]:
             results.append(DECODED_URL_CACHE[u])
         else:
             to_decode.append(u)
 
     if to_decode:
+        new_added = False
+        failed_in_batch = []
         try:
-            # Dùng 5 worker để tránh gây quá tải CPU trên Render
-            workers_count = min(5, len(to_decode))
-            with concurrent.futures.ThreadPoolExecutor(max_workers=workers_count) as ex:
-                dec_results = list(ex.map(_decode_single_url, to_decode))
-                new_added = False
-                for raw_u, real_u in dec_results:
-                    if raw_u != real_u:
+            from googlenewsdecoder.decoder import GoogleDecoder
+            with GoogleDecoder(timeout=8.0) as dec:
+                batch_res = dec.decode_google_news_urls(to_decode, interval=0.08)
+                for raw_u, res in zip(to_decode, batch_res):
+                    if res.get("success") and res.get("decoded_url"):
+                        real_u = res["decoded_url"]
+                        if real_u and "news.google.com" not in real_u:
+                            DECODED_URL_CACHE[raw_u] = real_u
+                            new_added = True
+                        else:
+                            failed_in_batch.append(raw_u)
+                    else:
+                        failed_in_batch.append(raw_u)
+        except Exception as e:
+            logger.error(f"GoogleDecoder batch error: {e}")
+            failed_in_batch = list(to_decode)
+
+        # Retry những link thất bại bằng _decode_single_url
+        if failed_in_batch:
+            for raw_u in failed_in_batch:
+                try:
+                    _, real_u = _decode_single_url(raw_u)
+                    if real_u and real_u != raw_u and "news.google.com" not in real_u:
                         DECODED_URL_CACHE[raw_u] = real_u
                         new_added = True
-                    else:
-                        DECODED_URL_CACHE[raw_u] = real_u
-                if new_added:
-                    _save_decoded_cache()
-        except Exception as e:
-            logger.error(f"Unexpected error in decode_news_urls thread pool: {e}")
+                except Exception:
+                    pass
+
+        if new_added:
+            _save_decoded_cache()
 
         final_list = []
         for u in payload.urls:

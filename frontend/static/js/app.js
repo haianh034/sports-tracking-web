@@ -2680,9 +2680,12 @@ function renderModalNews() {
             const regionInfo = REGION_FLAGS[n.region] || { flag: '🌐', label: 'Báo Quốc Tế' };
             const catInfo = NEWS_CATEGORIES[n.type] || NEWS_CATEGORIES.side_news;
             const typeBadge = `<span class="${catInfo.color} border text-[10px] px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">${catInfo.icon} ${catInfo.label}</span>`;
+            const currentUrl = (window.decodedUrlCache && window.decodedUrlCache[n.url] && !window.decodedUrlCache[n.url].includes('news.google.com')) 
+                ? window.decodedUrlCache[n.url] 
+                : n.url;
 
             return `
-                <a href="${escapeHtml(n.url)}" target="_blank" rel="noopener noreferrer" 
+                <a href="${escapeHtml(currentUrl)}" target="_blank" rel="noopener noreferrer" 
                     class="group block p-3.5 rounded-xl bg-gray-950/80 hover:bg-gray-950 border border-gray-800 hover:border-blue-500/60 transition duration-150">
                     <div class="flex items-start gap-3">
                         <span class="text-2xl select-none" title="${regionInfo.label}">${regionInfo.flag}</span>
@@ -2695,7 +2698,10 @@ function renderModalNews() {
                                 ${typeBadge}
                             </div>
                         </div>
-                        <span class="text-gray-500 group-hover:text-blue-400 text-xs">🔗</span>
+                        <div class="flex items-center gap-1 shrink-0 mt-0.5">
+                            <button type="button" class="p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition text-xs" title="Sao chép liên kết bài báo này" onclick="event.preventDefault(); event.stopPropagation(); copySingleNewsLink('${escapeHtml(n.url)}', this);">📋</button>
+                            <span class="text-gray-500 group-hover:text-blue-400 text-xs" title="Mở bài báo">↗</span>
+                        </div>
                     </div>
                 </a>`;
         }).join('');
@@ -2711,11 +2717,71 @@ function renderModalNews() {
 window.decodedUrlCache = window.decodedUrlCache || {};
 let inFlightDecodePromise = null;
 
+async function copySingleNewsLink(rawUrl, btnElem) {
+    if (!rawUrl) return;
+    let targetUrl = rawUrl;
+    if (window.decodedUrlCache && window.decodedUrlCache[rawUrl] && !window.decodedUrlCache[rawUrl].includes('news.google.com')) {
+        targetUrl = window.decodedUrlCache[rawUrl];
+    } else if (rawUrl.includes('news.google.com')) {
+        if (btnElem) btnElem.innerText = "⏳";
+        try {
+            const res = await fetch('/api/news/decode-urls', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls: [rawUrl] })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.decoded_urls && data.decoded_urls[0] && !data.decoded_urls[0].includes('news.google.com')) {
+                    targetUrl = data.decoded_urls[0];
+                    window.decodedUrlCache[rawUrl] = targetUrl;
+                    document.querySelectorAll(`a[href="${rawUrl}"]`).forEach(a => { a.href = targetUrl; });
+                }
+            }
+        } catch (e) {
+            console.warn("Decode single error", e);
+        }
+    }
+
+    if (targetUrl.includes('news.google.com')) {
+        showToast("Bài báo chưa thể giải mã link gốc hoặc đã bị gỡ bởi nhà xuất bản.", "warning");
+        if (btnElem) btnElem.innerText = "📋";
+        return;
+    }
+
+    let copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(targetUrl);
+            copied = true;
+        } catch (e) {}
+    }
+    if (!copied) {
+        const textarea = document.createElement("textarea");
+        textarea.value = targetUrl;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try { copied = document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(textarea);
+    }
+
+    if (copied) {
+        showToast("Đã sao chép liên kết gốc của bài báo!", "success");
+        if (btnElem) {
+            btnElem.innerText = "✅";
+            setTimeout(() => { btnElem.innerText = "📋"; }, 2000);
+        }
+    }
+}
+
 function triggerNewsUrlsPredecode(newsList) {
     if (!newsList || newsList.length === 0) return;
     const urlsToDecode = newsList
         .map(n => n.url)
-        .filter(u => u && u.includes('news.google.com') && !window.decodedUrlCache[u]);
+        .filter(u => u && u.includes('news.google.com') && (!window.decodedUrlCache[u] || window.decodedUrlCache[u].includes('news.google.com')));
 
     if (urlsToDecode.length === 0) return;
 
@@ -2729,7 +2795,15 @@ function triggerNewsUrlsPredecode(newsList) {
         if (data && data.decoded_urls) {
             urlsToDecode.forEach((raw, idx) => {
                 const dec = data.decoded_urls[idx];
-                if (dec) window.decodedUrlCache[raw] = dec;
+                if (dec && !dec.includes('news.google.com')) {
+                    window.decodedUrlCache[raw] = dec;
+                    newsList.forEach(n => {
+                        if (n && n.url === raw) n.url = dec;
+                    });
+                    document.querySelectorAll(`a[href="${raw}"]`).forEach(a => {
+                        a.href = dec;
+                    });
+                }
             });
         }
     })
@@ -2754,7 +2828,7 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
         if (inFlightDecodePromise) {
             try { await inFlightDecodePromise; } catch (e) {}
         }
-        const missing = validUrls.filter(u => u && u.includes('news.google.com') && !window.decodedUrlCache[u]);
+        const missing = validUrls.filter(u => u && u.includes('news.google.com') && (!window.decodedUrlCache[u] || window.decodedUrlCache[u].includes('news.google.com')));
         if (missing.length > 0) {
             try {
                 const res = await fetch('/api/news/decode-urls', {
@@ -2767,7 +2841,10 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
                     if (data && data.decoded_urls) {
                         missing.forEach((raw, idx) => {
                             const dec = data.decoded_urls[idx];
-                            if (dec) window.decodedUrlCache[raw] = dec;
+                            if (dec && !dec.includes('news.google.com')) {
+                                window.decodedUrlCache[raw] = dec;
+                                document.querySelectorAll(`a[href="${raw}"]`).forEach(a => { a.href = dec; });
+                            }
                         });
                     }
                 }
@@ -2775,11 +2852,14 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
                 console.warn("Decode request error", e);
             }
         }
-        return validUrls.map(u => window.decodedUrlCache[u] || u);
+        return validUrls.map(u => {
+            const dec = window.decodedUrlCache[u];
+            return (dec && !dec.includes('news.google.com')) ? dec : u;
+        });
     };
 
     // Kiểm tra xem đã giải mã trước đó xong chưa (fast-path: 0ms)
-    const alreadyDecoded = validUrls.every(u => !u.includes('news.google.com') || window.decodedUrlCache[u]);
+    const alreadyDecoded = validUrls.every(u => !u.includes('news.google.com') || (window.decodedUrlCache[u] && !window.decodedUrlCache[u].includes('news.google.com')));
 
     if (!alreadyDecoded) {
         if (copyBtn) copyBtn.disabled = true;
@@ -2789,28 +2869,38 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
 
     try {
         let textPromise;
-        let copiedCount = validUrls.length;
+        let cleanUrls = [];
+        let skippedRssCount = 0;
+
         if (alreadyDecoded) {
-            const rawFinalUrls = validUrls.map(u => window.decodedUrlCache[u] || u);
-            const finalUrls = Array.from(new Set(rawFinalUrls.filter(Boolean)));
-            copiedCount = finalUrls.length;
-            textPromise = Promise.resolve(finalUrls.join('\n'));
+            const rawFinalUrls = validUrls.map(u => {
+                const dec = window.decodedUrlCache[u];
+                return (dec && !dec.includes('news.google.com')) ? dec : u;
+            });
+            cleanUrls = Array.from(new Set(rawFinalUrls.filter(u => u && !u.includes('news.google.com'))));
+            skippedRssCount = rawFinalUrls.filter(u => u && u.includes('news.google.com')).length;
+            textPromise = Promise.resolve(cleanUrls.join('\n'));
         } else {
             textPromise = getFinalUrls().then(urls => {
-                const finalUrls = Array.from(new Set(urls.filter(Boolean)));
-                copiedCount = finalUrls.length;
-                return finalUrls.join('\n');
+                cleanUrls = Array.from(new Set(urls.filter(u => u && !u.includes('news.google.com'))));
+                skippedRssCount = urls.filter(u => u && u.includes('news.google.com')).length;
+                return cleanUrls.join('\n');
             });
         }
 
         let copied = false;
+        const textToCopy = await textPromise;
+
+        if (!cleanUrls || cleanUrls.length === 0) {
+            showToast("Không có liên kết gốc hợp lệ nào để sao chép sang NotebookLM.", "warning");
+            return;
+        }
 
         // Trình duyệt hiện đại: ClipboardItem liên kết trực tiếp User Gesture token qua Promise
         if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
             try {
-                const blobPromise = textPromise.then(text => new Blob([text], { type: 'text/plain' }));
                 await navigator.clipboard.write([
-                    new ClipboardItem({ 'text/plain': blobPromise })
+                    new ClipboardItem({ 'text/plain': new Blob([textToCopy], { type: 'text/plain' }) })
                 ]);
                 copied = true;
             } catch (e) {
@@ -2819,7 +2909,6 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
         }
 
         if (!copied) {
-            const textToCopy = await textPromise;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 try {
                     await navigator.clipboard.writeText(textToCopy);
@@ -2847,7 +2936,11 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
         }
 
         if (copied) {
-            showToast(successMessage || `Đã sao chép thành công ${validUrls.length} liên kết gốc cho NotebookLM!`, "success");
+            if (skippedRssCount > 0) {
+                showToast(`Đã sao chép ${cleanUrls.length} liên kết gốc cho NotebookLM (${skippedRssCount} bài bị gỡ/không hỗ trợ đã được lọc bỏ)!`, "warning");
+            } else {
+                showToast(successMessage || `Đã sao chép thành công ${cleanUrls.length} liên kết gốc cho NotebookLM!`, "success");
+            }
             if (copyIcon) copyIcon.innerText = "✅";
             if (copyLabel) copyLabel.innerText = "Đã chép link cho NotebookLM!";
             setTimeout(() => {
@@ -4279,8 +4372,12 @@ function renderNews24hDetail() {
                 entitiesBadge = `<span class="bg-gray-800/90 text-gray-300 border border-gray-700 px-1.5 py-0.5 rounded text-[10px] font-medium inline-flex items-center gap-1">${m.flag} ${escapeHtml(m.name)}</span>`;
             }
 
+            const currentUrl = (window.decodedUrlCache && window.decodedUrlCache[n.url] && !window.decodedUrlCache[n.url].includes('news.google.com')) 
+                ? window.decodedUrlCache[n.url] 
+                : n.url;
+
             return `
-                <a href="${escapeHtml(n.url)}" target="_blank" rel="noopener noreferrer" 
+                <a href="${escapeHtml(currentUrl)}" target="_blank" rel="noopener noreferrer" 
                     class="group block p-4 rounded-xl bg-gray-900/80 hover:bg-gray-900 border border-gray-800 hover:border-blue-500/60 transition duration-150 shadow-sm">
                     <div class="flex items-start gap-3">
                         <span class="text-2xl select-none" title="${regionInfo.label}">${regionInfo.flag}</span>
@@ -4295,7 +4392,10 @@ function renderNews24hDetail() {
                                 <span class="text-[10px] text-gray-500 ml-auto font-mono">24h qua</span>
                             </div>
                         </div>
-                        <span class="text-gray-500 group-hover:text-blue-400 text-xs shrink-0 mt-1">🔗</span>
+                        <div class="flex items-center gap-1 shrink-0 mt-1">
+                            <button type="button" class="p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition text-xs" title="Sao chép liên kết bài báo này" onclick="event.preventDefault(); event.stopPropagation(); copySingleNewsLink('${escapeHtml(n.url)}', this);">📋</button>
+                            <span class="text-gray-500 group-hover:text-blue-400 text-xs" title="Mở bài báo">↗</span>
+                        </div>
                     </div>
                 </a>`;
         }).join('');

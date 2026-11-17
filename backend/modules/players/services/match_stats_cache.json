@@ -20743,5 +20743,567 @@
     ],
     "has_played": true,
     "match_result": "Hoki T./Kobayashi Y. 1-2 Tai A./Yap R. K. (FT) • 21-16, 13-21, 15-21"
+  },
+  "Son Heung-min_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 2 sút, 77% chuyền (24/31)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 2 sút, 77% chuyền (24/31)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"77% (24/31)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"40% (2/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/8 (38%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"8 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most touches (9) in the opposition box\"], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.0,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Had the most touches (9) in the opposition box"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.0,
+      "rating": 7.0,
+      "is_player_of_the_match": false,
+      "summary": "2 tạo cơ hội, 2 sút, 77% chuyền (24/31)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "77% (24/31)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "40% (2/5)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "3/8 (38%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "49 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "8 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the most touches (9) in the opposition box"
+      ],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Lee Kang-in_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 4 sút, 77% chuyền (36/47)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.8, \"rating\": 7.8, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 4 sút, 77% chuyền (36/47)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"4 cú sút (3 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"77% (36/47)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"80% (4/5)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"7/10 (70%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"76 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"9 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (4 cú sút)\", \"Rê bóng nhiều nhất trận (4 lần)\"], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.8,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Dứt điểm nhiều nhất trận (4 cú sút)",
+      "Rê bóng nhiều nhất trận (4 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.8,
+      "rating": 7.8,
+      "is_player_of_the_match": false,
+      "summary": "2 tạo cơ hội, 4 sút, 77% chuyền (36/47)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "4 cú sút (3 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "77% (36/47)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "80% (4/5)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "7/10 (70%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "76 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "9 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Dứt điểm nhiều nhất trận (4 cú sút)",
+        "Rê bóng nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Kim Min-jae_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"90% chuyền (63/70)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 5.8, \"rating\": 5.8, \"is_player_of_the_match\": false, \"summary\": \"90% chuyền (63/70)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (63/70)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/2 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"80 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"6 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most touches (80)\"], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 5.8,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Had the most touches (80)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 5.8,
+      "rating": 5.8,
+      "is_player_of_the_match": false,
+      "summary": "90% chuyền (63/70)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "90% (63/70)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "0/2 (0%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "80 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "6 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the most touches (80)"
+      ],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Hwang Hee-chan_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"1 kiến tạo, 4 tạo cơ hội, 92% chuyền (24/26)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.0, \"rating\": 8.0, \"is_player_of_the_match\": false, \"summary\": \"1 kiến tạo, 4 tạo cơ hội, 92% chuyền (24/26)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"92% (24/26)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (3/6)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/9 (44%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"41 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"81 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 81, \"goals\": 0, \"assists\": 1, \"round_raw\": \"\"}}",
+    "rating": 8.0,
+    "tags": [
+      "Đá chính",
+      "81 phút",
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.0,
+      "rating": 8.0,
+      "is_player_of_the_match": false,
+      "summary": "1 kiến tạo, 4 tạo cơ hội, 92% chuyền (24/26)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "4 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "92% (24/26)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "50% (3/6)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/9 (44%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "41 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "5 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "81 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (4 lần)"
+      ],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 81,
+      "goals": 0,
+      "assists": 1,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Ayase Ueda_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không lên tuyển"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Seol Young-Woo_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"1 kiến tạo, 3 tạo cơ hội, 70% chuyền (19/27)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"1 kiến tạo, 3 tạo cơ hội, 70% chuyền (19/27)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"70% (19/27)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/4 (25%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"44 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"66 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 66, \"goals\": 0, \"assists\": 1, \"round_raw\": \"\"}}",
+    "rating": 6.9,
+    "tags": [
+      "Đá chính",
+      "66 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 6.9,
+      "rating": 6.9,
+      "is_player_of_the_match": false,
+      "summary": "1 kiến tạo, 3 tạo cơ hội, 70% chuyền (19/27)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "3 lần",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "70% (19/27)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/4 (25%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "44 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "66 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 66,
+      "goals": 0,
+      "assists": 1,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Hwang In-beom_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"2 sút, 91% chuyền (51/56)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"is_player_of_the_match\": false, \"summary\": \"2 sút, 91% chuyền (51/56)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"91% (51/56)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/5 (80%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"69 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"7 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.1,
+    "tags": [
+      "Đá chính",
+      "90 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.1,
+      "rating": 7.1,
+      "is_player_of_the_match": false,
+      "summary": "2 sút, 91% chuyền (51/56)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "91% (51/56)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "4/5 (80%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "69 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "7 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Oh Hyeon-gyu_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"1 bàn, 72% chuyền (13/18)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.2, \"rating\": 7.2, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 72% chuyền (13/18)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"72% (13/18)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/4 (25%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"30 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"66 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 66, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.2,
+    "tags": [
+      "Đá chính",
+      "66 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.2,
+      "rating": 7.2,
+      "is_player_of_the_match": false,
+      "summary": "1 bàn, 72% chuyền (13/18)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "72% (13/18)",
+          "highlight": false
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/2)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/4 (25%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "30 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "66 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 66,
+      "goals": 1,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Lee Jae-sung_fs__GbGkMBHs_post": {
+    "stats_text": "{\"summary\": \"1 bàn, 94% chuyền (16/17)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 94% chuyền (16/17)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (16/17)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/5 (20%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"23 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"24 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539343, \"opponent\": \"Saudi Arabia\", \"minutes_played\": 24, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.1,
+    "tags": [
+      "Vào sân",
+      "24 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.1,
+      "rating": 7.1,
+      "is_player_of_the_match": false,
+      "summary": "1 bàn, 94% chuyền (16/17)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "94% (16/17)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/5 (20%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "23 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "24 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539343,
+      "opponent": "Saudi Arabia",
+      "minutes_played": 24,
+      "goals": 1,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Song Min-Kyu_fs__GbGkMBHs_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Kim Min-Su_fs__GbGkMBHs_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Kento Shiogai_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không lên tuyển"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Ryunosuke Sato_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Vắng mặt ĐTQG (Chấn thương)"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Satoshi Tanaka_espn_nt_401916337_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Không lên tuyển"
+    ],
+    "has_played": false,
+    "match_result": "Japan 3 - 2 Brazil (FT)"
+  },
+  "Lee Seung-Woo_fs__GbGkMBHs_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
   }
 }
