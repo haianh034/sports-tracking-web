@@ -3,7 +3,8 @@ import urllib.parse
 import json
 import datetime
 import concurrent.futures
-from sqlalchemy.orm import Session
+import collections
+from sqlalchemy.orm import Session, joinedload
 
 from backend.core.db.session import SessionLocal
 from backend.core.db.models import Player, MatchPerformance, PlayerNews
@@ -186,7 +187,11 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         return {"count": 0, "status": "already_syncing", "message": "Quá trình đồng bộ đang chạy ngầm, không chạy trùng lặp"}
 
     try:
-        players = db.query(Player).all()
+        players = db.query(Player).options(
+            joinedload(Player.sport),
+            joinedload(Player.nationality),
+            joinedload(Player.club)
+        ).all()
         if not players:
             return {"count": 0, "status": "no_players"}
 
@@ -256,7 +261,16 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         with concurrent.futures.ThreadPoolExecutor(max_workers=player_workers) as ex:
             results = list(ex.map(_sync_player, player_data))
 
-        # Ghi nhận kết quả vào cơ sở dữ liệu
+        # Ghi nhận kết quả vào cơ sở dữ liệu tối ưu qua Bulk Loading (loại bỏ N+1 query)
+        all_p_ids = [r[0] for r in results]
+        existing_perfs = db.query(MatchPerformance).filter(MatchPerformance.player_id.in_(all_p_ids)).all() if all_p_ids else []
+        perf_map = {(p.player_id, p.match_name): p for p in existing_perfs}
+
+        existing_news_all = db.query(PlayerNews).filter(PlayerNews.player_id.in_(all_p_ids)).all() if all_p_ids else []
+        news_by_player = collections.defaultdict(list)
+        for n in existing_news_all:
+            news_by_player[n.player_id].append(n)
+
         for p_id, m_name, m_date, m_state, m_res, h_played, stats_info, m_comp, news_entries in results:
             if m_name:
                 actual_played = stats_info.get("has_played", h_played)
@@ -276,10 +290,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                     p_stats = stats_info.get("stats_text")
                     p_tags = stats_info.get("tags", [])
 
-                perf = db.query(MatchPerformance).filter(
-                    MatchPerformance.player_id == p_id,
-                    MatchPerformance.match_name == m_name
-                ).first()
+                perf = perf_map.get((p_id, m_name))
                 if not perf:
                     perf = MatchPerformance(
                         player_id=p_id,
@@ -295,6 +306,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                         competition=m_comp
                     )
                     db.add(perf)
+                    perf_map[(p_id, m_name)] = perf
                 else:
                     perf.match_name = m_name
                     perf.match_date = m_date
@@ -309,7 +321,7 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
 
             if news_entries:
                 from backend.modules.players.services.news_service import normalize_news_title
-                existing_news = db.query(PlayerNews).filter(PlayerNews.player_id == p_id).all()
+                existing_news = news_by_player.get(p_id, [])
                 existing_map = {n.source_url: n for n in existing_news}
                 existing_titles = {normalize_news_title(n.title): n for n in existing_news if n.title}
                 for item in news_entries:
@@ -329,9 +341,9 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                     )
                     db.add(news_item)
                     existing_map[item["source_url"]] = news_item
+                    existing_news.append(news_item)
                     if norm_t:
                         existing_titles[norm_t] = news_item
-                db.commit()
 
         db.commit()
         # Tự động dọn dẹp các bài báo cũ quá 30 ngày để tối ưu kích thước DB và bộ nhớ RAM

@@ -2338,24 +2338,71 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             if "Cầu thủ xuất sắc nhất (MVP)" not in tags:
                                 tags.append("Cầu thủ xuất sắc nhất (MVP)")
                     else:
+                        # Trích xuất kết quả chung cuộc của đội để tính điểm đóng góp (Team Result Factor)
+                        our_score = None
+                        opp_score = None
+                        try:
+                            comp_hdr0 = data.get('header', {}).get('competitions', [{}])[0]
+                            ref_team = (matched_team_name or team_name or "").lower()
+                            for c in comp_hdr0.get('competitors', []):
+                                t_disp = c.get('team', {}).get('displayName', '').lower()
+                                sc_val = c.get('score')
+                                try:
+                                    sc_int = int(sc_val)
+                                except (TypeError, ValueError):
+                                    continue
+                                if ref_team and (ref_team in t_disp or t_disp in ref_team):
+                                    our_score = sc_int
+                                else:
+                                    opp_score = sc_int
+                        except Exception:
+                            pass
+
+                        team_factor = 0.0
+                        clean_sheet_bonus = 0.0
+                        if our_score is not None and opp_score is not None:
+                            if our_score > opp_score:
+                                team_factor = 0.3
+                                if our_score - opp_score >= 3:
+                                    team_factor += 0.2  # Thắng cách biệt lớn
+                            elif our_score < opp_score:
+                                team_factor = -0.3
+                                if opp_score - our_score >= 3:
+                                    team_factor -= 0.2  # Thua đậm
+                            if opp_score == 0:
+                                clean_sheet_bonus = 0.4
+
                         if is_gk:
                             # Chấm điểm chuẩn cho Thủ môn khi không có FotMob:
                             # Cơ sở: 6.5
-                            # Mỗi pha cứu thua: +0.3 điểm (tôn vinh thủ môn cản phá nhiều)
-                            # Cứu thua xuất sắc (>= 5 pha): thưởng thêm +0.4
+                            # Cứu thua: +0.3 điểm/pha (>= 5 pha thưởng thêm +0.4)
                             # Giữ sạch lưới: thưởng +0.6
-                            # Bàn thua: trừ 0.2 nếu lọt lưới từ 3 bàn trở lên
-                            rating = 6.5 + (0.3 * saves)
+                            # Bàn thua: trừ 0.2 nếu lọt lưới từ 2 bàn trở lên
+                            rating = 6.5 + team_factor + (0.3 * saves)
                             if saves >= 5:
                                 rating += 0.4
-                            if clean_sheet > 0 or (goals_conceded == 0 and apps > 0):
+                            if clean_sheet > 0 or (goals_conceded == 0 and apps > 0) or clean_sheet_bonus > 0:
                                 rating += 0.6
-                            elif goals_conceded >= 3:
-                                rating -= 0.2 * (goals_conceded - 2)
+                            elif goals_conceded >= 2:
+                                rating -= 0.2 * (goals_conceded - 1)
                             rating -= (0.5 * yellow) + (1.5 * red)
                         else:
-                            rating = 6.5 + (1.2 * g) + (0.7 * a) + (0.1 * shots) - (0.5 * yellow) - (1.5 * red) + (0.2 * (saves // 2))
-                        rating = round(min(9.8, max(6.0, rating)), 1)
+                            # Cầu thủ tuyến trên: Hậu vệ, Tiền vệ, Tiền đạo
+                            pos_low = (pos_name or "").lower()
+                            is_df = (pos_abbr in ['D', 'CB', 'LB', 'RB', 'WB']) or ('defender' in pos_low) or ('hậu vệ' in pos_low)
+                            is_mf = (pos_abbr in ['M', 'CM', 'DM', 'AM', 'LM', 'RM']) or ('midfielder' in pos_low) or ('tiền vệ' in pos_low)
+
+                            cs_factor = clean_sheet_bonus if is_df else (clean_sheet_bonus * 0.5 if is_mf else 0.0)
+                            base_rating = 6.4 + team_factor + cs_factor
+                            if apps > 0 or formation_place is not None:
+                                base_rating += 0.1  # Thưởng ra sân thi đấu
+
+                            # Đóng góp tấn công & kỷ luật theo chuẩn phân tích bóng đá
+                            rating = base_rating + (1.1 * g) + (0.7 * a) + (0.1 * min(4, shots)) - (0.4 * yellow) - (1.5 * red)
+                            if g >= 1 and our_score is not None and opp_score is not None and our_score == opp_score + 1:
+                                rating += 0.2  # Thưởng bàn thắng ấn định chiến thắng
+                        
+                        rating = round(min(9.8, max(5.2, rating)), 1)
 
                     if g >= 1:
                         # Phân loại chính xác vai trò bàn thắng: Bàn mở tỉ số, Bàn ấn định tỉ số...

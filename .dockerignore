@@ -1,0 +1,33 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Version control
+.git
+.gitignore
+.github
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Local databases & caches
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.json
+backend/modules/national_teams/services/*cache*.json
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

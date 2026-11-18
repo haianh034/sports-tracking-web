@@ -21305,5 +21305,288 @@
     "has_played": true,
     "match_result": null,
     "no_lineup_data": true
+  },
+  "Son Heung-min_fs__lCEcKknf_post": {
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 3 sút, 88% chuyền (23/26)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 3 sút, 88% chuyền (23/26)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"88% (23/26)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/2 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"38 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"66 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 66, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.3,
+    "tags": [
+      "Đá chính",
+      "66 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "is_player_of_the_match": false,
+      "summary": "2 tạo cơ hội, 3 sút, 88% chuyền (23/26)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "88% (23/26)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/2 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "38 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "66 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 66,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Lee Kang-in_fs__lCEcKknf_post": {
+    "stats_text": "{\"summary\": \"3 tạo cơ hội, 2 sút, 95% chuyền (41/43)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.4, \"rating\": 7.4, \"is_player_of_the_match\": false, \"summary\": \"3 tạo cơ hội, 2 sút, 95% chuyền (41/43)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"95% (41/43)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"54 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"66 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (3 lần)\"], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 66, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.4,
+    "tags": [
+      "Đá chính",
+      "66 phút",
+      "Tạo cơ hội nhiều nhất trận (3 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.4,
+      "rating": 7.4,
+      "is_player_of_the_match": false,
+      "summary": "3 tạo cơ hội, 2 sút, 95% chuyền (41/43)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "3 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "95% (41/43)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "0/1 (0%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "54 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "66 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (3 lần)"
+      ],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 66,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Kim Min-jae_fs__lCEcKknf_post": {
+    "stats_text": "{\"summary\": \"1 sút, 94% chuyền (102/109)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.9, \"rating\": 7.9, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 94% chuyền (102/109)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (102/109)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/4 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"119 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most touches (119)\"], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.9,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Had the most touches (119)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.9,
+      "rating": 7.9,
+      "is_player_of_the_match": false,
+      "summary": "1 sút, 94% chuyền (102/109)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "94% (102/109)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/4 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "119 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the most touches (119)"
+      ],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Hwang Hee-chan_fs__lCEcKknf_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Wang Chan_fs_badminton_p6YW08Ia_post": {
+    "stats_text": "Thắng 2-1 (21-14, 16-21, 18-21)",
+    "rating": 8.0,
+    "tags": [
+      "Thắng",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Okamura H./Yamashita K. 1-2 Liang W. K./Wang C. (FT) • 21-14, 16-21, 18-21"
+  },
+  "Hwang In-beom_fs__lCEcKknf_post": {
+    "stats_text": "{\"summary\": \"96% chuyền (73/76)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.4, \"rating\": 7.4, \"is_player_of_the_match\": false, \"summary\": \"96% chuyền (73/76)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"96% (73/76)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/1 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"83 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"75 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 75, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.4,
+    "tags": [
+      "Đá chính",
+      "75 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.4,
+      "rating": 7.4,
+      "is_player_of_the_match": false,
+      "summary": "96% chuyền (73/76)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "96% (73/76)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/1 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "83 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "75 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 75,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    },
+    "match_result": null
+  },
+  "Rui Hirokami_fs_badminton_UXSYPFiS_post": {
+    "stats_text": "Thắng 2-0 (12-21, 11-21)",
+    "rating": 8.8,
+    "tags": [
+      "Thắng",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Chen Y. F./Sun L. C. 0-2 Hirokami R./Hobara S. (FT) • 12-21, 11-21"
+  },
+  "Sayaka Hobara_fs_badminton_UXSYPFiS_post": {
+    "stats_text": "Thắng 2-0 (12-21, 11-21)",
+    "rating": 8.8,
+    "tags": [
+      "Thắng",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Chen Y. F./Sun L. C. 0-2 Hirokami R./Hobara S. (FT) • 12-21, 11-21"
   }
 }

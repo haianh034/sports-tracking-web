@@ -1,0 +1,20 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sports-tracking-web:latest
+    container_name: sports_tracking_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - data-volume:/app/backend/data
+      - db-volume:/app/data
+
+volumes:
+  data-volume:
+  db-volume:

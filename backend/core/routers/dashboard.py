@@ -63,6 +63,7 @@ from backend.modules.players.services.sports_service import (
     extract_match_outcome_tag,
     resolve_team_league,
 )
+from backend.modules.players.services.multi_sport_service import calculate_set_rating
 from backend.modules.national_teams.services.national_teams_service import evaluate_national_team_callup
 from backend.core.services.live_score_service import get_live_scores_map
 from backend.modules.national_teams.services.national_teams_service import (
@@ -998,17 +999,12 @@ def _compute_dashboard_data(
                                     m_name = f"vs {other_t}" if is_same_team(team_name, left_t) else f"@ {other_t}"
 
                         if not match_today and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
-                            # Tránh tạo trùng lặp row nếu đã tồn tại bản ghi trong ngày hoặc event_id
-                            if sched_today_match.get("date_only_vn"):
-                                match_today = db.query(MatchPerformance).filter(
-                                    MatchPerformance.player_id == p.id,
-                                    MatchPerformance.date_str == str(sched_today_match.get("date_only_vn"))
-                                ).first()
-                            if not match_today and ev_id:
-                                match_today = db.query(MatchPerformance).filter(
-                                    MatchPerformance.player_id == p.id,
-                                    MatchPerformance.event_id == str(ev_id)
-                                ).first()
+                            # Tra cứu trực tiếp từ bộ nhớ đã nạp sẵn (loại bỏ N+1 query)
+                            d_vn = sched_today_match.get("date_only_vn")
+                            if d_vn and (p.id, str(d_vn)) in perf_by_player_date:
+                                match_today = perf_by_player_date[(p.id, str(d_vn))]
+                            if not match_today and ev_id and (p.id, str(ev_id)) in perf_by_player_event:
+                                match_today = perf_by_player_event[(p.id, str(ev_id))]
 
                         if not match_today and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                             match_today = MatchPerformance(
@@ -1027,6 +1023,10 @@ def _compute_dashboard_data(
                             )
                             db.add(match_today)
                             db.commit()
+                            if sched_today_match.get("date_only_vn"):
+                                perf_by_player_date[(p.id, str(sched_today_match.get("date_only_vn")))] = match_today
+                            if ev_id:
+                                perf_by_player_event[(p.id, str(ev_id))] = match_today
                         else:
                             match_today.match_name = m_name
                             if m_perf_date:
@@ -1740,10 +1740,9 @@ def _compute_dashboard_data(
                         if not is_win and not is_loss:
                             is_win = (s1 > s2 and not curr_match_name.startswith("@")) or (s2 > s1 and curr_match_name.startswith("@"))
                             is_loss = not is_win
-                        if is_win:
-                            curr_rating = 8.8 if min(s1, s2) == 0 else (8.4 if max(s1, s2) >= 3 and min(s1, s2) == 1 else 8.0)
-                        elif is_loss:
-                            curr_rating = 6.6 if min(s1, s2) >= 1 else 6.0
+                        our_sets = max(s1, s2) if is_win else min(s1, s2)
+                        opp_sets = min(s1, s2) if is_win else max(s1, s2)
+                        curr_rating = calculate_set_rating(our_sets, opp_sets, sets_str=str(curr_match_result))
 
             next_match_text = curr_match_name
             next_match_date_str = match_today.match_date.strftime("%d/%m/%Y") if (match_today and match_today.match_date) else "Hôm nay"
@@ -2026,10 +2025,9 @@ def _compute_dashboard_data(
                                 if not is_win and not is_loss:
                                     is_win = (s1 > s2 and not other_cand_m.get("match_name", "").startswith("@"))
                                     is_loss = not is_win
-                                if is_win:
-                                    other_rating = 8.8 if min(s1, s2) == 0 else (8.4 if max(s1, s2) >= 3 and min(s1, s2) == 1 else 8.0)
-                                elif is_loss:
-                                    other_rating = 6.6 if min(s1, s2) >= 1 else 6.0
+                                our_sets = max(s1, s2) if is_win else min(s1, s2)
+                                opp_sets = min(s1, s2) if is_win else max(s1, s2)
+                                other_rating = calculate_set_rating(our_sets, opp_sets, sets_str=str(other_res))
 
                     other_item = dict(player_item)
                     other_item["next_match"] = other_cand_m.get("match_name") or "Thi đấu"

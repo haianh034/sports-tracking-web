@@ -2,6 +2,7 @@ import os
 os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -39,7 +40,25 @@ async def lifespan(app: FastAPI):
     yield
     await worker.stop()
 
-app = FastAPI(title="Sports Tracking Web", lifespan=lifespan)
+app = FastAPI(
+    title="Sports Tracking Web API",
+    description="Hệ thống theo dõi thể thao, cầu thủ, đội tuyển và thống kê trận đấu",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    lifespan=lifespan
+)
+
+@app.get("/swagger", include_in_schema=False)
+@app.get("/swagger-ui", include_in_schema=False)
+@app.get("/api/docs", include_in_schema=False)
+async def swagger_redirect():
+    return RedirectResponse(url="/docs")
+
+@app.get("/swagger.json", include_in_schema=False)
+async def swagger_json_redirect():
+    return RedirectResponse(url="/openapi.json")
 
 app.add_middleware(
     CORSMiddleware,

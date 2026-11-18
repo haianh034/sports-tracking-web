@@ -34,6 +34,55 @@ WTT_PLAYERS_CACHE_FILE = os.path.join(_DIR, "wtt_players_cache.json")
 WTT_EVENTS_CACHE_FILE = os.path.join(_DIR, "wtt_events_cache.json")
 FS_DAY_CACHE_FILE = os.path.join(_DIR, "flashscore_day_cache.json")
 
+def calculate_set_rating(our_s: int, opp_s: int, sets_str: str = "") -> float:
+    """
+    Tính điểm hiệu suất cho các môn thi đấu theo set (Cầu lông, Bóng bàn, Quần vợt, Bóng chuyền).
+    Dựa trên kết quả set và tỷ số điểm chi tiết từng game/set, tránh việc khóa cứng điểm 8.8 cho mọi trận thắng.
+    """
+    if our_s > opp_s:
+        if opp_s == 0:
+            base = 7.8  # Thắng áp đảo (2-0, 3-0)
+        elif our_s >= 3 and opp_s == 1:
+            base = 7.4  # Thắng 3-1 hoặc 4-1
+        elif opp_s == 1 and our_s == 2:
+            base = 7.2  # Thắng 2-1
+        else:
+            base = 7.0  # Thắng set quyết định (3-2, 4-3)
+    elif opp_s > our_s:
+        if our_s == 0:
+            base = 5.6  # Thua trắng (0-2, 0-3)
+        elif opp_s >= 3 and our_s == 1:
+            base = 6.0  # Thua cách biệt (1-3)
+        else:
+            base = 6.4  # Thua sát nút (1-2, 2-3)
+    else:
+        base = 6.5
+
+    # Tính toán chênh lệch điểm số thực tế từng set (point margin) nếu có dữ liệu chi tiết
+    if sets_str:
+        pts = re.findall(r'(\d+)\s*[-:]\s*(\d+)', str(sets_str))
+        if pts:
+            our_total = 0
+            opp_total = 0
+            for p1, p2 in pts:
+                our_total += int(p1)
+                opp_total += int(p2)
+            margin = our_total - opp_total
+            if our_s > opp_s:
+                if margin >= 16:
+                    base += 0.5  # Thắng hủy diệt từng game (ví dụ 21-8, 21-9)
+                elif margin >= 8:
+                    base += 0.2
+                elif margin <= 4:
+                    base -= 0.3  # Thắng nhọc nhằn điểm deuce sát nút (ví dụ 22-20, 23-21)
+            elif opp_s > our_s:
+                if margin >= -5:
+                    base += 0.2  # Thua sát nút từng set
+                elif margin <= -15:
+                    base -= 0.3  # Thua đậm điểm số
+
+    return round(min(9.5, max(5.0, base)), 1)
+
 WTT_PLAYERS_CACHE = {}   # norm_player_name -> {"ittfid": str, "wtt_name": str, "ts": float}
 WTT_EVENTS_CACHE = {}    # str(event_id) -> {"ts": float, "end_date": str, "cards": list}
 FS_DAY_CACHE = {}        # f"{sport_slug}||{date_str}" -> {"ts": float, "date_str": str, "matches": list}
@@ -539,20 +588,7 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
                 stats_text = f"{win_str} {my_sets}-{opp_sets} ({game_str})"
                 tags.append(win_str)
                 # Điểm số hiệu suất thi đấu thực tế theo diễn biến trận đấu bóng bàn (thang điểm 10)
-                if my_sets > opp_sets:
-                    if opp_sets == 0:
-                        calc_rating = 9.0  # Thắng trắng áp đảo 3-0 hoặc 4-0
-                    elif opp_sets == 1:
-                        calc_rating = 8.4  # Thắng cách biệt 3-1 hoặc 4-1
-                    else:
-                        calc_rating = 7.9  # Thắng kịch tính set quyết định 3-2 hoặc 4-3
-                elif opp_sets > my_sets:
-                    if my_sets >= 2:
-                        calc_rating = 6.6  # Thua sát nút
-                    elif my_sets == 1:
-                        calc_rating = 6.2
-                    else:
-                        calc_rating = 5.8  # Thua trắng
+                calc_rating = calculate_set_rating(my_sets, opp_sets, sets_str=game_str)
             elif m_state == "post":
                 match_res = "Đã kết thúc (FT)"
 
@@ -982,18 +1018,7 @@ def _fetch_flashscore_matches(
                     if m_state == "post":
                         tags.append(wl)
                         # Điểm số đánh giá hiệu suất thực tế cho Cầu lông, Bóng bàn, Quần vợt, Bóng chuyền
-                        if our_s > opp_s:
-                            if opp_s == 0:
-                                calc_rating = 8.8  # Thắng áp đảo không để thua set nào (2-0, 3-0)
-                            elif opp_s == 1 and our_s >= 3:
-                                calc_rating = 8.4  # Thắng 3-1
-                            else:
-                                calc_rating = 8.0  # Thắng set quyết định (2-1, 3-2)
-                        elif opp_s > our_s:
-                            if our_s >= 1:
-                                calc_rating = 6.6  # Thua nhưng giành được set thắng
-                            else:
-                                calc_rating = 6.0  # Thua trắng
+                        calc_rating = calculate_set_rating(our_s, opp_s, sets_str=sets_str)
                     stats_text = f"{wl} {our_s}-{opp_s}" + (f" ({sets_str})" if sets_str else "")
         elif m_state == "post":
             match_res = "Đã kết thúc (FT)"
