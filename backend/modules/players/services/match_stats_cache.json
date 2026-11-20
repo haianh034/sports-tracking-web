@@ -697,12 +697,11 @@
     "match_result": "Japan 2 - 1 Venezuela (FT)"
   },
   "Son Heung-min_espn_nt_401860779_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 1 sút, 84% chuyền (16/19)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.1, \"rating\": 6.1, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 84% chuyền (16/19)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"84% (16/19)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"23 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"32 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5267317, \"opponent\": \"Ivory Coast\", \"minutes_played\": 32, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 1 sút, 84% chuyền (16/19)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.1, \"rating\": 6.1, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 84% chuyền (16/19)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"84% (16/19)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"23 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"32 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5267317, \"opponent\": \"Ivory Coast\", \"minutes_played\": 32, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 6.1,
     "tags": [
       "Vào sân",
-      "32 phút",
-      "1 kiến tạo"
+      "32 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -758,14 +757,13 @@
     }
   },
   "Son Heung-min_espn_nt_401856596_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 2 tạo cơ hội, 3 sút, 61% chuyền (11/18)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.2, \"rating\": 6.2, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 3 sút, 61% chuyền (11/18)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"61% (11/18)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"25% (1/4)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/6 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"35 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"82 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most touches (5) in the opposition box\", \"Dứt điểm nhiều nhất trận (3 cú sút)\"], \"match_id\": 5154118, \"opponent\": \"Austria\", \"minutes_played\": 82, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 3 sút, 61% chuyền (11/18)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.2, \"rating\": 6.2, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 3 sút, 61% chuyền (11/18)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"61% (11/18)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"25% (1/4)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/6 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"35 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"82 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most touches (5) in the opposition box\", \"Dứt điểm nhiều nhất trận (3 cú sút)\"], \"match_id\": 5154118, \"opponent\": \"Austria\", \"minutes_played\": 82, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 6.2,
     "tags": [
       "Đá chính",
       "82 phút",
       "Had the most touches (5) in the opposition box",
-      "Dứt điểm nhiều nhất trận (3 cú sút)",
-      "1 kiến tạo"
+      "Dứt điểm nhiều nhất trận (3 cú sút)"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -829,7 +827,7 @@
     }
   },
   "Son Heung-min_espn_nt_401872679_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 2 bàn, 1 tạo cơ hội, 89% chuyền (16/18)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 9.2, \"rating\": 9.2, \"is_player_of_the_match\": true, \"summary\": \"2 bàn, 1 tạo cơ hội, 89% chuyền (16/18)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"7 cú sút (3 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (16/18)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"67% (2/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/8 (62%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"36 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"62 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (7 cú sút)\"], \"match_id\": 5628900, \"opponent\": \"Trinidad and Tobago\", \"minutes_played\": 62, \"goals\": 2, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"2 bàn, 1 tạo cơ hội, 89% chuyền (16/18)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 9.2, \"rating\": 9.2, \"is_player_of_the_match\": true, \"summary\": \"2 bàn, 1 tạo cơ hội, 89% chuyền (16/18)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"7 cú sút (3 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (16/18)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"67% (2/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/8 (62%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"36 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"62 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (7 cú sút)\"], \"match_id\": 5628900, \"opponent\": \"Trinidad and Tobago\", \"minutes_played\": 62, \"goals\": 2, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 9.2,
     "tags": [
       "Đá chính",
@@ -837,8 +835,7 @@
       "Cú đúp",
       "Dứt điểm nhiều nhất trận (7 cú sút)",
       "Cầu thủ xuất sắc nhất (MVP)",
-      "Bàn mở tỉ số",
-      "1 kiến tạo"
+      "Bàn mở tỉ số"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -896,13 +893,12 @@
     }
   },
   "Son Heung-min_espn_nt_401871496_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 3 sút, 100% chuyền (9/9)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 3 sút, 100% chuyền (9/9)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"100% (9/9)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/2 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"15 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"27 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (3 cú sút)\"], \"match_id\": 5628901, \"opponent\": \"El Salvador\", \"minutes_played\": 27, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 3 sút, 100% chuyền (9/9)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.5, \"rating\": 6.5, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 3 sút, 100% chuyền (9/9)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"100% (9/9)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/2 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"15 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"27 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (3 cú sút)\"], \"match_id\": 5628901, \"opponent\": \"El Salvador\", \"minutes_played\": 27, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 6.5,
     "tags": [
       "Vào sân",
       "27 phút",
-      "Dứt điểm nhiều nhất trận (3 cú sút)",
-      "1 kiến tạo"
+      "Dứt điểm nhiều nhất trận (3 cú sút)"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -965,13 +961,12 @@
     }
   },
   "Son Heung-min_espn_nt_760414_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 6 sút, 91% chuyền (20/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 6 sút, 91% chuyền (20/22)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"6 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"91% (20/22)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/3 (67%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"37 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"69 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (6 cú sút)\"], \"match_id\": 4667752, \"opponent\": \"Czechia\", \"minutes_played\": 69, \"goals\": 0, \"assists\": 0, \"round_raw\": \"1\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 6 sút, 91% chuyền (20/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 6 sút, 91% chuyền (20/22)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"6 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"91% (20/22)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/3 (67%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"37 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"69 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (6 cú sút)\"], \"match_id\": 4667752, \"opponent\": \"Czechia\", \"minutes_played\": 69, \"goals\": 0, \"assists\": 0, \"round_raw\": \"1\"}}",
     "rating": 6.9,
     "tags": [
       "Đá chính",
       "69 phút",
-      "Dứt điểm nhiều nhất trận (6 cú sút)",
-      "1 kiến tạo"
+      "Dứt điểm nhiều nhất trận (6 cú sút)"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -1034,12 +1029,11 @@
     }
   },
   "Son Heung-min_espn_nt_760441_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 75% chuyền (9/12)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 75% chuyền (9/12)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"75% (9/12)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (3/3)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/5 (100%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"19 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"57 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667754, \"opponent\": \"Mexico\", \"minutes_played\": 57, \"goals\": 0, \"assists\": 0, \"round_raw\": \"2\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 75% chuyền (9/12)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.8, \"rating\": 6.8, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 75% chuyền (9/12)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"75% (9/12)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (3/3)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"5/5 (100%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"19 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"57 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667754, \"opponent\": \"Mexico\", \"minutes_played\": 57, \"goals\": 0, \"assists\": 0, \"round_raw\": \"2\"}}",
     "rating": 6.8,
     "tags": [
       "Đá chính",
-      "57 phút",
-      "1 kiến tạo"
+      "57 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -1095,12 +1089,11 @@
     }
   },
   "Son Heung-min_espn_nt_760466_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 sút, 79% chuyền (19/24)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 79% chuyền (19/24)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"79% (19/24)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/1 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"29 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"45 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667756, \"opponent\": \"South Africa\", \"minutes_played\": 45, \"goals\": 0, \"assists\": 0, \"round_raw\": \"3\"}}",
+    "stats_text": "{\"summary\": \"1 sút, 79% chuyền (19/24)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 79% chuyền (19/24)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"79% (19/24)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/1 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"29 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"45 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667756, \"opponent\": \"South Africa\", \"minutes_played\": 45, \"goals\": 0, \"assists\": 0, \"round_raw\": \"3\"}}",
     "rating": 6.4,
     "tags": [
       "Vào sân",
-      "45 phút",
-      "1 kiến tạo"
+      "45 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -1151,14 +1144,13 @@
     }
   },
   "Son Heung-min_espn_nt_401905196_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 bàn, 1 tạo cơ hội, 71% chuyền (24/34)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.0, \"rating\": 8.0, \"is_player_of_the_match\": true, \"summary\": \"1 bàn, 1 tạo cơ hội, 71% chuyền (24/34)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"71% (24/34)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/7 (43%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"85 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (3 cú sút)\"], \"match_id\": 6280195, \"opponent\": \"Ecuador\", \"minutes_played\": 85, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 bàn, 1 tạo cơ hội, 71% chuyền (24/34)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.0, \"rating\": 8.0, \"is_player_of_the_match\": true, \"summary\": \"1 bàn, 1 tạo cơ hội, 71% chuyền (24/34)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"71% (24/34)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/7 (43%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"85 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (3 cú sút)\"], \"match_id\": 6280195, \"opponent\": \"Ecuador\", \"minutes_played\": 85, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 8.0,
     "tags": [
       "Đá chính",
       "75 phút",
       "Dứt điểm nhiều nhất trận (3 cú sút)",
-      "Cầu thủ xuất sắc nhất (MVP)",
-      "1 kiến tạo"
+      "Cầu thủ xuất sắc nhất (MVP)"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -1221,7 +1213,7 @@
     }
   },
   "Son Heung-min_espn_nt_401905195_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 bàn, 3 tạo cơ hội, 87% chuyền (27/31)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.1, \"rating\": 8.1, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 3 tạo cơ hội, 87% chuyền (27/31)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"4 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (27/31)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/4 (75%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"50 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (3 lần)\", \"Dứt điểm nhiều nhất trận (4 cú sút)\"], \"match_id\": 6210557, \"opponent\": \"Uruguay\", \"minutes_played\": 90, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 bàn, 3 tạo cơ hội, 87% chuyền (27/31)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.1, \"rating\": 8.1, \"is_player_of_the_match\": false, \"summary\": \"1 bàn, 3 tạo cơ hội, 87% chuyền (27/31)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"4 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (27/31)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"50% (1/2)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/4 (75%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"50 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (3 lần)\", \"Dứt điểm nhiều nhất trận (4 cú sút)\"], \"match_id\": 6210557, \"opponent\": \"Uruguay\", \"minutes_played\": 90, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 8.1,
     "tags": [
       "Đá chính",
@@ -1229,8 +1221,7 @@
       "1 bàn",
       "Tạo cơ hội nhiều nhất trận (3 lần)",
       "Dứt điểm nhiều nhất trận (4 cú sút)",
-      "Bàn ấn định tỉ số",
-      "1 kiến tạo"
+      "Bàn ấn định tỉ số"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -1294,12 +1285,11 @@
     }
   },
   "Son Heung-min_espn_nt_401902634_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 2 tạo cơ hội, 2 sút, 74% chuyền (20/27)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 2 sút, 74% chuyền (20/27)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"74% (20/27)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/7 (57%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"41 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"85 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6280452, \"opponent\": \"Venezuela\", \"minutes_played\": 85, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 2 sút, 74% chuyền (20/27)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 2 sút, 74% chuyền (20/27)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"74% (20/27)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (2/2)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/7 (57%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"41 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"85 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6280452, \"opponent\": \"Venezuela\", \"minutes_played\": 85, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 7.0,
     "tags": [
       "Đá chính",
-      "67 phút",
-      "1 kiến tạo"
+      "67 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -1360,7 +1350,7 @@
     }
   },
   "Son Heung-min_espn_nt_401902245_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 bàn, 75% chuyền (15/20)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.8, \"rating\": 7.8, \"is_player_of_the_match\": true, \"summary\": \"1 bàn, 75% chuyền (15/20)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"4 cú sút (3 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"75% (15/20)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"33% (1/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/7 (29%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"40 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"71 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (4 cú sút)\"], \"match_id\": 6368651, \"opponent\": \"Uzbekistan\", \"minutes_played\": 71, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 bàn, 75% chuyền (15/20)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.8, \"rating\": 7.8, \"is_player_of_the_match\": true, \"summary\": \"1 bàn, 75% chuyền (15/20)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"4 cú sút (3 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"75% (15/20)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"33% (1/3)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/7 (29%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"40 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"71 phút\", \"highlight\": false}], \"fun_facts\": [\"Dứt điểm nhiều nhất trận (4 cú sút)\"], \"match_id\": 6368651, \"opponent\": \"Uzbekistan\", \"minutes_played\": 71, \"goals\": 1, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 7.8,
     "tags": [
       "Đá chính",
@@ -1368,8 +1358,7 @@
       "1 bàn",
       "Dứt điểm nhiều nhất trận (4 cú sút)",
       "Cầu thủ xuất sắc nhất (MVP)",
-      "Bàn mở tỉ số",
-      "1 kiến tạo"
+      "Bàn mở tỉ số"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -2379,12 +2368,11 @@
     }
   },
   "Kim Min-jae_espn_nt_401905196_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 sút, 87% chuyền (52/60)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 87% chuyền (52/60)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (52/60)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/2 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"70 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"75 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most defensive contributions (9)\"], \"match_id\": 6280195, \"opponent\": \"Ecuador\", \"minutes_played\": 75, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 sút, 87% chuyền (52/60)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 87% chuyền (52/60)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (52/60)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/2 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"70 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"75 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most defensive contributions (9)\"], \"match_id\": 6280195, \"opponent\": \"Ecuador\", \"minutes_played\": 75, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 7.3,
     "tags": [
       "Đá chính",
       "75 phút",
-      "1 kiến tạo",
       "Had the most defensive contributions (9)"
     ],
     "has_played": true,
@@ -3509,12 +3497,11 @@
     "match_result": "Japan 2 - 1 Venezuela (FT)"
   },
   "Seol Young-Woo_espn_nt_401860779_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 2 tạo cơ hội, 1 sút, 85% chuyền (17/20)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 1 sút, 85% chuyền (17/20)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"85% (17/20)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/3 (67%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"33 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"80 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5267317, \"opponent\": \"Ivory Coast\", \"minutes_played\": 80, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 1 sút, 85% chuyền (17/20)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.1, \"rating\": 7.1, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 1 sút, 85% chuyền (17/20)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"85% (17/20)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/3 (67%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"33 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"80 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5267317, \"opponent\": \"Ivory Coast\", \"minutes_played\": 80, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 7.1,
     "tags": [
       "Đá chính",
-      "80 phút",
-      "1 kiến tạo"
+      "80 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3570,12 +3557,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_401856596_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 1 sút, 82% chuyền (18/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 82% chuyền (18/22)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"82% (18/22)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/3 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"39 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"82 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5154118, \"opponent\": \"Austria\", \"minutes_played\": 82, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 1 sút, 82% chuyền (18/22)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.4, \"rating\": 6.4, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 82% chuyền (18/22)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"82% (18/22)\", \"highlight\": false}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/3 (33%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"39 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"82 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5154118, \"opponent\": \"Austria\", \"minutes_played\": 82, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 6.4,
     "tags": [
       "Đá chính",
-      "82 phút",
-      "1 kiến tạo"
+      "82 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3687,12 +3673,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_401871496_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 1 sút, 87% chuyền (26/30)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.7, \"rating\": 6.7, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 87% chuyền (26/30)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (26/30)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"37 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"63 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5628901, \"opponent\": \"El Salvador\", \"minutes_played\": 63, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 1 sút, 87% chuyền (26/30)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.7, \"rating\": 6.7, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 1 sút, 87% chuyền (26/30)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"87% (26/30)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"37 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"63 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 5628901, \"opponent\": \"El Salvador\", \"minutes_played\": 63, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 6.7,
     "tags": [
       "Đá chính",
-      "63 phút",
-      "1 kiến tạo"
+      "63 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3748,12 +3733,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_760414_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 94% chuyền (30/32)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 94% chuyền (30/32)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (30/32)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/4 (25%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"55 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667752, \"opponent\": \"Czechia\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"1\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 94% chuyền (30/32)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 94% chuyền (30/32)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (30/32)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/4 (25%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"55 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667752, \"opponent\": \"Czechia\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"1\"}}",
     "rating": 6.9,
     "tags": [
       "Đá chính",
-      "90 phút",
-      "1 kiến tạo"
+      "90 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3809,12 +3793,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_760441_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 sút, 80% chuyền (24/30)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.2, \"rating\": 6.2, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 80% chuyền (24/30)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (24/30)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"43 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"71 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667754, \"opponent\": \"Mexico\", \"minutes_played\": 71, \"goals\": 0, \"assists\": 0, \"round_raw\": \"2\"}}",
+    "stats_text": "{\"summary\": \"1 sút, 80% chuyền (24/30)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.2, \"rating\": 6.2, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 80% chuyền (24/30)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (24/30)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"43 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"71 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667754, \"opponent\": \"Mexico\", \"minutes_played\": 71, \"goals\": 0, \"assists\": 0, \"round_raw\": \"2\"}}",
     "rating": 6.2,
     "tags": [
       "Đá chính",
-      "71 phút",
-      "1 kiến tạo"
+      "71 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3860,12 +3843,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_760466_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 2 tạo cơ hội, 1 sút, 89% chuyền (33/37)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 1 sút, 89% chuyền (33/37)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (33/37)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/4 (75%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"57 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667756, \"opponent\": \"South Africa\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"3\"}}",
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 1 sút, 89% chuyền (33/37)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 6.9, \"rating\": 6.9, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 1 sút, 89% chuyền (33/37)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"89% (33/37)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"3/4 (75%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"57 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 4667756, \"opponent\": \"South Africa\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"3\"}}",
     "rating": 6.9,
     "tags": [
       "Đá chính",
-      "90 phút",
-      "1 kiến tạo"
+      "90 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3921,12 +3903,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_401905196_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 90% chuyền (35/39)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"90% chuyền (35/39)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (35/39)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/5 (40%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6280195, \"opponent\": \"Ecuador\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"90% chuyền (35/39)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"90% chuyền (35/39)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"90% (35/39)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/5 (40%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"49 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6280195, \"opponent\": \"Ecuador\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 7.0,
     "tags": [
       "Đá chính",
-      "90 phút",
-      "1 kiến tạo"
+      "90 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -3972,12 +3953,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_401905195_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 tạo cơ hội, 94% chuyền (31/33)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 5.7, \"rating\": 5.7, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 94% chuyền (31/33)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (31/33)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/6 (67%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"47 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6210557, \"opponent\": \"Uruguay\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 tạo cơ hội, 94% chuyền (31/33)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 5.7, \"rating\": 5.7, \"is_player_of_the_match\": false, \"summary\": \"1 tạo cơ hội, 94% chuyền (31/33)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (31/33)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/6 (67%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"47 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"72 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6210557, \"opponent\": \"Uruguay\", \"minutes_played\": 72, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 5.7,
     "tags": [
       "Đá chính",
-      "72 phút",
-      "1 kiến tạo"
+      "72 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -4033,12 +4013,11 @@
     }
   },
   "Seol Young-Woo_espn_nt_401902634_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 92% chuyền (33/36)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"92% chuyền (33/36)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"92% (33/36)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/2 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"55 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"80 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6280452, \"opponent\": \"Venezuela\", \"minutes_played\": 80, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"92% chuyền (33/36)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.0, \"rating\": 7.0, \"is_player_of_the_match\": false, \"summary\": \"92% chuyền (33/36)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"92% (33/36)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/2 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"55 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"3 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"80 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6280452, \"opponent\": \"Venezuela\", \"minutes_played\": 80, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 7.0,
     "tags": [
       "Đá chính",
-      "80 phút",
-      "1 kiến tạo"
+      "80 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -5768,14 +5747,13 @@
     "match_result": "South Korea 2 - 0 Uzbekistan (FT)"
   },
   "Kim Min-Su_401878340_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 4 tạo cơ hội, 1 sút, 86% chuyền (18/21)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.5, \"rating\": 7.5, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 1 sút, 86% chuyền (18/21)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"86% (18/21)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"40% (2/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/10 (40%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"44 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"74 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 5793974, \"opponent\": \"St. Mirren\", \"minutes_played\": 74, \"goals\": 0, \"assists\": 0, \"round_raw\": \"13\"}}",
+    "stats_text": "{\"summary\": \"4 tạo cơ hội, 1 sút, 86% chuyền (18/21)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.5, \"rating\": 7.5, \"is_player_of_the_match\": false, \"summary\": \"4 tạo cơ hội, 1 sút, 86% chuyền (18/21)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"4 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"86% (18/21)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"40% (2/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"4/10 (40%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"44 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"5 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"74 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (4 lần)\"], \"match_id\": 5793974, \"opponent\": \"St. Mirren\", \"minutes_played\": 74, \"goals\": 0, \"assists\": 0, \"round_raw\": \"13\"}}",
     "rating": 7.5,
     "tags": [
       "Đá chính",
       "74 phút",
       "1 thẻ vàng",
-      "Tạo cơ hội nhiều nhất trận (4 lần)",
-      "1 kiến tạo"
+      "Tạo cơ hội nhiều nhất trận (4 lần)"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -20425,12 +20403,11 @@
     }
   },
   "Kodai Sano_espn_nt_401916337_post": {
-    "stats_text": "{\"summary\": \"1 kiến tạo, 1 sút, 80% chuyền (4/5)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": null, \"rating\": null, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 80% chuyền (4/5)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (4/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"7 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"4 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 4, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "stats_text": "{\"summary\": \"1 sút, 80% chuyền (4/5)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": null, \"rating\": null, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 80% chuyền (4/5)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"80% (4/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"7 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"4 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6497224, \"opponent\": \"Brazil\", \"minutes_played\": 4, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
     "rating": 6.5,
     "tags": [
       "Vào sân",
-      "4 phút",
-      "1 kiến tạo"
+      "4 phút"
     ],
     "has_played": true,
     "detailed_stats": {
@@ -21510,7 +21487,7 @@
   },
   "Wang Chan_fs_badminton_p6YW08Ia_post": {
     "stats_text": "Thắng 2-1 (21-14, 16-21, 18-21)",
-    "rating": 8.0,
+    "rating": 6.9,
     "tags": [
       "Thắng",
       "Vòng 1/16"
@@ -21571,7 +21548,7 @@
   },
   "Rui Hirokami_fs_badminton_UXSYPFiS_post": {
     "stats_text": "Thắng 2-0 (12-21, 11-21)",
-    "rating": 8.8,
+    "rating": 7.5,
     "tags": [
       "Thắng",
       "Vòng 1/16"
@@ -21581,12 +21558,816 @@
   },
   "Sayaka Hobara_fs_badminton_UXSYPFiS_post": {
     "stats_text": "Thắng 2-0 (12-21, 11-21)",
-    "rating": 8.8,
+    "rating": 7.5,
     "tags": [
       "Thắng",
       "Vòng 1/16"
     ],
     "has_played": true,
     "match_result": "Chen Y. F./Sun L. C. 0-2 Hirokami R./Hobara S. (FT) • 12-21, 11-21"
+  },
+  "Rui Hachimura_401910006_in": {
+    "stats_text": "{\"summary\": \"0 PTS, 0 REB, 0 AST (-- phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 5.5, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"0 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"0 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"0 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"0-0\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"0-0\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"0-0\"}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"0 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"-- phút\"}], \"fun_facts\": []}}",
+    "rating": 5.5,
+    "tags": [
+      "Đang thi đấu",
+      "Đội hình xuất phát (Starting 5)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 5.5,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "0 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "0 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "0 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "0-0"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "0-0"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "0-0"
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "0 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "-- phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "Rui Hachimura_401910006_post": {
+    "stats_text": "{\"summary\": \"0 PTS, 0 REB, 0 AST (-- phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 5.5, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"0 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"0 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"0 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"0-0\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"0-0\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"0-0\"}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"0 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"-- phút\"}], \"fun_facts\": []}}",
+    "rating": 5.5,
+    "tags": [
+      "Đội hình xuất phát (Starting 5)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 5.5,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "0 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "0 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "0 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "0-0"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "0-0"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "0-0"
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "0 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "-- phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "Son Heung-min_espn_nt_401931477_post": {
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 3 sút, 88% chuyền (23/26)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.3, \"rating\": 7.3, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 3 sút, 88% chuyền (23/26)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"3 cú sút (1 trúng đích)\", \"highlight\": true}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"88% (23/26)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/2 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"38 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"66 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 66, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.3,
+    "tags": [
+      "Đá chính",
+      "66 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.3,
+      "rating": 7.3,
+      "is_player_of_the_match": false,
+      "summary": "2 tạo cơ hội, 3 sút, 88% chuyền (23/26)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "3 cú sút (1 trúng đích)",
+          "highlight": true
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "88% (23/26)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/2 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "38 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "66 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 66,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Lee Kang-in_espn_nt_401931477_post": {
+    "stats_text": "{\"summary\": \"3 tạo cơ hội, 2 sút, 95% chuyền (41/43)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.4, \"rating\": 7.4, \"is_player_of_the_match\": false, \"summary\": \"3 tạo cơ hội, 2 sút, 95% chuyền (41/43)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"3 lần (Cao nhất trận)\", \"highlight\": true}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"95% (41/43)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"0/1 (0%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"54 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"66 phút\", \"highlight\": false}], \"fun_facts\": [\"Tạo cơ hội nhiều nhất trận (3 lần)\"], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 66, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.4,
+    "tags": [
+      "Đá chính",
+      "66 phút",
+      "Tạo cơ hội nhiều nhất trận (3 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.4,
+      "rating": 7.4,
+      "is_player_of_the_match": false,
+      "summary": "3 tạo cơ hội, 2 sút, 95% chuyền (41/43)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "3 lần (Cao nhất trận)",
+          "highlight": true
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "95% (41/43)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "0/1 (0%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "54 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "66 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Tạo cơ hội nhiều nhất trận (3 lần)"
+      ],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 66,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Kim Min-jae_espn_nt_401931477_post": {
+    "stats_text": "{\"summary\": \"1 sút, 94% chuyền (102/109)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.9, \"rating\": 7.9, \"is_player_of_the_match\": false, \"summary\": \"1 sút, 94% chuyền (102/109)\", \"metrics\": [{\"label\": \"Số cú sút\", \"value\": \"1 cú sút\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (102/109)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"100% (1/1)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/4 (50%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"119 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Had the most touches (119)\"], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.9,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Had the most touches (119)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.9,
+      "rating": 7.9,
+      "is_player_of_the_match": false,
+      "summary": "1 sút, 94% chuyền (102/109)",
+      "metrics": [
+        {
+          "label": "Số cú sút",
+          "value": "1 cú sút",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "94% (102/109)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "100% (1/1)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/4 (50%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "119 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Had the most touches (119)"
+      ],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Hwang Hee-chan_espn_nt_401931477_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [
+      "Dự bị (Chấn thương nhẹ / Đau cơ)"
+    ],
+    "has_played": false,
+    "match_result": "Qatar 0 - 1 South Korea (FT)"
+  },
+  "Hwang In-beom_espn_nt_401931477_post": {
+    "stats_text": "{\"summary\": \"96% chuyền (73/76)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.4, \"rating\": 7.4, \"is_player_of_the_match\": false, \"summary\": \"96% chuyền (73/76)\", \"metrics\": [{\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"96% (73/76)\", \"highlight\": true}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"1/1 (100%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"83 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"75 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6539357, \"opponent\": \"Qatar\", \"minutes_played\": 75, \"goals\": 0, \"assists\": 0, \"round_raw\": \"\"}}",
+    "rating": 7.4,
+    "tags": [
+      "Đá chính",
+      "76 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.4,
+      "rating": 7.4,
+      "is_player_of_the_match": false,
+      "summary": "96% chuyền (73/76)",
+      "metrics": [
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "96% (73/76)",
+          "highlight": true
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "1/1 (100%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "83 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "75 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6539357,
+      "opponent": "Qatar",
+      "minutes_played": 75,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": ""
+    }
+  },
+  "Aoba Fujino_401916982_post": {
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 2 sút, 94% chuyền (33/35)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 7.5, \"rating\": 7.5, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 2 sút, 94% chuyền (33/35)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (2 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"94% (33/35)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"0% (0/1)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"2/3 (67%)\", \"highlight\": false}, {\"label\": \"Chạm bóng\", \"value\": \"48 lần\", \"highlight\": false}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"4 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"45 phút\", \"highlight\": false}], \"fun_facts\": [], \"match_id\": 6148609, \"opponent\": \"BK Häcken (W)\", \"minutes_played\": 45, \"goals\": 0, \"assists\": 0, \"round_raw\": \"5\"}}",
+    "rating": 7.5,
+    "tags": [
+      "Đá chính",
+      "45 phút"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 7.5,
+      "rating": 7.5,
+      "is_player_of_the_match": false,
+      "summary": "2 tạo cơ hội, 2 sút, 94% chuyền (33/35)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (2 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "94% (33/35)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "0% (0/1)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "2/3 (67%)",
+          "highlight": false
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "48 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "4 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "45 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [],
+      "match_id": 6148609,
+      "opponent": "BK Häcken (W)",
+      "minutes_played": 45,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": "5"
+    }
+  },
+  "Koki Watanabe_fs_badminton_6B31W8W8_post": {
+    "stats_text": "Thua 1-2 (21-16, 16-21, 21-9)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Srikanth K. (Ind) 2-1 Watanabe K. (Jpn) (FT) • 21-16, 16-21, 21-9"
+  },
+  "Kenta Nishimoto_fs_badminton_6iD7AR9k_post": {
+    "stats_text": "Thắng 2-0 (22-24, 17-21)",
+    "rating": 7.5,
+    "tags": [
+      "Thắng",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Lee C. H. (Tpe) 0-2 Nishimoto K. (Jpn) (FT) • 22-24, 17-21"
+  },
+  "Yudai Okimoto_fs_badminton_zJwHHxsI_post": {
+    "stats_text": "Thua 1-2 (19-21, 21-19, 21-18)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Gemke R. (Den) 2-1 Okimoto Y. (Jpn) (FT) • 19-21, 21-19, 21-18"
+  },
+  "Hina Akechi_fs_badminton_4GEbrO5E_post": {
+    "stats_text": "Thắng 2-0 (21-17, 21-12)",
+    "rating": 8.0,
+    "tags": [
+      "Thắng",
+      "Vòng 1/8"
+    ],
+    "has_played": true,
+    "match_result": "Akechi H. (Jpn) 2-0 Chaliha A. (Ind) (FT) • 21-17, 21-12"
+  },
+  "Hina Akechi_fs_badminton_plDtwwLr_post": {
+    "stats_text": "Thắng 2-1 (21-14, 9-21, 21-17)",
+    "rating": 6.9,
+    "tags": [
+      "Thắng",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Akechi H. (Jpn) 2-1 Xu W. J. (Chn) (FT) • 21-14, 9-21, 21-17"
+  },
+  "Akira Koga_fs_badminton_p49rk5Kt_post": {
+    "stats_text": "Thua 0-2 (24-22, 21-16)",
+    "rating": 5.8,
+    "tags": [
+      "Thua",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Watanabe Y./Taguchi M. 2-0 Koga A./Saito N. (FT) • 24-22, 21-16"
+  },
+  "Watanabe Yuzuno_fs_badminton_K69xtSuo_post": {
+    "stats_text": "Thua 0-2 (21-14, 21-8)",
+    "rating": 5.8,
+    "tags": [
+      "Thua",
+      "Vòng 1/8"
+    ],
+    "has_played": true,
+    "match_result": "Guo X. W./Chen F. H. 2-0 Watanabe Y./Taguchi M. (FT) • 21-14, 21-8"
+  },
+  "Watanabe Yuzuno_fs_badminton_p49rk5Kt_post": {
+    "stats_text": "Thua 0-2 (24-22, 21-16)",
+    "rating": 5.8,
+    "tags": [
+      "Thua",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Watanabe Y./Taguchi M. 2-0 Koga A./Saito N. (FT) • 24-22, 21-16"
+  },
+  "Yoo Tae-bin_fs_badminton_4zgUr8i4_post": {
+    "stats_text": "Thắng 2-0 (18-21, 15-21)",
+    "rating": 7.5,
+    "tags": [
+      "Thắng",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Johannesen M. (Den) 0-2 Yoo T. B. (Kor) (FT) • 18-21, 15-21"
+  },
+  "Kenta Nishimoto_fs_badminton_UF18c9T8_post": {
+    "stats_text": "Thua 1-2 (12-21, 21-9, 21-14)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/8"
+    ],
+    "has_played": true,
+    "match_result": "Loh K. Y. (Sgp) 2-1 Nishimoto K. (Jpn) (FT) • 12-21, 21-9, 21-14"
+  },
+  "Rui Hirokami_fs_badminton_lnXUyAPM_post": {
+    "stats_text": "Thua 1-2 (21-15, 18-21, 21-16)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/8"
+    ],
+    "has_played": true,
+    "match_result": "Corbett F./Gai J. 2-1 Hirokami R./Hobara S. (FT) • 21-15, 18-21, 21-16"
+  },
+  "Sayaka Hobara_fs_badminton_lnXUyAPM_post": {
+    "stats_text": "Thua 1-2 (21-15, 18-21, 21-16)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/8"
+    ],
+    "has_played": true,
+    "match_result": "Corbett F./Gai J. 2-1 Hirokami R./Hobara S. (FT) • 21-15, 18-21, 21-16"
+  },
+  "Rui Hachimura_401910022_in": {
+    "stats_text": "{\"summary\": \"4 PTS, 2 REB, 1 AST (9 phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 6.3, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"4 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"2 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"1 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"2-4\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"0-1\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"0-0\"}, {\"label\": \"Cướp bóng (STL)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"0 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"9 phút\"}], \"fun_facts\": []}}",
+    "rating": 6.3,
+    "tags": [
+      "Đang thi đấu",
+      "Đội hình xuất phát (Starting 5)",
+      "9 phút",
+      "4 điểm",
+      "2 REB",
+      "1 AST",
+      "1 STL"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 6.3,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "4 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "2 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "1 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "2-4"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "0-1"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "0-0"
+        },
+        {
+          "label": "Cướp bóng (STL)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "0 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "9 phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "Momoko Tanikawa_401916978_post": {
+    "stats_text": "{\"summary\": \"2 tạo cơ hội, 2 sút, 88% chuyền (43/49)\", \"details\": {\"source\": \"FotMob\", \"fotmob_rating\": 8.5, \"rating\": 8.5, \"is_player_of_the_match\": false, \"summary\": \"2 tạo cơ hội, 2 sút, 88% chuyền (43/49)\", \"metrics\": [{\"label\": \"Tạo cơ hội (Key Passes)\", \"value\": \"2 lần\", \"highlight\": false}, {\"label\": \"Số cú sút\", \"value\": \"2 cú sút (1 trúng đích)\", \"highlight\": false}, {\"label\": \"Tỷ lệ chuyền bóng chính xác\", \"value\": \"88% (43/49)\", \"highlight\": true}, {\"label\": \"Rê bóng thành công\", \"value\": \"60% (3/5)\", \"highlight\": false}, {\"label\": \"Tranh chấp tầm thấp thắng\", \"value\": \"9/13 (69%)\", \"highlight\": true}, {\"label\": \"Chạm bóng\", \"value\": \"74 lần\", \"highlight\": true}, {\"label\": \"Thu hồi bóng (Recoveries)\", \"value\": \"10 lần\", \"highlight\": false}, {\"label\": \"Thời gian thi đấu\", \"value\": \"90 phút\", \"highlight\": false}], \"fun_facts\": [\"Rê bóng nhiều nhất trận (3 lần)\"], \"match_id\": 6148622, \"opponent\": \"Austria Wien (W)\", \"minutes_played\": 90, \"goals\": 0, \"assists\": 0, \"round_raw\": \"5\"}}",
+    "rating": 8.5,
+    "tags": [
+      "Đá chính",
+      "90 phút",
+      "Rê bóng nhiều nhất trận (3 lần)"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "FotMob",
+      "fotmob_rating": 8.5,
+      "rating": 8.5,
+      "is_player_of_the_match": false,
+      "summary": "2 tạo cơ hội, 2 sút, 88% chuyền (43/49)",
+      "metrics": [
+        {
+          "label": "Tạo cơ hội (Key Passes)",
+          "value": "2 lần",
+          "highlight": false
+        },
+        {
+          "label": "Số cú sút",
+          "value": "2 cú sút (1 trúng đích)",
+          "highlight": false
+        },
+        {
+          "label": "Tỷ lệ chuyền bóng chính xác",
+          "value": "88% (43/49)",
+          "highlight": true
+        },
+        {
+          "label": "Rê bóng thành công",
+          "value": "60% (3/5)",
+          "highlight": false
+        },
+        {
+          "label": "Tranh chấp tầm thấp thắng",
+          "value": "9/13 (69%)",
+          "highlight": true
+        },
+        {
+          "label": "Chạm bóng",
+          "value": "74 lần",
+          "highlight": true
+        },
+        {
+          "label": "Thu hồi bóng (Recoveries)",
+          "value": "10 lần",
+          "highlight": false
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "90 phút",
+          "highlight": false
+        }
+      ],
+      "fun_facts": [
+        "Rê bóng nhiều nhất trận (3 lần)"
+      ],
+      "match_id": 6148622,
+      "opponent": "Austria Wien (W)",
+      "minutes_played": 90,
+      "goals": 0,
+      "assists": 0,
+      "round_raw": "5"
+    }
+  },
+  "Shunsuke Togami_wtt_3256_TTEXDOUBLES-QFNL000400_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Hiroto Shinozuka_wtt_3256_TTEMSINGLES-R32-000900_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Miyu Nagasaki_wtt_3256_TTEWDOUBLES-QFNL000100_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Yoo Tae-bin_fs_badminton_neEuiLo2_post": {
+    "stats_text": "Thua 1-2 (21-12, 18-21, 14-21)",
+    "rating": 6.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/8"
+    ],
+    "has_played": true,
+    "match_result": "Yoo T. B. (Kor) 1-2 Srikanth K. (Ind) (FT) • 21-12, 18-21, 14-21"
+  },
+  "Lim Jong-hoon_wtt_3256_TTEMDOUBLES-QFNL000100_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Park Gang-hyeon_wtt_3256_TTEMSINGLES-R32-000200_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Joo Cheon-hui_wtt_3256_TTEWDOUBLES-QFNL000100_post": {
+    "stats_text": "",
+    "rating": null,
+    "tags": [],
+    "has_played": true,
+    "match_result": null,
+    "no_lineup_data": true
+  },
+  "Rui Hachimura_401910022_post": {
+    "stats_text": "{\"summary\": \"17 PTS, 7 REB, 2 AST (32 phút)\", \"details\": {\"source\": \"NBA Official / ESPN\", \"rating\": 7.8, \"metrics\": [{\"label\": \"Điểm số (PTS)\", \"value\": \"17 điểm\", \"highlight\": false}, {\"label\": \"Bắt bóng bật bảng (REB)\", \"value\": \"7 REB\", \"highlight\": false}, {\"label\": \"Kiến tạo (AST)\", \"value\": \"2 AST\", \"highlight\": false}, {\"label\": \"Ném rổ thành công (FG)\", \"value\": \"7-13\"}, {\"label\": \"Ném 3 điểm (3PT)\", \"value\": \"2-4\"}, {\"label\": \"Ném phạt (FT)\", \"value\": \"1-1\"}, {\"label\": \"Cướp bóng (STL)\", \"value\": \"1 lần\", \"highlight\": false}, {\"label\": \"Mất bóng (Turnovers)\", \"value\": \"1 lần\"}, {\"label\": \"Thời gian thi đấu\", \"value\": \"32 phút\"}], \"fun_facts\": []}}",
+    "rating": 7.8,
+    "tags": [
+      "Đội hình xuất phát (Starting 5)",
+      "32 phút",
+      "17 điểm",
+      "7 REB",
+      "2 AST",
+      "1 STL",
+      "2 quả 3PT"
+    ],
+    "has_played": true,
+    "detailed_stats": {
+      "source": "NBA Official / ESPN",
+      "rating": 7.8,
+      "metrics": [
+        {
+          "label": "Điểm số (PTS)",
+          "value": "17 điểm",
+          "highlight": false
+        },
+        {
+          "label": "Bắt bóng bật bảng (REB)",
+          "value": "7 REB",
+          "highlight": false
+        },
+        {
+          "label": "Kiến tạo (AST)",
+          "value": "2 AST",
+          "highlight": false
+        },
+        {
+          "label": "Ném rổ thành công (FG)",
+          "value": "7-13"
+        },
+        {
+          "label": "Ném 3 điểm (3PT)",
+          "value": "2-4"
+        },
+        {
+          "label": "Ném phạt (FT)",
+          "value": "1-1"
+        },
+        {
+          "label": "Cướp bóng (STL)",
+          "value": "1 lần",
+          "highlight": false
+        },
+        {
+          "label": "Mất bóng (Turnovers)",
+          "value": "1 lần"
+        },
+        {
+          "label": "Thời gian thi đấu",
+          "value": "32 phút"
+        }
+      ],
+      "fun_facts": []
+    }
+  },
+  "Ryuusei Kawakami_wtt_3256_TTEMSINGLES-R32-000900_post": {
+    "stats_text": "Thua 1-3 (11-3, 9-11, 11-13, 8-11)",
+    "rating": 6.2,
+    "tags": [
+      "Thua",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "Ryuusei Kawakami 1 - 3 Hiroto Shinozuka (FT) • 11-3, 9-11, 11-13, 8-11"
+  },
+  "An Jae-hyun_wtt_3256_TTEMSINGLES-R32-000200_post": {
+    "stats_text": "Thua 0-3 (8-11, 5-11, 9-11)",
+    "rating": 5.6,
+    "tags": [
+      "Thua",
+      "Vòng 1/16"
+    ],
+    "has_played": true,
+    "match_result": "An Jae-hyun 0 - 3 Ganghyeon Park (FT) • 8-11, 5-11, 9-11"
   }
 }

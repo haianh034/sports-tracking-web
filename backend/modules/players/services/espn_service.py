@@ -1882,9 +1882,10 @@ def _save_match_stats_cache():
 def fetch_player_match_stats(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
     if event_id:
         try:
-            from backend.modules.players.services.multi_sport_service import WTT_MATCH_STATS_LOOKUP
-            if str(event_id) in WTT_MATCH_STATS_LOOKUP:
-                return dict(WTT_MATCH_STATS_LOOKUP[str(event_id)])
+            from backend.modules.players.services.multi_sport_service import get_multi_sport_match_stats
+            ms_stats = get_multi_sport_match_stats(str(event_id), player_name=player_name)
+            if ms_stats:
+                return dict(ms_stats)
         except Exception:
             pass
 
@@ -2044,9 +2045,10 @@ def _fetch_fotmob_match_summary(player_name: str, team_name: str, event_id: str,
 def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
     if event_id:
         try:
-            from backend.modules.players.services.multi_sport_service import WTT_MATCH_STATS_LOOKUP
-            if str(event_id) in WTT_MATCH_STATS_LOOKUP:
-                return dict(WTT_MATCH_STATS_LOOKUP[str(event_id)])
+            from backend.modules.players.services.multi_sport_service import get_multi_sport_match_stats
+            ms_stats = get_multi_sport_match_stats(str(event_id), player_name=player_name)
+            if ms_stats:
+                return dict(ms_stats)
         except Exception:
             pass
 
@@ -2106,12 +2108,15 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                 rv_stats = None
                 try:
                     from backend.modules.players.services.multi_sport_service import get_multi_sport_match_stats
-                    rv_stats = get_multi_sport_match_stats(ev_id_str)
+                    rv_stats = get_multi_sport_match_stats(ev_id_str, player_name=player_name)
                 except Exception:
                     pass
                 if not rv_stats:
-                    # Fallback to cached schedule item if SCHEDULE_30D_CACHE was loaded from disk
+                    # Fallback to cached schedule item ONLY for this specific player (avoid opponent perspective collision)
+                    p_low_key = (player_name or "").strip().lower()
                     for _ck, (_cts, _clist) in list(SCHEDULE_30D_CACHE.items()):
+                        if p_low_key and p_low_key not in str(_ck).lower():
+                            continue
                         if isinstance(_clist, list):
                             for _it in _clist:
                                 if str(_it.get("event_id") or "") == ev_id_str and (_it.get("player_stats") or _it.get("match_result")):
@@ -2210,7 +2215,7 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                         return {"stats_text": "", "rating": None, "tags": [tag_name], "has_played": False, "match_result": official_header_res}
                     
                     g = int(float(st_map.get('totalGoals', 0) or st_map.get('G', 0) or 0))
-                    a = int(float(st_map.get('goalAssists', 0) or st_map.get('A', 0) or 0))
+                    a = int(float(st_map.get('goalAssists', 0) or 0))
                     shots = int(float(st_map.get('shotsOnTarget', 0) or st_map.get('totalShots', 0) or 0))
                     yellow = int(float(st_map.get('yellowCards', 0) or 0))
                     red = int(float(st_map.get('redCards', 0) or 0))
@@ -2458,10 +2463,6 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                                     if "Siêu phẩm" not in tags: tags.append("Siêu phẩm")
                                 if any(kw in nt_low for kw in ["phá kỷ lục", "kỷ lục mới", "new record", "record-breaking", "career-high", "career high", "breaks record", "broke record", "sets record", "신기록", "대기록", "기록 경신", "新記録", "記録更新"]):
                                     if "Phá kỷ lục" not in tags: tags.append("Phá kỷ lục")
-                                if a == 0 and any(kw in nt_low for kw in ["kiến tạo", "assist", "assists", "assisted", "アシスト", "도움", "어시스트"]):
-                                    if "1 kiến tạo" not in tags and not any("kiến tạo" in t for t in tags):
-                                        tags.append("1 kiến tạo")
-                                        a = 1
                                 if is_gk:
                                     m_sv = re.search(r'(\d+)\s*(?:セーブ|cứu thua|saves)', nt_low)
                                     if m_sv:
@@ -2481,10 +2482,12 @@ def _fetch_player_match_stats_impl(player_name: str, sport_name: str, team_name:
                             st_text += f", {goals_conceded} bàn thua"
                     elif fotmob_stats and fotmob_stats.get("summary"):
                         fm_sum = fotmob_stats["summary"]
-                        if a > 0 and "kiến tạo" not in fm_sum:
-                            fm_sum = f"{a} kiến tạo, " + fm_sum
-                        if g > 0 and "bàn" not in fm_sum:
-                            fm_sum = f"{g} bàn, " + fm_sum
+                        fm_a = int(fotmob_stats.get("assists") or 0)
+                        fm_g = int(fotmob_stats.get("goals") or 0)
+                        if fm_a > 0 and "kiến tạo" not in fm_sum:
+                            fm_sum = f"{fm_a} kiến tạo, " + fm_sum
+                        if fm_g > 0 and "bàn" not in fm_sum:
+                            fm_sum = f"{fm_g} bàn, " + fm_sum
                         st_text = fm_sum
                     else:
                         st_parts = []

@@ -174,11 +174,9 @@ def _format_wtt_person_name(raw_name: str) -> str:
 def _wtt_round_label(doc_code: str, sub_desc: str = "") -> str:
     dc = (doc_code or "").upper()
     sd = (sub_desc or "").lower()
-    if "FNL-" in dc or "final -" in sd or sd.endswith("- final"):
-        return "Chung kết"
-    if "SFNL" in dc or "semifinal" in sd:
+    if "SFNL" in dc or "semifinal" in sd or "semi-final" in sd or "semi final" in sd:
         return "Bán kết"
-    if "QFNL" in dc or "quarterfinal" in sd:
+    if "QFNL" in dc or "quarterfinal" in sd or "quarter-final" in sd or "quarter final" in sd:
         return "Tứ kết"
     if "8FNL" in dc or "round of 16" in sd:
         return "Vòng 1/8"
@@ -186,9 +184,17 @@ def _wtt_round_label(doc_code: str, sub_desc: str = "") -> str:
         return "Vòng 1/16"
     if "R64" in dc or "round of 64" in sd:
         return "Vòng 1/32"
+    if "FNL-" in dc or re.search(r'\bfinal\b', sd):
+        return "Chung kết"
     if "RND" in dc or "group" in sd or "qual" in sd:
         return "Vòng bảng / Vòng loại"
     return ""
+
+
+def _stats_lookup_key(event_id: str, player_name: str = "") -> str:
+    ev = str(event_id or "").strip()
+    pn = " ".join(_norm_tokens(player_name)) if player_name else ""
+    return f"{ev}||{pn}" if pn else ev
 
 
 def _parse_wtt_scores(raw_scores: str) -> list:
@@ -595,13 +601,15 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
             if round_lbl and round_lbl not in tags:
                 tags.append(round_lbl)
 
-            WTT_MATCH_STATS_LOOKUP[ev_key] = {
+            stat_payload = {
                 "has_played": (m_state == "post" and has_score),
                 "stats_text": stats_text,
                 "tags": tags,
                 "rating": calc_rating,
                 "match_result": match_res,
             }
+            WTT_MATCH_STATS_LOOKUP[_stats_lookup_key(ev_key, player_name)] = stat_payload
+            WTT_MATCH_STATS_LOOKUP[ev_key] = stat_payload
 
             matches.append({
                 "match_name": f"vs {opp_label}",
@@ -612,6 +620,7 @@ def _fetch_wtt_matches_for_player(player_name: str, include_deep_history: bool =
                 "date_only_vn": dt_vn.strftime("%Y-%m-%d"),
                 "time_only_vn": dt_vn.strftime("%H:%M"),
                 "competition": clean_comp,
+                "round_tag": round_lbl,
                 "event_id": ev_key,
                 "match_state": m_state,
                 "match_result": match_res,
@@ -1030,13 +1039,16 @@ def _fetch_flashscore_matches(
 
         ev_id = f"fs_{sport_slug}_{row['mid']}"
         has_p = (m_state == "post" and bool(sc) and not is_walkover)
-        WTT_MATCH_STATS_LOOKUP[ev_id] = {
+        fs_stat_payload = {
             "has_played": has_p,
             "stats_text": stats_text,
             "tags": tags,
             "rating": calc_rating,
             "match_result": match_res,
         }
+        if player_name:
+            WTT_MATCH_STATS_LOOKUP[_stats_lookup_key(ev_id, player_name)] = fs_stat_payload
+        WTT_MATCH_STATS_LOOKUP[ev_id] = fs_stat_payload
 
         prefix = "vs " if is_s1 or not is_team_mode else "@ "
         results.append({
@@ -1065,10 +1077,15 @@ def _fetch_flashscore_matches(
     return results
 
 
-def get_racket_or_volleyball_match_stats(event_id: str) -> dict | None:
+def get_racket_or_volleyball_match_stats(event_id: str, player_name: str = "") -> dict | None:
     if not event_id:
         return None
-    return WTT_MATCH_STATS_LOOKUP.get(str(event_id))
+    if player_name:
+        k_p = _stats_lookup_key(event_id, player_name)
+        if k_p in WTT_MATCH_STATS_LOOKUP:
+            return dict(WTT_MATCH_STATS_LOOKUP[k_p])
+    val = WTT_MATCH_STATS_LOOKUP.get(str(event_id))
+    return dict(val) if val else None
 
 
 def fetch_flashscore_national_team_schedule(

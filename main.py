@@ -2,7 +2,7 @@ import os
 os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -31,7 +31,8 @@ async def lifespan(app: FastAPI):
             from backend.core.routers.dashboard import get_dashboard_data
             db = SessionLocal()
             try:
-                get_dashboard_data(db=db)
+                # Luôn pre-warm Giai đoạn 1 (full=False) siêu nhanh, KHÔNG chạy full=True chặn lock trên Render
+                get_dashboard_data(full=False, db=db)
             finally:
                 db.close()
         except Exception:
@@ -59,6 +60,10 @@ async def swagger_redirect():
 @app.get("/swagger.json", include_in_schema=False)
 async def swagger_json_redirect():
     return RedirectResponse(url="/openapi.json")
+
+@app.head("/", include_in_schema=False)
+async def root_head_healthcheck():
+    return Response(status_code=200)
 
 app.add_middleware(
     CORSMiddleware,

@@ -286,6 +286,7 @@ def get_dashboard_data(
     clean_sport_id = sport_id if isinstance(sport_id, int) else None
     clean_country_id = country_id if isinstance(country_id, int) else None
     clean_entity_type = entity_type if isinstance(entity_type, str) else None
+    clean_full = full if isinstance(full, bool) else False
 
     if not _DASHBOARD_CACHE:
         _load_dashboard_snapshot_if_available()
@@ -342,7 +343,7 @@ def get_dashboard_data(
                     return derived_data
 
     # 2. Nếu người dùng gọi full=True: Cần tính toán hoặc đợi bản Full
-    if full:
+    if clean_full:
         with _DASHBOARD_BUILD_LOCK:
             now_ts = datetime.datetime.now().timestamp()
             if cache_key_full in _DASHBOARD_CACHE:
@@ -539,8 +540,17 @@ def _compute_dashboard_data(
     sports_list = [{"name": s} for s in sorted(active_sports_set)]
     countries_list = [{"name": c} for c in sorted(active_countries_set)]
 
+    def _is_round_tag(tag_str: str) -> bool:
+        tl = str(tag_str or "").strip().lower()
+        if not tl:
+            return False
+        if tl in ("chung kết", "bán kết", "tứ kết", "tranh hạng 3", "play-off", "vòng bảng", "vòng loại", "vòng bảng / vòng loại"):
+            return True
+        return bool(re.match(r'^vòng\s+(?:1/\d+|\d+)$', tl))
+
     def _clean_tags_helper(tag_list):
         res = []
+        has_round = False
         for t in (tag_list or []):
             if not t:
                 continue
@@ -551,7 +561,13 @@ def _compute_dashboard_data(
             if m_sc:
                 k = m_sc.group(1)
                 t = k.capitalize() if k != "tỉ số" else None
-            if t and t not in res:
+            if not t:
+                continue
+            if _is_round_tag(t):
+                if has_round:
+                    continue
+                has_round = True
+            if t not in res:
                 res.append(t)
         
         # Enforce mutually exclusive outcome tags: a match can never have both Win and Loss
@@ -1603,10 +1619,11 @@ def _compute_dashboard_data(
 
             # Gắn tag Vòng đấu (Vòng 1..N, Tứ kết, Bán kết, Chung kết...) và Kết quả (Thắng/Thua/Hòa)
             m_tags_cur = list(m.get("tags") or [])
-            round_raw = m.get("round_tag") or (m_d.get("round_raw") if isinstance(m_d, dict) else "") or ""
-            resolved_round = extract_round_stage_tag(round_raw, m.get("competition", ""), m.get("raw_match_name", ""), date_vn_str=m_date_vn)
-            if resolved_round and resolved_round not in m_tags_cur:
-                m_tags_cur.append(resolved_round)
+            if not any(_is_round_tag(x) for x in m_tags_cur):
+                round_raw = m.get("round_tag") or (m_d.get("round_raw") if isinstance(m_d, dict) else "") or ""
+                resolved_round = extract_round_stage_tag(round_raw, m.get("competition", ""), m.get("raw_match_name", ""), date_vn_str=m_date_vn)
+                if resolved_round and resolved_round not in m_tags_cur:
+                    m_tags_cur.append(resolved_round)
 
             if is_m_past or m.get("match_state") == "post":
                 outcome_tag = extract_match_outcome_tag(
@@ -1713,11 +1730,12 @@ def _compute_dashboard_data(
             curr_stats = c_summary
             curr_detailed_stats = c_details
             curr_tags = list(tags or [])
-            today_round_raw = (sched_today_match.get("round_tag") if sched_today_match else "") or (c_details.get("round_raw") if isinstance(c_details, dict) else "") or ""
-            today_dvn = (sched_today_match.get("date_only_vn") if sched_today_match else "") or (match_today.date_str if match_today else "") or today_str_vn
-            today_round_tag = extract_round_stage_tag(today_round_raw, comp_name, curr_match_name, date_vn_str=today_dvn)
-            if today_round_tag and today_round_tag not in curr_tags:
-                curr_tags.append(today_round_tag)
+            if not any(_is_round_tag(x) for x in curr_tags):
+                today_round_raw = (sched_today_match.get("round_tag") if sched_today_match else "") or (c_details.get("round_raw") if isinstance(c_details, dict) else "") or ""
+                today_dvn = (sched_today_match.get("date_only_vn") if sched_today_match else "") or (match_today.date_str if match_today else "") or today_str_vn
+                today_round_tag = extract_round_stage_tag(today_round_raw, comp_name, curr_match_name, date_vn_str=today_dvn)
+                if today_round_tag and today_round_tag not in curr_tags:
+                    curr_tags.append(today_round_tag)
             if curr_match_state == "post" and curr_match_result:
                 today_outcome = extract_match_outcome_tag(
                     curr_match_result,
@@ -1999,12 +2017,13 @@ def _compute_dashboard_data(
 
                     clean_other_comp = get_tournament_tag(team_name, sport_name, other_cand_m.get("match_name", ""), other_cand_m.get("competition", ""))
                     all_otags = [clean_other_comp] if clean_other_comp else []
-                    o_round = extract_round_stage_tag(other_cand_m.get("round_tag", "") or other_cand_m.get("competition", ""), other_cand_m.get("raw_match_name", ""), date_vn_str=str(other_dvn or ""))
-                    if o_round and o_round not in all_otags:
-                        all_otags.append(o_round)
                     for ot in other_tags:
                         if ot and ot not in all_otags:
                             all_otags.append(ot)
+                    if not any(_is_round_tag(x) for x in all_otags):
+                        o_round = extract_round_stage_tag(other_cand_m.get("round_tag", "") or other_cand_m.get("competition", ""), other_cand_m.get("raw_match_name", ""), date_vn_str=str(other_dvn or ""))
+                        if o_round and o_round not in all_otags:
+                            all_otags.append(o_round)
                     if other_state == "post" and other_res:
                         o_out = extract_match_outcome_tag(other_res, team_name, other_cand_m.get("match_name", ""), player_name=p.name)
                         if o_out:

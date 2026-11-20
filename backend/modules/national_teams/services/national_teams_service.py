@@ -2005,6 +2005,18 @@ def evaluate_national_team_callup(
     last_tok = p_tokens[-1] if p_tokens else ""
     first_tok = p_tokens[0] if p_tokens else ""
 
+    def _mentions_player(text_low: str, text_nospace: str = "") -> bool:
+        for nv in name_variants_low:
+            if nv in text_low:
+                return True
+        if text_nospace:
+            for cv in cjk_variants_nospace:
+                if cv in text_nospace:
+                    return True
+        if last_tok and first_tok and last_tok in text_low and first_tok in text_low:
+            return True
+        return False
+
     p_titles = [str(t) for t in (player_news_titles or []) if t]
     has_recent_inj_news = False
     for title in p_titles[:15]:
