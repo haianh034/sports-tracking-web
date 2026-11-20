@@ -11,9 +11,41 @@ from backend.core.services.wiki_service import (
     _NON_ATHLETE_DESC_RE,
 )
 from backend.core.services.fotmob_service import _is_fotmob_name_match
+from backend.modules.players.services.combat_sports_service import (
+    generate_east_asian_romanization_variants,
+    search_ijf_judoka_candidates,
+)
+
+_SPORT_QUERY_HINTS = [
+    (r'\b(đấu\s*kiếm|fencing|fencer)\b', 'Đấu kiếm', 'fencing'),
+    (r'\b(judo|judoka)\b', 'Judo', 'judo'),
+    (r'\b(bóng\s*bàn|table\s*tennis)\b', 'Bóng bàn', 'table tennis'),
+    (r'\b(cầu\s*lông|badminton)\b', 'Cầu lông', 'badminton'),
+    (r'\b(bóng\s*chày|baseball|mlb|milb)\b', 'Bóng chày', 'baseball'),
+    (r'\b(bóng\s*rổ|basketball|nba)\b', 'Bóng rổ', 'basketball'),
+    (r'\b(bóng\s*chuyền|volleyball)\b', 'Bóng chuyền', 'volleyball'),
+    (r'\b(bóng\s*đá|football|soccer)\b', 'Bóng đá', 'football'),
+    (r'\b(quần\s*vợt|tennis)\b', 'Quần vợt', 'tennis'),
+    (r'\b(taekwondo)\b', 'Taekwondo', 'taekwondo'),
+    (r'\b(bơi\s*lội|swimming|swimmer)\b', 'Bơi lội', 'swimming'),
+    (r'\b(bắn\s*cung|archery|archer)\b', 'Bắn cung', 'archery'),
+    (r'\b(điền\s*kinh|athletics|track)\b', 'Điền kinh', 'athletics'),
+    (r'\b(thể\s*dục\s*dụng\s*cụ|gymnastics|gymnast)\b', 'Thể dục dụng cụ', 'gymnastics'),
+    (r'\b(trượt\s*băng|figure\s*skating|skating)\b', 'Trượt băng nghệ thuật', 'figure skating'),
+]
+
+def _extract_sport_hint(raw_query: str) -> tuple[str, str, str]:
+    q = (raw_query or "").strip()
+    for pat, sp_vi, sp_en in _SPORT_QUERY_HINTS:
+        if re.search(pat, q, re.IGNORECASE):
+            cleaned = re.sub(pat, '', q, flags=re.IGNORECASE)
+            cleaned = re.sub(r'[\s,\-/]+', ' ', cleaned).strip()
+            if len(cleaned) >= 2:
+                return cleaned, sp_vi, sp_en
+    return q, "", ""
 
 def search_athlete_candidates(query: str) -> tuple[bool, list]:
-    q_clean = query.strip()
+    q_clean, sport_hint, sport_hint_en = _extract_sport_hint(query)
     if not q_clean or len(q_clean) < 2:
         return False, []
     
@@ -245,104 +277,145 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
     # 3. Wikipedia / Wikidata Search API
     wiki_added = False
     try:
-        w_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(q_clean)}&utf8=&format=json&srlimit=6"
-        req = urllib.request.Request(w_url, headers={'User-Agent': 'SportsTrackingWeb/2.1 (contact@sportstracker.local)'})
-        with urllib.request.urlopen(req, timeout=8) as r:
-            d = json.loads(r.read().decode())
-        for res in d.get("query", {}).get("search", []):
-            title = res.get("title", "")
-            if _EVENT_TITLE_RE.search(title):
-                continue
-            q_tokens = [t.lower() for t in q_clean.split() if len(t) >= 3]
-            if q_tokens and not any(t in title.lower() for t in q_tokens):
-                continue
+        # Sinh các biến thể phiên âm Hàn Quốc / Đông Á (ví dụ: Lee Hyun-ji <-> Lee Hyeon-ji)
+        roman_variants = generate_east_asian_romanization_variants(q_clean, max_variants=3)
+        wiki_queries = list(roman_variants[:3])
+        if sport_hint_en:
+            wiki_queries.insert(0, f"{q_clean} {sport_hint_en}")
+            if len(roman_variants) > 1:
+                wiki_queries.insert(1, f"{roman_variants[1]} {sport_hint_en}")
 
-            snip = re.sub(r'<[^>]+>', '', res.get("snippet", ""))
-            snip_l = snip.lower()
-            if _NON_ATHLETE_DESC_RE.search(snip_l) and not _SPORT_HINT_RE.search(snip_l):
-                continue
-            if _SPORT_HINT_RE.search(title.lower() + " " + snip_l):
-                clean_title = re.sub(r'\s*\([^)]*\)$', '', title).strip()
-                if len(q_clean.split()) >= 2 and len(clean_title.split()) < 2:
+        seen_wiki_titles = set()
+        variant_tokens_all = set()
+        for rv in roman_variants:
+            for t in re.split(r'[\s\-]+', rv.lower()):
+                if len(t) >= 3:
+                    variant_tokens_all.add(t)
+
+        for wq in wiki_queries:
+            w_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(wq)}&utf8=&format=json&srlimit=6"
+            req = urllib.request.Request(w_url, headers={'User-Agent': 'SportsTrackingWeb/2.1 (contact@sportstracker.local)'})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                d = json.loads(r.read().decode())
+            for res in d.get("query", {}).get("search", []):
+                title = res.get("title", "")
+                if not title or title.lower() in seen_wiki_titles:
                     continue
-                if not any(b in title.lower() for b in ["season", "list of", "league", "cup", "team", "club", "stadium", "tournament", "at the ", "olympics", "championship"]):
-                    wiki_info = fetch_free_player_info(title)
-                    if not wiki_info.get("found"):
+                seen_wiki_titles.add(title.lower())
+                if _EVENT_TITLE_RE.search(title):
+                    continue
+                if variant_tokens_all and not any(t in title.lower() for t in variant_tokens_all):
+                    continue
+
+                snip = re.sub(r'<[^>]+>', '', res.get("snippet", ""))
+                snip_l = snip.lower()
+                if _NON_ATHLETE_DESC_RE.search(snip_l) and not _SPORT_HINT_RE.search(snip_l):
+                    continue
+                if _SPORT_HINT_RE.search(title.lower() + " " + snip_l):
+                    clean_title = re.sub(r'\s*\([^)]*\)$', '', title).strip()
+                    if len(q_clean.split()) >= 2 and len(clean_title.split()) < 2:
                         continue
-                    sport = wiki_info.get("sport_name", "Bóng đá")
-                    team = wiki_info.get("team_name", "Tự do")
-                    country = wiki_info.get("country_name", "Quốc tế")
-                    flag = wiki_info.get("country_flag", "🌐")
-                    aliases = wiki_info.get("aliases") or build_clean_player_aliases(clean_title, [q_clean])
-                    cand_gender = wiki_info.get("gender", "Men")
+                    if not any(b in title.lower() for b in ["season", "list of", "league", "cup", "team", "club", "stadium", "tournament", "at the ", "olympics", "championship"]):
+                        wiki_info = fetch_free_player_info(title)
+                        if not wiki_info.get("found"):
+                            continue
+                        sport = wiki_info.get("sport_name", "Bóng đá")
+                        team = wiki_info.get("team_name", "Tự do")
+                        country = wiki_info.get("country_name", "Quốc tế")
+                        flag = wiki_info.get("country_flag", "🌐")
+                        aliases = wiki_info.get("aliases") or build_clean_player_aliases(clean_title, [q_clean])
+                        cand_gender = wiki_info.get("gender", "Men")
 
-                    is_ex = _is_fotmob_name_match(q_clean, clean_title)
-                    score = 100 if is_ex else (85 if q_clean.lower() in clean_title.lower() else 65)
+                        is_ex = any(_is_fotmob_name_match(rv, clean_title) for rv in roman_variants)
+                        score = 100 if is_ex else (85 if any(rv.lower() in clean_title.lower() for rv in roman_variants) else 65)
 
-                    title_key = (clean_title.lower(), team.lower())
-                    if title_key not in seen:
-                        seen.add(title_key)
-                        wiki_added = True
-                        candidates.append({
-                            "name": clean_title,
-                            "sport": sport,
-                            "team": team,
-                            "country": country,
-                            "country_flag": flag,
-                            "aliases": aliases,
-                            "source": "Wikipedia",
-                            "score": score,
-                            "gender": cand_gender
-                        })
-
-                    if wiki_info.get("loan_club"):
-                        loan_t = wiki_info["loan_club"]
-                        parent_t = wiki_info.get("parent_club") or team
-                        loan_key = (clean_title.lower(), loan_t.lower())
-                        if loan_key not in seen:
-                            seen.add(loan_key)
+                        title_key = (clean_title.lower(), sport.lower(), team.lower())
+                        if title_key not in seen:
+                            seen.add(title_key)
+                            wiki_added = True
                             candidates.append({
                                 "name": clean_title,
                                 "sport": sport,
-                                "team": loan_t,
+                                "team": team,
                                 "country": country,
                                 "country_flag": flag,
                                 "aliases": aliases,
-                                "source": f"Cho mượn từ {parent_t}",
-                                "score": score + 5,
+                                "source": "Wikipedia",
+                                "score": score,
                                 "gender": cand_gender
                             })
+
+                        if wiki_info.get("loan_club"):
+                            loan_t = wiki_info["loan_club"]
+                            parent_t = wiki_info.get("parent_club") or team
+                            loan_key = (clean_title.lower(), sport.lower(), loan_t.lower())
+                            if loan_key not in seen:
+                                seen.add(loan_key)
+                                candidates.append({
+                                    "name": clean_title,
+                                    "sport": sport,
+                                    "team": loan_t,
+                                    "country": country,
+                                    "country_flag": flag,
+                                    "aliases": aliases,
+                                    "source": f"Cho mượn từ {parent_t}",
+                                    "score": score + 5,
+                                    "gender": cand_gender
+                                })
     except Exception:
         pass
 
     # 3b. Wikidata fallback nếu Wikipedia EN không có trang hoặc tên bị đảo thứ tự (ví dụ Joo Cheon-hui, Watanabe Yuzuno)
     if not wiki_added and not any(c.get("score", 0) >= 95 for c in candidates):
         try:
-            wiki_info = fetch_free_player_info(q_clean)
-            if wiki_info.get("found"):
-                wname = re.sub(r'\s*\([^)]*\)$', '', wiki_info.get("display_name") or q_clean).strip()
-                wteam = wiki_info.get("team_name", "Tự do")
-                wkey = (wname.lower(), wteam.lower())
-                if wkey not in seen:
-                    seen.add(wkey)
-                    candidates.append({
-                        "name": wname,
-                        "sport": wiki_info.get("sport_name", "Môn khác"),
-                        "team": wteam,
-                        "country": wiki_info.get("country_name", "Quốc tế"),
-                        "country_flag": wiki_info.get("country_flag", "🌐"),
-                        "aliases": wiki_info.get("aliases") or build_clean_player_aliases(wname, [q_clean]),
-                        "source": "Wikidata",
-                        "score": 98,
-                        "gender": wiki_info.get("gender", "Men")
-                    })
+            for rv in generate_east_asian_romanization_variants(q_clean, max_variants=2)[:2]:
+                wiki_info = fetch_free_player_info(rv)
+                if wiki_info.get("found"):
+                    wname = re.sub(r'\s*\([^)]*\)$', '', wiki_info.get("display_name") or rv).strip()
+                    wsport = wiki_info.get("sport_name", "Môn khác")
+                    wteam = wiki_info.get("team_name", "Tự do")
+                    wkey = (wname.lower(), wsport.lower(), wteam.lower())
+                    if wkey not in seen:
+                        seen.add(wkey)
+                        candidates.append({
+                            "name": wname,
+                            "sport": wsport,
+                            "team": wteam,
+                            "country": wiki_info.get("country_name", "Quốc tế"),
+                            "country_flag": wiki_info.get("country_flag", "🌐"),
+                            "aliases": wiki_info.get("aliases") or build_clean_player_aliases(wname, [q_clean]),
+                            "source": "Wikidata",
+                            "score": 98,
+                            "gender": wiki_info.get("gender", "Men")
+                        })
         except Exception:
             pass
 
-    sport_order = {"Bóng đá": 1, "Bóng chày": 2, "Bóng rổ": 3, "Bóng chuyền": 4, "Cầu lông": 5, "Quần vợt": 6, "Bóng bàn": 7, "Golf": 8, "Môn khác": 999}
+    # 3c. IJF JudoBase fallback (khi người dùng tìm môn Judo hoặc chưa tìm thấy VĐV Judo nào)
+    if sport_hint == "Judo" or not any(c.get("sport") == "Judo" for c in candidates):
+        if sport_hint == "Judo" or len(candidates) < 2:
+            try:
+                ijf_cands = search_ijf_judoka_candidates(q_clean, limit=3)
+                for jc in ijf_cands:
+                    jkey = (jc["name"].lower(), "judo", jc["team"].lower())
+                    if jkey not in seen:
+                        seen.add(jkey)
+                        jc_copy = dict(jc)
+                        jc_copy["aliases"] = build_clean_player_aliases(jc["name"], [q_clean])
+                        candidates.append(jc_copy)
+            except Exception:
+                pass
+
+    # Ưu tiên mạnh nếu người dùng có gõ kèm tên bộ môn (vd: "Lee Hyun-ji judo", "Oh Sang-uk đấu kiếm")
+    if sport_hint:
+        for c in candidates:
+            if (c.get("sport") or "").lower() == sport_hint.lower():
+                c["score"] = c.get("score", 0) + 25
+
+    sport_order = {"Bóng đá": 1, "Bóng chày": 2, "Bóng rổ": 3, "Bóng chuyền": 4, "Cầu lông": 5, "Quần vợt": 6, "Bóng bàn": 7, "Judo": 8, "Đấu kiếm": 9, "Golf": 10, "Môn khác": 999}
     candidates.sort(key=lambda x: (-x.get("score", 0), sport_order.get(x["sport"], 50)))
 
-    # Deduplicate candidates across ESPN, FotMob, Wikipedia
+    # Deduplicate candidates across ESPN, FotMob, Wikipedia, IJF (respecting sport!)
     unique_candidates = []
     def _norm_club(name: str) -> str:
         s = re.sub(r'^(vfl|fc|sc|afc|cf|ssv|borussia|spvgg|1\.\s*fc|as|ac)\s+', '', name.lower()).strip()
@@ -350,15 +423,17 @@ def search_athlete_candidates(query: str) -> tuple[bool, list]:
 
     for cand in candidates:
         c_name = cand["name"].strip().lower()
+        c_sport = (cand.get("sport") or "").strip().lower()
         c_team = cand.get("team", "").strip()
         c_team_norm = _norm_club(c_team)
         
         is_dup = False
         for u in unique_candidates:
             u_name = u["name"].strip().lower()
+            u_sport = (u.get("sport") or "").strip().lower()
             u_team = u.get("team", "").strip()
             u_team_norm = _norm_club(u_team)
-            if c_name == u_name:
+            if c_name == u_name and c_sport == u_sport:
                 if c_team.lower() == u_team.lower():
                     is_dup = True
                     break

@@ -665,7 +665,7 @@ def _compute_dashboard_data(
                 elif m_date_vn and (p.id, str(m_date_vn)) in perf_by_player_date:
                     has_in_db = True
 
-                if not has_in_db and ev_id and diff_lower_limit <= diff_d < -0.05 and not str(ev_id).startswith(("non_espn_", "wtt_", "fs_", "fm_", "espn_ov_")):
+                if not has_in_db and ev_id and diff_lower_limit <= diff_d < -0.05 and not str(ev_id).startswith(("non_espn_", "wtt_", "fs_", "fm_", "espn_ov_", "milb_", "ijf_", "fie_")):
                     cache_k = f"{p.name}_{ev_id}_post"
                     if cache_k not in MATCH_STATS_CACHE:
                         unique_past_events.add((espn_sport, str(ev_id)))
@@ -766,7 +766,7 @@ def _compute_dashboard_data(
                 if not ap.match_date:
                     continue
                 # Guard against stale legacy NT placeholders without real event IDs
-                if not ap_ev.startswith(("wtt_", "fs_", "fm_", "espn_")) and not ap_ev.isdigit():
+                if not ap_ev.startswith(("wtt_", "fs_", "fm_", "espn_", "milb_", "ijf_", "fie_")) and not ap_ev.isdigit():
                     continue
                 dt_vn_ap = ap.match_date + datetime.timedelta(hours=7)
                 diff_ap = (ap.match_date - now_utc).total_seconds() / 86400.0
@@ -1432,7 +1432,7 @@ def _compute_dashboard_data(
                     # Giai đoạn 1 (is_full_load=False): Chỉ cào chi tiết thời gian thực cho trận trong 7 ngày qua (-7.0 <= diff_d <= 0)
                     # Giai đoạn 2 (is_full_load=True): Cào thông số cho toàn bộ quá khứ của mùa giải (-300.0 <= diff_d <= 0)
                     stats_lower_limit = -300.0 if is_full_load else -7.0
-                    is_rv_match = bool(ev_id and str(ev_id).startswith(("wtt_", "fs_")))
+                    is_rv_match = bool(ev_id and str(ev_id).startswith(("wtt_", "fs_", "milb_", "ijf_", "fie_")))
                     if ev_id and (stats_lower_limit <= diff_d <= 0 or is_rv_match) and m.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                         try:
                             real_stats = fetch_player_match_stats(

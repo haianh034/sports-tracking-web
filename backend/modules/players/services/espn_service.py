@@ -1259,6 +1259,42 @@ def fetch_player_career_schedule(
         except Exception:
             pass
 
+    # Bổ sung lịch & thống kê Minor League Baseball (MiLB: Triple-A, Double-A, Rehab...) cho cầu thủ Bóng chày
+    s_low_career = (sport_name or "").lower()
+    if any(k in s_low_career for k in ["bóng chày", "baseball"]):
+        try:
+            from backend.modules.players.services.mlb_milb_service import fetch_mlb_milb_player_schedule
+            milb_matches = fetch_mlb_milb_player_schedule(
+                player_name=player_name,
+                current_team=current_team or "",
+                include_deep_history=include_deep_history,
+            )
+            existing_dates_names = {(m.get("date_only_vn"), (m.get("match_name") or "").lower()) for m in all_matches}
+            for mm in milb_matches:
+                sig = (mm.get("date_only_vn"), (mm.get("match_name") or "").lower())
+                if sig not in existing_dates_names:
+                    existing_dates_names.add(sig)
+                    all_matches.append(mm)
+        except Exception:
+            pass
+
+    # Bổ sung lịch & kết quả chính thức cho Judo (IJF JudoBase API) và Đấu kiếm (FIE)
+    if "judo" in s_low_career:
+        try:
+            from backend.modules.players.services.combat_sports_service import fetch_judo_player_schedule
+            judo_matches = fetch_judo_player_schedule(
+                player_name=player_name,
+                country_name=country_name or "",
+                include_deep_history=include_deep_history,
+            )
+            existing_ev = {m.get("event_id") for m in all_matches if m.get("event_id")}
+            for jm in judo_matches:
+                if jm.get("event_id") not in existing_ev:
+                    existing_ev.add(jm.get("event_id"))
+                    all_matches.append(jm)
+        except Exception:
+            pass
+
     all_matches.sort(key=lambda x: str(x.get("match_date_utc") or ""))
     return all_matches
 
@@ -1881,9 +1917,20 @@ def _save_match_stats_cache():
 
 def fetch_player_match_stats(player_name: str, sport_name: str, team_name: str, event_id: str = None, match_state: str = "pre", news_titles: list = None, match_date_utc: str = None, match_name: str = None) -> dict:
     if event_id:
+        ev_s = str(event_id)
         try:
+            if ev_s.startswith("milb_"):
+                from backend.modules.players.services.mlb_milb_service import get_milb_match_stats
+                ml_stats = get_milb_match_stats(ev_s, player_name=player_name)
+                if ml_stats:
+                    return dict(ml_stats)
+            elif ev_s.startswith(("ijf_", "fie_")):
+                from backend.modules.players.services.combat_sports_service import get_combat_match_stats
+                cb_stats = get_combat_match_stats(ev_s, player_name=player_name)
+                if cb_stats:
+                    return dict(cb_stats)
             from backend.modules.players.services.multi_sport_service import get_multi_sport_match_stats
-            ms_stats = get_multi_sport_match_stats(str(event_id), player_name=player_name)
+            ms_stats = get_multi_sport_match_stats(ev_s, player_name=player_name)
             if ms_stats:
                 return dict(ms_stats)
         except Exception:
