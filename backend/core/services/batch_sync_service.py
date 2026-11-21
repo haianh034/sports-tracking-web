@@ -102,12 +102,12 @@ def prefetch_unique_team_schedules(unique_teams: list):
     Chỉ gọi ESPN 1 lần duy nhất cho mỗi đội bóng và lưu vào cache bộ nhớ.
     """
     def _fetch_one(item):
-        t_name, s_name = item
+        t_name, s_name, g_val = item if len(item) == 3 else (item[0], item[1], "Men")
         if not t_name:
             return
         try:
-            fetch_real_schedule(t_name, s_name)
-            fetch_player_upcoming_schedule_30d(t_name, s_name)
+            fetch_real_schedule(t_name, s_name, gender=g_val)
+            fetch_player_upcoming_schedule_30d(t_name, s_name, gender=g_val)
         except Exception:
             pass
 
@@ -159,13 +159,20 @@ def auto_detect_player_transfers(db: Session, players: list):
                 if not _is_fotmob_name_match(p.name, p_info.get("name", "")):
                     continue
                 new_team = p_info["teamName"].strip()
+                p_gender = getattr(p, "gender", "Men") or "Men"
+                if p_gender.lower() == "women" and new_team and not any(w in new_team.lower() for w in ["(nữ)", "(women)", "(w)", "women", "frauen", "ladies"]):
+                    new_team = f"{new_team} (Nữ)"
                 # Không bao giờ tự động hạ cấp CLB đội 1 hiện tại sang đội dự bị / đội II / U21
                 if curr_team and curr_team not in ["Tự do", "Chưa rõ CLB"] and not _youth_rx.search(curr_team) and _youth_rx.search(new_team):
                     continue
                 if new_team and curr_team and not is_same_club_alias(curr_team, new_team):
-                    new_club = db.query(Club).filter(Club.name.ilike(new_team), Club.sport_id == p.sport_id).first()
+                    new_club = db.query(Club).filter(
+                        Club.name.ilike(new_team),
+                        Club.sport_id == p.sport_id,
+                        Club.gender == p_gender,
+                    ).first()
                     if not new_club:
-                        new_club = Club(name=new_team, sport_id=p.sport_id, country_id=p.country_id)
+                        new_club = Club(name=new_team, sport_id=p.sport_id, country_id=p.country_id, gender=p_gender)
                         db.add(new_club)
                         db.flush()
                     p.club_id = new_club.id
@@ -199,12 +206,12 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
         auto_detect_player_transfers(db, players)
 
         player_data = [
-            (p.id, p.name, p.team_name, p.country_name, p.sport_name, p.name_aliases or "")
+            (p.id, p.name, p.team_name, p.country_name, p.sport_name, p.name_aliases or "", getattr(p, "gender", "Men") or "Men")
             for p in players
         ]
 
-        # 1. Gom nhóm câu lạc bộ
-        unique_teams = list({(t_name, s_name) for _, _, t_name, _, s_name, _ in player_data if t_name})
+        # 1. Gom nhóm câu lạc bộ (tách biệt theo giới tính Nam/Nữ)
+        unique_teams = list({(t_name, s_name, g_val) for _, _, t_name, _, s_name, _, g_val in player_data if t_name})
         prefetch_unique_team_schedules(unique_teams)
 
         # 2. Tải bảng điểm trực tiếp các giải lớn
@@ -212,9 +219,9 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
 
         # 3. Quét tin tức và dữ liệu trận đấu
         def _sync_player(task):
-            p_id, p_name, p_team, p_country, p_sport, p_aliases = task
+            p_id, p_name, p_team, p_country, p_sport, p_aliases, p_gender = task
             try:
-                sched = fetch_real_schedule(p_team, p_sport, player_name=p_name)
+                sched = fetch_real_schedule(p_team, p_sport, player_name=p_name, gender=p_gender)
                 m_name = sched["match_name"] if sched else "Chưa có dữ liệu lịch đấu"
                 m_date = sched["match_date"] if sched else None
                 m_state = sched.get("match_state", "pre") if sched else "pre"

@@ -218,18 +218,26 @@ def get_espn_team_info(team_name: str, sport_name: str = None, api_team_id: str 
                                 score += 50
 
                         # Heavy penalty for women's teams when looking for men's teams, and vice versa
-                        is_women = (
+                        is_women_cand = (
                             '.w.' in l_lower or 
+                            'wchampions' in l_lower or
+                            'nwsl' in l_lower or
+                            'wnba' in l_lower or
                             'wfc' in d_lower or 
                             'women' in d_lower or 
                             'women' in sub_lower or 
                             'women' in link.lower() or 
+                            'frauen' in d_lower or
+                            'ladies' in d_lower or
                             'fem' in l_lower
                         )
-                        if is_women:
-                            if (gender or "Men").lower() == "women":
+                        if (gender or "Men").lower() == "women":
+                            if is_women_cand:
                                 score += 300  # Boost women's teams when searching for women's player
                             else:
+                                score -= 600  # Strictly reject men's teams when searching for women's player
+                        else:
+                            if is_women_cand:
                                 score -= 500  # Penalize women's teams when searching for men's player
 
                         # Penalty for youth / reserve squads
@@ -584,11 +592,11 @@ def fetch_tennis_schedule(player_or_team_name: str) -> dict:
         "event_id": pick.get("event_id"),
     }
 
-def fetch_real_schedule(team_name: str, sport_name: str = None, player_name: str = None) -> dict:
+def fetch_real_schedule(team_name: str, sport_name: str = None, player_name: str = None, gender: str = "Men") -> dict:
     if not team_name and not player_name:
         return None
         
-    cache_key = (str(team_name).strip().lower(), str(sport_name or "").lower(), str(player_name or "").lower())
+    cache_key = (str(team_name).strip().lower(), str(sport_name or "").lower(), str(player_name or "").lower(), str(gender or "Men").lower())
     now_ts = datetime.datetime.now().timestamp()
     if cache_key in SCHEDULE_CACHE:
         cached_ts, cached_val = SCHEDULE_CACHE[cache_key]
@@ -616,7 +624,7 @@ def fetch_real_schedule(team_name: str, sport_name: str = None, player_name: str
         SCHEDULE_CACHE[cache_key] = (now_ts, None)
         return None
 
-    sched = fetch_espn_schedule(team_name, sport_name)
+    sched = fetch_espn_schedule(team_name, sport_name, gender=gender)
     SCHEDULE_CACHE[cache_key] = (now_ts, sched)
     return sched
 
@@ -811,12 +819,12 @@ def _extract_espn_round_tag(event: dict, comp: dict, fallback_text: str = "") ->
     return extract_round_stage_tag(wk_txt, st_txt, note_txt, fallback_text)
 
 
-def fetch_espn_schedule(team_name: str, sport_name: str = None) -> dict:
+def fetch_espn_schedule(team_name: str, sport_name: str = None, gender: str = "Men") -> dict:
     if not team_name or team_name in ["Tự do", "Chưa rõ Đội"]: 
         return None
         
     try:
-        team_info = get_espn_team_info(team_name, sport_name)
+        team_info = get_espn_team_info(team_name, sport_name, gender=gender)
         if not team_info:
             return None
         
