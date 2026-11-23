@@ -1022,7 +1022,8 @@ def _compute_dashboard_data(
                             if not match_today and ev_id and (p.id, str(ev_id)) in perf_by_player_event:
                                 match_today = perf_by_player_event[(p.id, str(ev_id))]
 
-                        if not match_today and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
+                        # Chỉ lưu vào match_performances khi trận đã/đang diễn ra (in/post); không tạo bản ghi nháp rỗng cho trận 'pre'
+                        if not match_today and match_state in ("in", "post") and sched_today_match.get("nt_callup_status") not in ("not_called_up", "injured_withdrawal"):
                             match_today = MatchPerformance(
                                 player_id=p.id,
                                 match_name=m_name,
@@ -1043,7 +1044,7 @@ def _compute_dashboard_data(
                                 perf_by_player_date[(p.id, str(sched_today_match.get("date_only_vn")))] = match_today
                             if ev_id:
                                 perf_by_player_event[(p.id, str(ev_id))] = match_today
-                        else:
+                        elif match_today:
                             match_today.match_name = m_name
                             if m_perf_date:
                                 match_today.match_date = m_perf_date
@@ -1325,7 +1326,8 @@ def _compute_dashboard_data(
                     if cand_perf and (not cand_perf.event_id or not ev_id or str(cand_perf.event_id) == str(ev_id) or str(cand_perf.match_name or "") == str(m.get("match_name") or "")):
                         db_perf = cand_perf
 
-                if db_perf and (db_perf.player_stats or db_perf.impression_tags or db_perf.has_played is not None):
+                # Chỉ coi bản ghi DB là đã chốt khi match_state == 'post' (nếu vẫn kẹt 'pre'/'in' từ trước khi đá thì bắt buộc cào bù lại!)
+                if db_perf and db_perf.match_state == "post" and (db_perf.player_stats or db_perf.impression_tags or db_perf.has_played is not None):
                     has_fotmob = bool(db_perf.player_stats and '"source": "FotMob"' in db_perf.player_stats)
                     # Tự động làm sạch dữ liệu DB bị lỗi cũ (espn_nt_ bị cắt prefix, trận cá nhân đã có tỷ số nhưng has_played=False, hoặc "Không thi đấu" không có dữ liệu đội hình)
                     db_tags_low = str(db_perf.impression_tags or "").strip().lower()
@@ -1489,25 +1491,42 @@ def _compute_dashboard_data(
                                         m_dt = datetime.datetime.strptime(m["match_date_utc"][:19], "%Y-%m-%dT%H:%M:%S")
                                     except Exception:
                                         pass
-                                new_perf = MatchPerformance(
-                                    player_id=p.id,
-                                    match_name=m.get("match_name"),
-                                    match_date=m_dt,
-                                    has_played=has_p,
-                                    performance_rating=p_rating,
-                                    impression_tags=",".join(raw_tags_list),
-                                    match_state="post",
-                                    match_result=m.get("match_result"),
-                                    player_stats=p_stats,
-                                    competition=clean_comp,
-                                    event_id=str(ev_id) if ev_id else None,
-                                    date_str=m_date_vn
-                                )
-                                db.add(new_perf)
-                                if ev_id:
-                                    perf_by_player_event[(p.id, str(ev_id))] = new_perf
-                                if m_date_vn:
-                                    perf_by_player_date[(p.id, str(m_date_vn))] = new_perf
+                                if db_perf:
+                                    # Cập nhật trực tiếp bản ghi 'pre'/'in' cũ lên 'post' (không tạo dòng trùng)
+                                    db_perf.match_name = m.get("match_name") or db_perf.match_name
+                                    if m_dt:
+                                        db_perf.match_date = m_dt
+                                    db_perf.has_played = has_p
+                                    db_perf.performance_rating = p_rating
+                                    db_perf.impression_tags = ",".join(raw_tags_list)
+                                    db_perf.match_state = "post"
+                                    db_perf.match_result = m.get("match_result") or db_perf.match_result
+                                    db_perf.player_stats = p_stats
+                                    db_perf.competition = clean_comp or db_perf.competition
+                                    if ev_id and not db_perf.event_id:
+                                        db_perf.event_id = str(ev_id)
+                                    if m_date_vn and not db_perf.date_str:
+                                        db_perf.date_str = m_date_vn
+                                else:
+                                    new_perf = MatchPerformance(
+                                        player_id=p.id,
+                                        match_name=m.get("match_name"),
+                                        match_date=m_dt,
+                                        has_played=has_p,
+                                        performance_rating=p_rating,
+                                        impression_tags=",".join(raw_tags_list),
+                                        match_state="post",
+                                        match_result=m.get("match_result"),
+                                        player_stats=p_stats,
+                                        competition=clean_comp,
+                                        event_id=str(ev_id) if ev_id else None,
+                                        date_str=m_date_vn
+                                    )
+                                    db.add(new_perf)
+                                    if ev_id:
+                                        perf_by_player_event[(p.id, str(ev_id))] = new_perf
+                                    if m_date_vn:
+                                        perf_by_player_date[(p.id, str(m_date_vn))] = new_perf
                             except Exception:
                                 pass
                     else:

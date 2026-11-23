@@ -279,23 +279,15 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
             news_by_player[n.player_id].append(n)
 
         for p_id, m_name, m_date, m_state, m_res, h_played, stats_info, m_comp, news_entries in results:
-            if m_name:
+            now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+            is_future = bool(m_date and m_date >= now_utc)
+            # Chỉ lưu vào match_performances khi trận đã/đang diễn ra (in/post); không tạo bản ghi nháp rỗng 'pre'
+            if m_name and not is_future and m_state in ("in", "post"):
                 actual_played = stats_info.get("has_played", h_played)
                 m_date_str = (m_date + datetime.timedelta(hours=7)).strftime("%Y-%m-%d") if m_date else None
-                # Không lưu kết quả thi đấu hay rating vào các trận tương lai
-                now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-                is_future = bool(m_date and m_date >= now_utc)
-                if is_future:
-                    m_state = "pre"
-                    m_res = None
-                    actual_played = False
-                    p_rating = None
-                    p_stats = None
-                    p_tags = [m_comp] if m_comp else []
-                else:
-                    p_rating = stats_info.get("rating")
-                    p_stats = stats_info.get("stats_text")
-                    p_tags = stats_info.get("tags", [])
+                p_rating = stats_info.get("rating")
+                p_stats = stats_info.get("stats_text")
+                p_tags = stats_info.get("tags", [])
 
                 perf = perf_map.get((p_id, m_name))
                 if not perf:
