@@ -3,10 +3,46 @@ import time
 import threading
 import feedparser
 import urllib.parse
+import urllib.request
+import urllib.error
 import datetime
 from sqlalchemy.orm import Session
 from backend.core.config import CLUB_BLACKLIST
 from backend.core.db.models import Player, PlayerNews
+
+_RSS_PACING_LOCK = threading.Lock()
+_LAST_RSS_REQ_TS = 0.0
+_RSS_MIN_INTERVAL = 0.25  # 250ms spacing to avoid Google News HTTP 429
+
+def fetch_google_news_rss(url: str, timeout: float = 6.0, retries: int = 2) -> bytes | None:
+    """Thread-safe paced fetcher for Google News RSS with automatic HTTP 429 retry/backoff."""
+    global _LAST_RSS_REQ_TS
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+    }
+    for attempt in range(retries + 1):
+        with _RSS_PACING_LOCK:
+            now_t = time.monotonic()
+            wait_s = _RSS_MIN_INTERVAL - (now_t - _LAST_RSS_REQ_TS)
+            if wait_s > 0:
+                time.sleep(wait_s)
+            _LAST_RSS_REQ_TS = time.monotonic()
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as he:
+            if he.code == 429 and attempt < retries:
+                time.sleep(1.2 * (attempt + 1))
+                continue
+            return None
+        except Exception:
+            if attempt < retries:
+                time.sleep(0.5)
+                continue
+            return None
+    return None
 
 TRANSFER_KEYWORDS = [
     "transfer", "rumor", "rumour", "signed", "signing", "deal", "bid", "fee", "contract",
@@ -290,6 +326,12 @@ SPORT_EXCLUSIVE_PROFILES = {
     },
     "Esports": {
         "esports", "lck", "lpl", "worlds", "valorant", "league of legends", "dota", "cs2", "t1"
+    },
+    "Judo": {
+        "judo", "judoka", "ijf", "ippon", "柔道", "유도"
+    },
+    "Đấu kiếm": {
+        "fencing", "fencer", "sabre", "épée", "epee", "foil", "fie", "フェンシング", "펜싱", "đấu kiếm"
     },
 }
 
@@ -617,23 +659,18 @@ def fetch_player_news_entries(
         # to unlock all Japanese/Korean news outlets (Yahoo Japan, Nikkan, Naver, etc.)
         if reg["code"] in ["JP", "KR"] and native_names:
             native_parts = [f'"{nn}"' for nn in native_names[:2]]
-            target_q = " OR ".join(native_parts)
+            target_q = "(" + " OR ".join(native_parts) + ") when:7d"
         else:
             query_parts = [f'"{player_name}"']
             for la in latin_aliases[:2]:
                 query_parts.append(f'"{la}"')
-            target_q = " OR ".join(query_parts)
+            target_q = "(" + " OR ".join(query_parts) + ") when:7d"
 
         encoded_query = urllib.parse.quote(target_q)
         ceid_param = f"&ceid={reg['gl']}:{reg['hl']}" if "hl" in reg and "gl" in reg else ""
         rss_url = f"https://news.google.com/rss/search?q={encoded_query}&hl={reg['hl']}&gl={reg['gl']}{ceid_param}"
-        try:
-            req = urllib.request.Request(rss_url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=4) as resp:
-                raw_xml = resp.read()
-            feed = feedparser.parse(raw_xml)
-        except Exception:
-            feed = None
+        raw_xml = fetch_google_news_rss(rss_url, timeout=6.0)
+        feed = feedparser.parse(raw_xml) if raw_xml else None
 
         entries = getattr(feed, "entries", []) or []
         for entry in entries:

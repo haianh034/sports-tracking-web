@@ -1467,14 +1467,20 @@ def fetch_national_team_schedule(team) -> list:
     _save_nt_sched_cache()
     return matches
 
+_NT_NEWS_LAST_FETCH_TS = {}  # team_id -> float timestamp
+_NT_NEWS_TTL_SECONDS = 3600   # Chỉ bỏ qua refresh nếu vừa quét trong vòng 1 giờ gần nhất
+
 def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh: bool = False) -> list:
     """
     Fetches abundant native Japanese, Korean, and English news articles from Google News RSS.
-    Uses localized ceid parameters to guarantee hundreds of native articles from Yahoo JP, Naver, etc.
+    Uses localized ceid parameters + when:3d time filter + 429-safe pacing.
     """
     existing_news = db.query(NationalTeamNews).filter(NationalTeamNews.team_id == team.id).order_by(NationalTeamNews.published_at.desc()).all()
-    if not force_refresh and len(existing_news) >= 8:
+    now_ts = datetime.datetime.now().timestamp()
+    last_ts = _NT_NEWS_LAST_FETCH_TS.get(team.id, 0.0)
+    if not force_refresh and existing_news and (now_ts - last_ts) < _NT_NEWS_TTL_SECONDS:
         return existing_news
+    _NT_NEWS_LAST_FETCH_TS[team.id] = now_ts
 
     # Determine native & international query targets
     # KHỚP CHÍNH XÁC: Tên/Tên viết tắt + Môn thể thao (sport) + Lứa tuổi (tier)
@@ -1533,84 +1539,100 @@ def fetch_national_team_news_feed(team: NationalTeam, db: Session, force_refresh
     neg_ko = " -축구" if not is_soccer else ""
     neg_en = " -soccer -football" if not is_soccer else ""
 
+    # Chuẩn hóa biến thể lứa tuổi (ví dụ U17 -> U-17 và U17) & giới tính nữ
+    is_women_team = (getattr(team, "gender", "Men") or "Men").lower() == "women" or "nữ" in (team.name or "").lower()
+    tier_nodash = re.sub(r'[^A-Za-z0-9]', '', tier_label).upper() if tier_label else ""
+    tier_dash = re.sub(r'^U(\d+)$', r'U-\1', tier_nodash) if tier_nodash else ""
+    tier_or = f"({tier_dash} OR {tier_nodash})" if (tier_dash and tier_nodash and tier_dash != tier_nodash) else tier_nodash
+
     if is_japan:
-        if cat_match and cat_match.get("query_native"):
+        if tier_or:
+            g_ja = " 女子" if is_women_team else ""
+            native_q = f"{tier_or} {ja_sport_word}日本代表{g_ja}".strip()
+        elif cat_match and cat_match.get("query_native"):
             native_q = cat_match["query_native"]
         elif getattr(team, "search_query", None) and any(ord(c) > 127 for c in team.search_query):
             native_q = team.search_query
         else:
-            # Tự động sinh query tiếng Nhật chuẩn cho bất kỳ môn thể thao nào
-            if is_soccer:
-                native_q = f"{tier_label} サッカー日本代表".strip()
-            else:
-                native_q = f"{tier_label} {ja_sport_word}日本代表".strip()
+            g_ja = " 女子" if is_women_team else ""
+            native_q = f"{ja_sport_word}日本代表{g_ja}".strip()
         
-        # Bổ sung từ khóa phủ định nếu không phải bóng đá
         if not is_soccer and "-サッカー" not in native_q:
             native_q = f"{native_q}{neg_ja}"
 
         query_configs.append({
-            "query": native_q,
+            "query": f"{native_q} when:3d",
             "hl": "ja",
             "gl": "JP",
             "ceid": "JP:ja",
             "region": "JP"
         })
     elif is_korea:
-        if cat_match and cat_match.get("query_native"):
+        g_ko = " 여자" if is_women_team else ""
+        if tier_or:
+            # Query tự nhiên theo báo chí Hàn Quốc (한국 / 韓 / 대한민국 + U-17/U17 + môn/đại diện)
+            if is_soccer:
+                native_q = f"(한국 OR 韓 OR 대한민국) {tier_or}{g_ko} (축구 OR 대표팀 OR 월드컵)"
+            else:
+                native_q = f"(한국 OR 韓 OR 대한민국) {tier_or}{g_ko} {ko_sport_word}"
+        elif cat_match and cat_match.get("query_native"):
             native_q = cat_match["query_native"]
         elif getattr(team, "search_query", None) and any(ord(c) > 127 for c in team.search_query):
             native_q = team.search_query
         else:
-            # Tự động sinh query tiếng Hàn chuẩn cho bất kỳ môn thể thao nào
-            if is_soccer:
-                native_q = f"대한민국 {tier_label} 축구 국가대표팀".strip()
-            else:
-                native_q = f"대한민국 {tier_label} {ko_sport_word} 국가대표팀".strip()
+            native_q = f"(한국 OR 韓 OR 대한민국) {ko_sport_word}{g_ko} 대표팀".strip()
 
-        # Bổ sung từ khóa phủ định nếu không phải bóng đá
         if not is_soccer and "-축구" not in native_q:
             native_q = f"{native_q}{neg_ko}"
 
         query_configs.append({
-            "query": native_q,
+            "query": f"{native_q} when:3d",
             "hl": "ko",
             "gl": "KR",
             "ceid": "KR:ko",
             "region": "KR"
         })
 
-    # International English query fallback
-    if cat_match and cat_match.get("query_en"):
+    # International English query (linh hoạt theo báo chí quốc tế + when:3d)
+    country_en = "Japan" if is_japan else ("South Korea" if is_korea else (team.country_name or ""))
+    g_en = " women" if is_women_team else ""
+    if tier_or:
+        if is_soccer:
+            en_q = f'"{country_en}" {tier_or}{g_en} (football OR soccer OR "World Cup")'
+        else:
+            en_q = f'"{country_en}" {tier_or}{g_en} {en_sport_word}'
+    elif cat_match and cat_match.get("query_en"):
         en_q = cat_match["query_en"]
     else:
-        en_q = f"{team.country_name} {tier_label} {en_sport_word} national team".strip()
+        en_q = f'"{country_en}" {en_sport_word}{g_en} "national team"'.strip()
     
     if not is_soccer and "-soccer" not in en_q:
         en_q = f"{en_q}{neg_en}"
 
     query_configs.append({
-        "query": en_q,
+        "query": f"{en_q} when:3d",
         "hl": "en-US",
         "gl": "US",
         "ceid": "US:en",
         "region": "US"
     })
 
-    existing_titles = {n.title for n in db.query(NationalTeamNews).filter(NationalTeamNews.team_id == team.id).all()}
+    existing_titles = {t[0] for t in db.query(NationalTeamNews.title).filter(NationalTeamNews.team_id == team.id).all()}
     now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     new_added = 0
+
+    from backend.modules.players.services.news_service import fetch_google_news_rss
 
     for cfg in query_configs:
         encoded_q = urllib.parse.quote(cfg["query"])
         url = f"https://news.google.com/rss/search?q={encoded_q}&hl={cfg['hl']}&gl={cfg['gl']}&ceid={cfg['ceid']}"
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=4) as resp:
-                xml_data = resp.read()
+            xml_data = fetch_google_news_rss(url, timeout=6.0)
+            if not xml_data:
+                continue
             root = ET.fromstring(xml_data)
 
-            for item in root.findall('.//item')[:25]:
+            for item in root.findall('.//item')[:60]:
                 title_elem = item.find('title')
                 link_elem = item.find('link')
                 pub_date_elem = item.find('pubDate')

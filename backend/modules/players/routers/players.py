@@ -462,7 +462,7 @@ def sync_all_players(db: Session = Depends(get_db)):
                 session.close()
 
         nt_ids = [nt.id for nt in national_teams]
-        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             list(executor.map(_sync_single_nt, nt_ids))
 
     try:
