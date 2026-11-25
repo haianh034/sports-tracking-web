@@ -2719,10 +2719,13 @@ let inFlightDecodePromise = null;
 
 async function copySingleNewsLink(rawUrl, btnElem) {
     if (!rawUrl) return;
-    let targetUrl = rawUrl;
-    if (window.decodedUrlCache && window.decodedUrlCache[rawUrl] && !window.decodedUrlCache[rawUrl].includes('news.google.com')) {
-        targetUrl = window.decodedUrlCache[rawUrl];
-    } else if (rawUrl.includes('news.google.com')) {
+    const resolvePromise = (async () => {
+        if (window.decodedUrlCache && window.decodedUrlCache[rawUrl] && !window.decodedUrlCache[rawUrl].includes('news.google.com')) {
+            return window.decodedUrlCache[rawUrl];
+        }
+        if (!rawUrl.includes('news.google.com')) {
+            return rawUrl;
+        }
         if (btnElem) btnElem.innerText = "⏳";
         try {
             const res = await fetch('/api/news/decode-urls', {
@@ -2733,24 +2736,48 @@ async function copySingleNewsLink(rawUrl, btnElem) {
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.decoded_urls && data.decoded_urls[0] && !data.decoded_urls[0].includes('news.google.com')) {
-                    targetUrl = data.decoded_urls[0];
-                    window.decodedUrlCache[rawUrl] = targetUrl;
-                    document.querySelectorAll(`a[href="${rawUrl}"]`).forEach(a => { a.href = targetUrl; });
+                    const dec = data.decoded_urls[0];
+                    window.decodedUrlCache[rawUrl] = dec;
+                    document.querySelectorAll(`a[href="${rawUrl}"]`).forEach(a => { a.href = dec; });
+                    return dec;
                 }
             }
         } catch (e) {
             console.warn("Decode single error", e);
         }
+        return rawUrl;
+    })();
+
+    let copied = false;
+    if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+        try {
+            const blobPromise = resolvePromise.then(u => {
+                if (!u || u.includes('news.google.com')) {
+                    throw new Error("UNDECODED_RSS");
+                }
+                return new Blob([u], { type: 'text/plain' });
+            });
+            await navigator.clipboard.write([
+                new ClipboardItem({ 'text/plain': blobPromise })
+            ]);
+            copied = true;
+        } catch (e) {
+            if (e && e.message === "UNDECODED_RSS") {
+                showToast("Bài báo chưa thể giải mã link gốc hoặc đã bị gỡ bởi nhà xuất bản.", "warning");
+                if (btnElem) btnElem.innerText = "📋";
+                return;
+            }
+        }
     }
 
+    const targetUrl = await resolvePromise;
     if (targetUrl.includes('news.google.com')) {
         showToast("Bài báo chưa thể giải mã link gốc hoặc đã bị gỡ bởi nhà xuất bản.", "warning");
         if (btnElem) btnElem.innerText = "📋";
         return;
     }
 
-    let copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
+    if (!copied && navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(targetUrl);
             copied = true;
@@ -2889,23 +2916,35 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
         }
 
         let copied = false;
+
+        // Trình duyệt hiện đại: truyền Promise<Blob> trực tiếp vào ClipboardItem NGAY LÚC CLICK
+        // để giữ nguyên User Gesture token ngay cả khi API decode trên Render mất nhiều giây!
+        if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+            try {
+                const blobPromise = textPromise.then(text => {
+                    if (!text || !text.trim()) {
+                        throw new Error("NO_VALID_URLS");
+                    }
+                    return new Blob([text], { type: 'text/plain' });
+                });
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'text/plain': blobPromise })
+                ]);
+                copied = true;
+            } catch (e) {
+                if (e && e.message === "NO_VALID_URLS") {
+                    showToast("Không có liên kết gốc hợp lệ nào để sao chép sang NotebookLM.", "warning");
+                    return;
+                }
+                console.warn("ClipboardItem Promise write failed, trying fallback writeText", e);
+            }
+        }
+
         const textToCopy = await textPromise;
 
         if (!cleanUrls || cleanUrls.length === 0) {
             showToast("Không có liên kết gốc hợp lệ nào để sao chép sang NotebookLM.", "warning");
             return;
-        }
-
-        // Trình duyệt hiện đại: ClipboardItem liên kết trực tiếp User Gesture token qua Promise
-        if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
-            try {
-                await navigator.clipboard.write([
-                    new ClipboardItem({ 'text/plain': new Blob([textToCopy], { type: 'text/plain' }) })
-                ]);
-                copied = true;
-            } catch (e) {
-                console.warn("ClipboardItem write failed, trying fallback writeText", e);
-            }
         }
 
         if (!copied) {
@@ -2948,7 +2987,7 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
                 if (copyLabel) copyLabel.innerText = defaultLabel;
             }, 2500);
         } else {
-            showToast("Không thể sao chép liên kết vào clipboard. Vui lòng thử lại.", "error");
+            showToast(`Đã giải mã xong ${cleanUrls.length} link! Bấm nút Sao chép thêm 1 lần nữa để copy ngay.`, "info");
         }
     } catch (err) {
         console.error("copyLinksToNotebookLM unexpected error", err);
