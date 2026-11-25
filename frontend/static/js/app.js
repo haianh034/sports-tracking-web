@@ -2722,6 +2722,35 @@ function renderModalNews() {
 window.decodedUrlCache = window.decodedUrlCache || {};
 let inFlightDecodePromise = null;
 
+// Bộ lọc tổng quát loại bỏ các link trang Video / Clip / Thư viện ảnh / MXH không phải bài báo văn bản
+// (NotebookLM không đọc được video ngoài YouTube và dễ hốt rác sidebar gây lỗi bộ lọc an toàn)
+function isNotebookLMCompatibleUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const u = url.trim();
+    if (!/^https?:\/\//i.test(u)) return false;
+    const low = u.toLowerCase();
+    if (low.includes('news.google.com') || low.includes('consent.google.com')) return false;
+    try {
+        const parsed = new URL(u);
+        const host = parsed.hostname.toLowerCase();
+        const path = parsed.pathname.toLowerCase();
+        // Cho phép YouTube chuẩn (NotebookLM hỗ trợ transcript YouTube)
+        if (host.includes('youtube.com') || host.includes('youtu.be')) {
+            return !path.startsWith('/shorts/');
+        }
+        // Chặn MXH dạng video ngắn / bài đăng không có thân bài báo
+        const blockedHosts = ['tiktok.com', 'instagram.com', 'facebook.com', 'fb.watch', 'x.com', 'twitter.com', 'threads.net', 'dailymotion.com', 'vimeo.com', 'twitch.tv'];
+        if (blockedHosts.some(h => host === h || host.endsWith('.' + h))) return false;
+        // Chặn các đường dẫn trang video / clip / phát sóng / thư viện ảnh tổng quát
+        if (/\/(video|videos|movie|movies|clip|clips|watch|live|tv|podcast|podcasts|photo|photos|gallery|galleries|shorts)(\/|$)/i.test(path)) {
+            return false;
+        }
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 async function copySingleNewsLink(rawUrl, btnElem) {
     if (!rawUrl) return;
     const resolvePromise = (async () => {
@@ -2757,8 +2786,8 @@ async function copySingleNewsLink(rawUrl, btnElem) {
     if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
         try {
             const blobPromise = resolvePromise.then(u => {
-                if (!u || u.includes('news.google.com')) {
-                    throw new Error("UNDECODED_RSS");
+                if (!isNotebookLMCompatibleUrl(u)) {
+                    throw new Error("UNSUPPORTED_URL");
                 }
                 return new Blob([u], { type: 'text/plain' });
             });
@@ -2767,8 +2796,8 @@ async function copySingleNewsLink(rawUrl, btnElem) {
             ]);
             copied = true;
         } catch (e) {
-            if (e && e.message === "UNDECODED_RSS") {
-                showToast("Bài báo chưa thể giải mã link gốc hoặc đã bị gỡ bởi nhà xuất bản.", "warning");
+            if (e && e.message === "UNSUPPORTED_URL") {
+                showToast("Link này là trang video/RSS không tương thích với NotebookLM nên đã được chặn.", "warning");
                 if (btnElem) btnElem.innerText = "📋";
                 return;
             }
@@ -2776,8 +2805,8 @@ async function copySingleNewsLink(rawUrl, btnElem) {
     }
 
     const targetUrl = await resolvePromise;
-    if (targetUrl.includes('news.google.com')) {
-        showToast("Bài báo chưa thể giải mã link gốc hoặc đã bị gỡ bởi nhà xuất bản.", "warning");
+    if (!isNotebookLMCompatibleUrl(targetUrl)) {
+        showToast("Link này là trang video/RSS không tương thích với NotebookLM nên đã được chặn.", "warning");
         if (btnElem) btnElem.innerText = "📋";
         return;
     }
@@ -2909,13 +2938,13 @@ async function copyLinksToNotebookLM(validUrls, btnId, labelId, iconId, defaultL
                 const dec = window.decodedUrlCache[u];
                 return (dec && !dec.includes('news.google.com')) ? dec : u;
             });
-            cleanUrls = Array.from(new Set(rawFinalUrls.filter(u => u && !u.includes('news.google.com'))));
-            skippedRssCount = rawFinalUrls.filter(u => u && u.includes('news.google.com')).length;
+            cleanUrls = Array.from(new Set(rawFinalUrls.filter(u => isNotebookLMCompatibleUrl(u))));
+            skippedRssCount = rawFinalUrls.filter(u => u && !isNotebookLMCompatibleUrl(u)).length;
             textPromise = Promise.resolve(cleanUrls.join('\n'));
         } else {
             textPromise = getFinalUrls().then(urls => {
-                cleanUrls = Array.from(new Set(urls.filter(u => u && !u.includes('news.google.com'))));
-                skippedRssCount = urls.filter(u => u && u.includes('news.google.com')).length;
+                cleanUrls = Array.from(new Set(urls.filter(u => isNotebookLMCompatibleUrl(u))));
+                skippedRssCount = urls.filter(u => u && !isNotebookLMCompatibleUrl(u)).length;
                 return cleanUrls.join('\n');
             });
         }
