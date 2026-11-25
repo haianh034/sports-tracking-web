@@ -1822,11 +1822,16 @@ function renderCalendarCards(dateStr) {
     }
 
     // Sort matched entries matching Today's Activities hierarchy:
+    // 0. National teams & youth teams first (for all days)
     // 1. Rating high to low (9.5 > 8.0 > 6.7)
-    // 2. State priority (in > post > pre)
-    // 3. News count (descending)
+    // 2. News count (descending)
+    // 3. State priority (in > post > pre)
     // 4. Time
     matchedEntries.sort((a, b) => {
+        const aIsNt = (a.player && a.player.entity_type === 'national_team') ? 1 : 0;
+        const bIsNt = (b.player && b.player.entity_type === 'national_team') ? 1 : 0;
+        if (aIsNt !== bIsNt) return bIsNt - aIsNt;
+
         const getRating = (entry) => {
             const r = (entry.match && entry.match.rating !== undefined && entry.match.rating !== null) 
                 ? entry.match.rating 

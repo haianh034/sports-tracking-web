@@ -2510,8 +2510,9 @@ def _compute_dashboard_data(
         sched_nt["details"] = sched_nt_details
         schedule_players.append(sched_nt)
             
-    # Sắp xếp: Ưu tiên có rating lên trước (từ cao đến thấp) => đã/đang thi đấu => số lượng báo
+    # Sắp xếp: Ưu tiên ĐTQG & đội trẻ lên đầu => có rating (từ cao đến thấp) => đã/đang thi đấu => số lượng báo
     def sort_active_today_players(p):
+        is_nt = 1 if p.get("entity_type") == "national_team" else 0
         news_count = len(p.get("details", {}).get("news", [])) or p.get("news_24h_count", 0)
         rating_val = p.get("rating")
         has_rating = 1 if (isinstance(rating_val, (int, float)) and rating_val > 0) else 0
@@ -2526,9 +2527,10 @@ def _compute_dashboard_data(
         else:
             status_score = 0
 
-        return (has_rating, rating_score, status_score, news_count)
+        return (is_nt, has_rating, rating_score, status_score, news_count)
 
     def sort_by_news_and_time(p):
+        is_nt_order = 0 if p.get("entity_type") == "national_team" else 1
         news_count = len(p.get("details", {}).get("news", []))
         time_score = 9999999999.0
         dt_raw = p.get("match_date_utc") or p.get("details", {}).get("match_date_utc")
@@ -2539,11 +2541,14 @@ def _compute_dashboard_data(
                 time_score = mdt.timestamp()
             except Exception:
                 pass
-        return (-news_count, time_score)
+        return (is_nt_order, -news_count, time_score)
 
     active_players.sort(key=sort_active_today_players, reverse=True)
     upcoming_players.sort(key=sort_by_news_and_time)
-    no_match_players.sort(key=lambda p: len(p.get("details", {}).get("news", [])), reverse=True)
+    no_match_players.sort(
+        key=lambda p: (1 if p.get("entity_type") == "national_team" else 0, len(p.get("details", {}).get("news", []))),
+        reverse=True
+    )
 
     def sort_schedule_key(p):
         news_count = len(p.get("details", {}).get("news", []))
