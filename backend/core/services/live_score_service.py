@@ -186,3 +186,50 @@ def get_live_scores_map() -> dict:
     LIVE_SCORE_CACHE["data"] = live_map
     return live_map
 
+
+def find_matching_live_score(
+    live_map: dict,
+    team_name: str,
+    event_id: str = None,
+    match_name: str = None,
+) -> dict | None:
+    """
+    Tra cứu live score an toàn theo ranh giới từ (whole-word) và đối chiếu event_id / đối thủ.
+    Chống triệt để lỗi substring như 'lille' khớp nhầm 'lillestrom' hay 'angers' khớp nhầm 'rangers'.
+    """
+    if not live_map or not team_name:
+        return None
+
+    import re
+    clean_team = team_name.lower().strip()
+    if not clean_team:
+        return None
+
+    # 1. Tìm ứng viên khớp theo tên chính xác hoặc ranh giới từ (whole-word), tuyệt đối không substring giữa từ
+    cand = live_map.get(clean_team)
+    if not cand:
+        for k, info in live_map.items():
+            if not k or len(k) < 3:
+                continue
+            if re.search(rf'(?:^|\b){re.escape(k)}(?:\b|$)', clean_team) or re.search(rf'(?:^|\b){re.escape(clean_team)}(?:\b|$)', k):
+                cand = info
+                break
+    if not cand:
+        return None
+
+    # 2. Nếu cả hai đều có ESPN event_id dạng số thì bắt buộc phải trùng khớp
+    ev_req = str(event_id or "").strip()
+    ev_cand = str(cand.get("event_id") or "").strip()
+    if ev_req.isdigit() and ev_cand.isdigit() and ev_req != ev_cand:
+        return None
+
+    # 3. Nếu có tên trận/đối thủ (vd: 'vs Bayern Munich'), xác nhận đối thủ xuất hiện trong trận live
+    if match_name:
+        opp = re.sub(r'^(@ |vs |vs\. )', '', str(match_name), flags=re.I).strip().lower()
+        opp_toks = [t for t in re.split(r'[^a-z0-9]+', opp) if len(t) >= 4 and t not in ("fc", "sc", "cf", "afc", "united", "city", "club", "real", "sporting")]
+        cand_text = f"{cand.get('home_name', '')} {cand.get('away_name', '')} {cand.get('match_name', '')} {cand.get('match_result', '')}".lower()
+        if opp_toks and not any(t in cand_text for t in opp_toks):
+            return None
+
+    return cand
+

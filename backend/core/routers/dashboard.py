@@ -65,7 +65,7 @@ from backend.modules.players.services.sports_service import (
 )
 from backend.modules.players.services.multi_sport_service import calculate_set_rating
 from backend.modules.national_teams.services.national_teams_service import evaluate_national_team_callup
-from backend.core.services.live_score_service import get_live_scores_map
+from backend.core.services.live_score_service import get_live_scores_map, find_matching_live_score
 from backend.modules.national_teams.services.national_teams_service import (
     fetch_national_team_schedule, fetch_national_team_news_feed,
     format_national_team_match_tags, get_national_team_tournament_tag
@@ -950,14 +950,13 @@ def _compute_dashboard_data(
                 rating = None
                 raw_tags = []
 
-            # Kiểm tra live_scores ngay để lấy tỉ số mới nhất theo thời gian thực
-            clean_team_key = (team_name or "").lower().strip()
-            live_info = live_scores.get(clean_team_key)
-            if not live_info:
-                for k in live_scores:
-                    if k in clean_team_key or clean_team_key in k:
-                        live_info = live_scores[k]
-                        break
+            # Kiểm tra live_scores an toàn (whole-word + đối chiếu event_id & đối thủ)
+            live_info = find_matching_live_score(
+                live_scores,
+                team_name,
+                event_id=sched_today_match.get("event_id"),
+                match_name=sched_today_match.get("match_name"),
+            )
             if live_info:
                 if live_info.get("state") in ["in", "post"]:
                     match_state = live_info["state"]
@@ -1154,14 +1153,13 @@ def _compute_dashboard_data(
                 if len(p_news_titles) >= 20:
                     break
 
-        # Kiểm tra kết quả trực tiếp thời gian thực cho trận đấu đang live/vừa kết thúc hôm nay
-        clean_team_key = (team_name or "").lower().strip()
-        live_info = live_scores.get(clean_team_key)
-        if not live_info:
-            for k in live_scores:
-                if k in clean_team_key or clean_team_key in k:
-                    live_info = live_scores[k]
-                    break
+        # Kiểm tra kết quả trực tiếp thời gian thực an toàn (chống lỗi substring lille/lillestrom, angers/rangers)
+        live_info = find_matching_live_score(
+            live_scores,
+            team_name,
+            event_id=match_today.event_id if match_today else None,
+            match_name=match_today.match_name if match_today else None,
+        )
 
         if live_info:
             live_state = live_info.get("state", "pre")
@@ -1383,9 +1381,9 @@ def _compute_dashboard_data(
                     if db_perf.match_result and (not m.get("match_result") or len(str(db_perf.match_result)) > len(str(m.get("match_result")))):
                         m["match_result"] = db_perf.match_result
                     if not m.get("match_result") or m.get("match_result") in ["Đã kết thúc", "Đã kết thúc (FT)", ""]:
-                        clean_match_team = (match_team or "").lower().strip()
-                        if clean_match_team in live_scores and live_scores[clean_match_team].get("match_result"):
-                            m["match_result"] = live_scores[clean_match_team]["match_result"]
+                        ls_match = find_matching_live_score(live_scores, match_team, event_id=ev_id, match_name=m.get("match_name"))
+                        if ls_match and ls_match.get("match_result"):
+                            m["match_result"] = ls_match["match_result"]
                     if db_perf.match_state and db_perf.match_state in ["post", "in"]:
                         m["match_state"] = db_perf.match_state
                         m["is_past"] = (db_perf.match_state == "post" or diff_d < -0.05)

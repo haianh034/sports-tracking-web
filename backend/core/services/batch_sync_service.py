@@ -115,7 +115,7 @@ def prefetch_unique_team_schedules(unique_teams: list):
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers_count) as ex:
         list(ex.map(_fetch_one, unique_teams))
 
-from backend.core.services.live_score_service import get_live_scores_map
+from backend.core.services.live_score_service import get_live_scores_map, find_matching_live_score
 import threading
 
 def is_same_club_alias(team_a: str, team_b: str) -> bool:
@@ -230,14 +230,8 @@ def execute_batched_sync(db: Session, update_news: bool = True) -> dict:
                 ev_id = sched.get("event_id") if sched else None
                 m_comp = sched.get("competition") if sched else ""
 
-                # Bổ sung thông tin từ live_map nếu đội đang thi đấu hoặc vừa thi đấu
-                clean_team = (p_team or "").lower().strip()
-                live_info = live_map.get(clean_team)
-                if not live_info:
-                    for k in live_map:
-                        if k in clean_team or clean_team in k:
-                            live_info = live_map[k]
-                            break
+                # Bổ sung thông tin từ live_map an toàn (whole-word + đối chiếu event_id & đối thủ)
+                live_info = find_matching_live_score(live_map, p_team, event_id=ev_id, match_name=m_name)
 
                 if live_info:
                     if not ev_id:
