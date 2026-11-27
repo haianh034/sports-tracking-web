@@ -32,9 +32,21 @@ HEADERS = {
     'Accept': 'application/json, text/plain, */*'
 }
 
+_LATIN_TRANSLIT = str.maketrans({
+    'ø': 'o', 'Ø': 'o',
+    'æ': 'ae', 'Æ': 'ae',
+    'œ': 'oe', 'Œ': 'oe',
+    'ß': 'ss',
+    'ł': 'l', 'Ł': 'l',
+    'đ': 'd', 'Đ': 'd',
+    'ð': 'd', 'Ð': 'd',
+    'þ': 'th', 'Þ': 'th',
+})
+
 def _norm_team_text(s: str) -> str:
     if not s:
         return ""
+    s = s.translate(_LATIN_TRANSLIT)
     s = unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore').decode('utf-8').lower()
     s = re.sub(r'^(@ |vs |vs\. )', '', s).strip()
     s = re.sub(r'\((?:w|nu|nữ|women|f|ladies)\)', '', s)
@@ -257,6 +269,9 @@ def fetch_fotmob_detailed_stats(player_name: str, team_name: str = "", opponent_
                     if _opponents_match(opp_norm, opp_keywords, m_opp_norm):
                         target_match = m
                         break
+                # Fallback an toàn: cầu thủ không thể đá 2 trận khác nhau trong vòng ±12h
+                if not target_match and date_candidates[0][0] <= 12 * 3600:
+                    target_match = date_candidates[0][1]
             else:
                 # Không có tên đối thủ, chỉ nhận nếu trùng trong ±24h
                 if date_candidates[0][0] <= 24 * 3600:
