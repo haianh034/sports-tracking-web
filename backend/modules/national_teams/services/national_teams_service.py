@@ -1965,7 +1965,10 @@ def evaluate_national_team_callup(
     """
     nt_match = nt_match or {}
     tags_low = " ".join(str(t).lower() for t in (nt_match.get("tags") or []))
-    if nt_match.get("has_played") and not nt_match.get("no_lineup_data"):
+    ev_id_nt = str(nt_match.get("event_id") or "")
+    # Flashscore national team schedules (fs_*) only contain team score, NEVER individual player lineups!
+    is_team_only_source = ev_id_nt.startswith("fs_") or bool(nt_match.get("no_lineup_data"))
+    if nt_match.get("has_played") and not is_team_only_source:
         return ("called_up", "Được triệu tập", "Thi đấu chính thức cho ĐTQG")
     if any(k in tags_low for k in ["đá chính", "vào sân", "dự bị", "xuất phát"]):
         return ("called_up", "Được triệu tập", "Có tên trong danh sách thi đấu ĐTQG")
@@ -1998,6 +2001,16 @@ def evaluate_national_team_callup(
                 "not_called_up",
                 "Không lên tuyển",
                 "Cầu thủ thuộc 40-man roster MLB không tham gia các giải giao hữu / APBC / U-23 ngoài WBC",
+            )
+
+    # Basketball: NBA & G League players (Rui Hachimura, Yuki Kawamura, etc.) do NOT play in mid-season FIBA Qualifiers (Oct-May)
+    if "bóng rổ" in sport_name.lower() or "basketball" in sport_name.lower():
+        is_fiba_qual = any(k in comp_low for k in ["qualif", "vòng loại", "friendly", "giao hữu", "window"])
+        if club_league in {"NBA", "NBA G League"} and is_fiba_qual:
+            return (
+                "not_called_up",
+                "Không lên tuyển",
+                "Cầu thủ NBA / G League không về dự các cửa sổ vòng loại FIBA trong mùa giải NBA",
             )
 
     is_eaff = any(k in comp_low for k in ["eaff", "e-1 championship"])
